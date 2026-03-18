@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('hostels', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('township_id')->constrained('townships')->onDelete('cascade');
-            $table->foreignId('listing_status_id')->constrained('status_codes')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('address');
             $table->text('house_rules')->nullable();
+            $table->enum('type', ['Male Only', 'Female Only', 'Mixed']);
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('township_id')->constrained('townships')->onDelete('cascade');
+            $table->foreignId('listing_status_id')->constrained('status_codes')->onDelete('cascade');
             $table->timestamps();
         });
     }

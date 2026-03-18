@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('hostel_images', function (Blueprint $table) {
             $table->id();
             $table->foreignId('hostel_id')->constrained('hostels')->onDelete('cascade');
-            $table->string('image_path');
-            $table->integer('display_order')->default(0);
-            $table->timestamps();
+            $table->string('image_url');
+            $table->boolean('is_primary')->default(0);
+            $table->timestamp('uploaded_at');
         });
     }
 

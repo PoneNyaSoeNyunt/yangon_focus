@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StatusCodeSeeder::class,
             TownshipSeeder::class,
+            RoomTypeSeeder::class,
         ]);
     }
 }
