@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('auth_rate_limits', function (Blueprint $table) {
+            $table->id();
+            $table->string('phone_number')->unique();
+            $table->integer('failed_attempts')->default(0);
+            $table->integer('lockout_level')->default(0);
+            $table->timestamp('unlock_at')->nullable();
+            $table->timestamp('last_attempt_at')->nullable();
+            $table->timestamps();
+
+            $table->foreign('phone_number')
+                  ->references('phone_number')
+                  ->on('users')
+                  ->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('auth_rate_limits');
+    }
+};
