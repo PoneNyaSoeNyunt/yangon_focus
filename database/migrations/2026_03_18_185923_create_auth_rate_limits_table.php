@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('auth_rate_limits', function (Blueprint $table) {
-            $table->id();
-            $table->string('phone_number')->unique();
+            $table->string('phone_number')->primary();
             $table->integer('failed_attempts')->default(0);
             $table->integer('lockout_level')->default(0);
             $table->timestamp('unlock_at')->nullable();
