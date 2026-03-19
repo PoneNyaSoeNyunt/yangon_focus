@@ -1,0 +1,217 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import adminService from '../../services/adminService';
+
+const ROLES = {
+  Guest: { label: 'Guest', color: 'bg-blue-100 text-blue-700' },
+  Owner: { label: 'Owner', color: 'bg-purple-100 text-purple-700' },
+  'Super Admin': { label: 'Super Admin', color: 'bg-amber-100 text-amber-700' },
+};
+
+const Dashboard = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const perPage = 15;
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['admin-users', page],
+    queryFn: () => adminService.getUsers(page, perPage),
+    keepPreviousData: true,
+  });
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const users = data?.data ?? [];
+  const meta = data?.meta ?? {};
+  const lastPage = meta.last_page ?? 1;
+  const total = meta.total ?? 0;
+  const from = meta.from ?? 0;
+  const to = meta.to ?? 0;
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <nav className="bg-white border-b border-amber-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </div>
+            <span className="font-bold text-gray-900 text-lg">Yangon Focus</span>
+            <span className="hidden sm:inline text-gray-300">|</span>
+            <span className="hidden sm:inline text-sm text-gray-500">Super Admin Panel</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                <span className="text-xs font-bold text-amber-700">
+                  {user?.full_name?.charAt(0) ?? 'A'}
+                </span>
+              </div>
+              <span className="text-sm font-medium text-gray-700">{user?.full_name}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                Super Admin
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition px-3 py-1.5 rounded-lg hover:bg-red-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Manage all registered Guests and Owners
+            </p>
+          </div>
+          {!isLoading && !isError && (
+            <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-sm font-semibold text-gray-700">{total} Users</span>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <svg className="w-8 h-8 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span className="text-sm text-gray-400">Loading users...</span>
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <svg className="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-red-500 font-medium">
+                {error?.response?.data?.message ?? 'Failed to load users.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Name</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">NRC Number</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status ID</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {users.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-16 text-gray-400 text-sm">
+                          No users found.
+                        </td>
+                      </tr>
+                    ) : (
+                      users.map((u, idx) => (
+                        <tr key={u.id} className="hover:bg-amber-50/40 transition-colors">
+                          <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">
+                            {(page - 1) * perPage + idx + 1}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-amber-100 flex-shrink-0 flex items-center justify-center">
+                                <span className="text-xs font-bold text-amber-700">
+                                  {u.full_name?.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="font-medium text-gray-900">{u.full_name}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 font-mono text-gray-600">{u.phone_number}</td>
+                          <td className="px-5 py-3.5 font-mono text-gray-500 text-xs">{u.nrc_number}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLES[u.role]?.color ?? 'bg-gray-100 text-gray-600'}`}>
+                              {ROLES[u.role]?.label ?? u.role}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-gray-400 text-xs">{u.user_status_id ?? '—'}</td>
+                          <td className="px-5 py-3.5 text-gray-400 text-xs whitespace-nowrap">
+                            {u.created_at
+                              ? new Date(u.created_at).toLocaleDateString('en-GB', {
+                                  day: '2-digit', month: 'short', year: 'numeric',
+                                })
+                              : '—'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {lastPage > 1 && (
+                <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-500">
+                    Showing <span className="font-medium text-gray-700">{from}–{to}</span> of{' '}
+                    <span className="font-medium text-gray-700">{total}</span> users
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Prev
+                    </button>
+                    <span className="text-sm font-medium text-gray-700 px-2">
+                      {page} / {lastPage}
+                    </span>
+                    <button
+                      onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+                      disabled={page === lastPage}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      Next
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

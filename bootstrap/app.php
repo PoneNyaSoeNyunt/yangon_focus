@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'check.lockout' => \App\Http\Middleware\CheckLockout::class,
+            'admin.only'    => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
         //

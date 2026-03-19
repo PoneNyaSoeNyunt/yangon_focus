@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({ phone_number: '', password: '' });
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
@@ -36,9 +38,11 @@ const LoginPage = () => {
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
-    onSuccess: () => {
+    onSuccess: (data) => {
       setGeneralError('');
-      navigate('/');
+      login(data.user, data.token);
+      const role = data.user?.role;
+      navigate(role === 'Super Admin' ? '/admin/dashboard' : '/');
     },
     onError: (error) => {
       const status = error?.response?.status;
