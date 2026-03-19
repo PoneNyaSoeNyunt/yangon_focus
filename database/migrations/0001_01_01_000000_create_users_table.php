@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('phone_number')->unique();
             $table->string('full_name');
-            $table->string('nrc_number')->unique()->nullable();
+            $table->string('nrc_number')->unique();
             $table->string('password_hash');
             $table->enum('role', ['Guest', 'Owner', 'Super Admin'])->default('Guest');
             $table->unsignedBigInteger('user_status_id')->nullable();

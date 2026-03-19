@@ -20,14 +20,14 @@ class UserSeeder extends Seeder
         $rateLimitsToInsert = [];
 
         $superAdmin = [
-            'phone_number' => '09765432189',
-            'full_name'    => 'Pone Nya',
-            'nrc_number'   => null,
-            'password_hash' => Hash::make('admin'),
-            'role'         => 'Super Admin',
+            'phone_number'   => '09765432189',
+            'full_name'      => 'Pone Nya',
+            'nrc_number'     => '12(N)111111',
+            'password_hash'  => Hash::make('admin'),
+            'role'           => 'Super Admin',
             'user_status_id' => $pendingStatusId,
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ];
 
         $usersToInsert[] = $superAdmin;
@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
 
         $faker = Faker::create();
         $usedPhones = ['09765432189'];
-        $usedNrcs = [];
+        $usedNrcs = ['12(N)111111'];
 
         for ($i = 0; $i < 10; $i++) {
             do {
