@@ -16,6 +16,11 @@ class UserSeeder extends Seeder
             ->where('label', 'Pending Verification')
             ->value('id');
 
+        $activeStatusId = DB::table('status_codes')
+            ->where('context', 'User')
+            ->where('label', 'Active')
+            ->value('id');
+
         $usersToInsert = [];
         $rateLimitsToInsert = [];
 
@@ -41,9 +46,29 @@ class UserSeeder extends Seeder
             'updated_at'      => now(),
         ];
 
+        $usersToInsert[] = [
+            'phone_number'   => '092345610',
+            'full_name'      => 'Daw Hla',
+            'nrc_number'     => '12(N)222222',
+            'password_hash'  => Hash::make('owner'),
+            'role'           => 'Owner',
+            'user_status_id' => $activeStatusId,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ];
+        $rateLimitsToInsert[] = [
+            'phone_number'    => '092345610',
+            'failed_attempts' => 0,
+            'lockout_level'   => 0,
+            'unlock_at'       => null,
+            'last_attempt_at' => null,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ];
+
         $faker = Faker::create();
-        $usedPhones = ['09765432189'];
-        $usedNrcs = ['12(N)111111'];
+        $usedPhones = ['09765432189', '092345610'];
+        $usedNrcs = ['12(N)111111', '12(N)222222'];
 
         for ($i = 0; $i < 10; $i++) {
             do {
