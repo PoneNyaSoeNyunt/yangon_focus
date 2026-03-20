@@ -42,7 +42,9 @@ const LoginPage = () => {
       setGeneralError('');
       login(data.user, data.token);
       const role = data.user?.role;
-      navigate(role === 'Super Admin' ? '/admin/analytics' : '/');
+      if (role === 'Super Admin') navigate('/admin/analytics');
+      else if (role === 'Owner') navigate('/owner/hostels');
+      else navigate('/');
     },
     onError: (error) => {
       const status = error?.response?.status;
