@@ -272,9 +272,8 @@ const LicenseVerification = () => {
   });
 
   const licenses = data?.data ?? [];
-  const meta = data?.meta ?? {};
-  const lastPage = meta.last_page ?? 1;
-  const total = meta.total ?? 0;
+  const lastPage = data?.last_page ?? 1;
+  const total = data?.total ?? 0;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
