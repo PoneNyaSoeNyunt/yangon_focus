@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import adminService from '../../services/adminService';
@@ -10,9 +10,71 @@ const ROLES = {
   'Super Admin': { label: 'Super Admin', color: 'bg-amber-100 text-amber-700' },
 };
 
+const STATUS_STYLES = {
+  'Active':               'bg-green-100 text-green-700',
+  'Suspended':            'bg-yellow-100 text-yellow-700',
+  'Blacklisted':          'bg-red-100 text-red-700',
+  'Pending Verification': 'bg-gray-100 text-gray-500',
+};
+
+const ACTION_BUTTONS = [
+  { label: 'Activate',   status: 'Active',      style: 'text-green-700 hover:bg-green-50' },
+  { label: 'Suspend',    status: 'Suspended',   style: 'text-yellow-700 hover:bg-yellow-50' },
+  { label: 'Blacklist',  status: 'Blacklisted', style: 'text-red-700 hover:bg-red-50' },
+];
+
+const ActionMenu = ({ userId, currentStatus, onAction, isPending }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={isPending}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+      >
+        {isPending ? (
+          <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : (
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
+          </svg>
+        )}
+        Actions
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl border border-gray-200 shadow-lg z-20 py-1 overflow-hidden">
+          {ACTION_BUTTONS.filter((a) => a.status !== currentStatus).map((a) => (
+            <button
+              key={a.status}
+              onClick={() => { setOpen(false); onAction(userId, a.status); }}
+              className={`w-full text-left px-3.5 py-2 text-xs font-medium transition ${a.style}`}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const perPage = 15;
 
@@ -20,6 +82,11 @@ const Dashboard = () => {
     queryKey: ['admin-users', page],
     queryFn: () => adminService.getUsers(page, perPage),
     keepPreviousData: true,
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ userId, label }) => adminService.updateUserStatus(userId, label),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
   const handleLogout = () => {
@@ -124,14 +191,15 @@ const Dashboard = () => {
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</th>
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">NRC Number</th>
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status ID</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
+                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {users.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="text-center py-16 text-gray-400 text-sm">
+                        <td colSpan={8} className="text-center py-16 text-gray-400 text-sm">
                           No users found.
                         </td>
                       </tr>
@@ -158,13 +226,27 @@ const Dashboard = () => {
                               {ROLES[u.role]?.label ?? u.role}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 text-gray-400 text-xs">{u.user_status_id ?? '—'}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              STATUS_STYLES[u.status_label] ?? 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {u.status_label ?? '—'}
+                            </span>
+                          </td>
                           <td className="px-5 py-3.5 text-gray-400 text-xs whitespace-nowrap">
                             {u.created_at
                               ? new Date(u.created_at).toLocaleDateString('en-GB', {
                                   day: '2-digit', month: 'short', year: 'numeric',
                                 })
                               : '—'}
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <ActionMenu
+                              userId={u.id}
+                              currentStatus={u.status_label}
+                              onAction={(userId, label) => statusMutation.mutate({ userId, label })}
+                              isPending={statusMutation.isPending && statusMutation.variables?.userId === u.id}
+                            />
                           </td>
                         </tr>
                       ))

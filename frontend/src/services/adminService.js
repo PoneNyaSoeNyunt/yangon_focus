@@ -7,6 +7,11 @@ const adminService = {
     });
     return response.data;
   },
+
+  async updateUserStatus(userId, label) {
+    const response = await apiClient.patch(`/admin/users/${userId}/status`, { label });
+    return response.data;
+  },
 };
 
 export default adminService;

@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'nrc_number'     => $this->nrc_number,
             'role'           => $this->role,
             'user_status_id' => $this->user_status_id,
+            'status_label'   => $this->statusCode?->label ?? null,
             'created_at'     => $this->created_at,
             'updated_at'     => $this->updated_at,
         ];

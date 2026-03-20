@@ -25,6 +25,7 @@ class User extends Authenticatable
         'nrc_number',
         'password_hash',
         'role',
+        'user_status_id',
     ];
 
     /**
@@ -48,5 +49,10 @@ class User extends Authenticatable
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function statusCode()
+    {
+        return $this->belongsTo(StatusCode::class, 'user_status_id');
     }
 }

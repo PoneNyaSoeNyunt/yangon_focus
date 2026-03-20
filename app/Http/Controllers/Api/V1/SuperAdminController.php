@@ -18,4 +18,18 @@ class SuperAdminController extends Controller
 
         return UserResource::collection($paginated);
     }
+
+    public function updateStatus(Request $request, int $id)
+    {
+        $request->validate([
+            'label' => ['required', 'string', 'in:Active,Suspended,Blacklisted,Pending Verification'],
+        ]);
+
+        $user = $this->superAdminService->updateUserStatus($id, $request->input('label'));
+
+        return response()->json([
+            'message' => 'User status updated successfully.',
+            'user'    => new UserResource($user),
+        ]);
+    }
 }
