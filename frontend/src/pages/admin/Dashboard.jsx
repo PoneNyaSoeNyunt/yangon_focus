@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import adminService from '../../services/adminService';
+import UseDebounce from '../../hooks/UseDebounce';
 
 const ROLES = {
   Guest: { label: 'Guest', color: 'bg-blue-100 text-blue-700' },
@@ -72,15 +71,24 @@ const ActionMenu = ({ userId, currentStatus, onAction, isPending }) => {
 };
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const perPage = 15;
 
+  const debouncedSearch = UseDebounce(search, 400);
+
+  const filters = {
+    ...(debouncedSearch   && { search: debouncedSearch }),
+    ...(roleFilter        && { role: roleFilter }),
+    ...(statusFilter      && { status_label: statusFilter }),
+  };
+
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['admin-users', page],
-    queryFn: () => adminService.getUsers(page, perPage),
+    queryKey: ['admin-users', page, debouncedSearch, roleFilter, statusFilter],
+    queryFn: () => adminService.getUsers(page, perPage, filters),
     keepPreviousData: true,
   });
 
@@ -89,9 +97,9 @@ const Dashboard = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(1);
   };
 
   const users = data?.data ?? [];
@@ -102,53 +110,12 @@ const Dashboard = () => {
   const to = meta.to ?? 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white border-b border-amber-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-            </div>
-            <span className="font-bold text-gray-900 text-lg">Yangon Focus</span>
-            <span className="hidden sm:inline text-gray-300">|</span>
-            <span className="hidden sm:inline text-sm text-gray-500">Super Admin Panel</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
-                <span className="text-xs font-bold text-amber-700">
-                  {user?.full_name?.charAt(0) ?? 'A'}
-                </span>
-              </div>
-              <span className="text-sm font-medium text-gray-700">{user?.full_name}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                Super Admin
-              </span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition px-3 py-1.5 rounded-lg hover:bg-red-50"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Manage all registered Guests and Owners
-            </p>
+            <p className="text-sm text-gray-500 mt-0.5">Manage all registered Guests and Owners</p>
           </div>
           {!isLoading && !isError && (
             <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
@@ -160,6 +127,42 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, phone, or NRC..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+            />
+          </div>
+          <select
+            value={roleFilter}
+            onChange={handleFilterChange(setRoleFilter)}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+          >
+            <option value="">All Roles</option>
+            <option value="Guest">Guest</option>
+            <option value="Owner">Owner</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={handleFilterChange(setStatusFilter)}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Blacklisted">Blacklisted</option>
+            <option value="Pending Verification">Pending Verification</option>
+          </select>
+        </div>
+      </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           {isLoading ? (
@@ -291,7 +294,6 @@ const Dashboard = () => {
             </>
           )}
         </div>
-      </div>
     </div>
   );
 };

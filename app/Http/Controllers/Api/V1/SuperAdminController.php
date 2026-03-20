@@ -14,7 +14,8 @@ class SuperAdminController extends Controller
     public function users(Request $request)
     {
         $perPage = (int) $request->query('per_page', 15);
-        $paginated = $this->superAdminService->getPaginatedUsers($perPage);
+        $filters = $request->only(['role', 'status_label', 'search']);
+        $paginated = $this->superAdminService->getPaginatedUsers($perPage, $filters);
 
         return UserResource::collection($paginated);
     }
