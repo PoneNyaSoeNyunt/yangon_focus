@@ -104,6 +104,7 @@ const CreateHostel = () => {
     if (!basicForm.type)               local.type = ['Type is required.'];
     if (!basicForm.township_id)        local.township_id = ['Township is required.'];
     if (Object.keys(local).length) { setErrors(local); return; }
+    if (hostelId) { setErrors({}); setStep(1); return; }
     createHostelMutation.mutate(basicForm);
   };
 
