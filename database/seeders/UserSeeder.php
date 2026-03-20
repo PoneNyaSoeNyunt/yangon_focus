@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             'phone_number'   => '09765432189',
             'full_name'      => 'Pone Nya',
             'nrc_number'     => '12(N)111111',
-            'password_hash'  => Hash::make('admin'),
+            'password_hash'  => Hash::make('$Admin123'),
             'role'           => 'Super Admin',
             'user_status_id' => $pendingStatusId,
             'created_at'     => now(),

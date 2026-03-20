@@ -28,7 +28,7 @@ class OwnerSeeder extends Seeder
             'phone_number'   => '092345610',
             'full_name'      => 'Daw Hla',
             'nrc_number'     => '12(N)222222',
-            'password_hash'  => Hash::make('owner'),
+            'password_hash'  => Hash::make('$Owner123'),
             'role'           => 'Owner',
             'user_status_id' => $activeStatusId,
             'created_at'     => now(),
