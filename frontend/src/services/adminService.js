@@ -17,6 +17,18 @@ const adminService = {
     const response = await apiClient.get('/admin/analytics');
     return response.data;
   },
+
+  async getLicenses(page = 1, filters = {}) {
+    const response = await apiClient.get('/admin/licenses', {
+      params: { page, ...filters },
+    });
+    return response.data;
+  },
+
+  async verifyLicense(id, label, reason = null) {
+    const response = await apiClient.patch(`/admin/licenses/${id}/verify`, { label, reason });
+    return response.data;
+  },
 };
 
 export default adminService;

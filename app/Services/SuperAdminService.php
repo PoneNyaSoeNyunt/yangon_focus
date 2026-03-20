@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\StatusCode;
+use App\Models\BusinessLicense;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class SuperAdminService
 {
@@ -46,5 +48,34 @@ class SuperAdminService
         $user->save();
 
         return $user->load('statusCode');
+    }
+
+    public function getLicenses(array $filters = []): LengthAwarePaginator
+    {
+        $query = BusinessLicense::with(['hostel.owner', 'status'])
+            ->orderBy('submitted_at', 'desc');
+
+        if (!empty($filters['status_label'])) {
+            $query->whereHas('status', fn($q) =>
+                $q->where('label', $filters['status_label'])
+            );
+        }
+
+        return $query->paginate(15);
+    }
+
+    public function updateLicenseStatus(int $id, string $label, ?string $reason = null): BusinessLicense
+    {
+        $statusCode = StatusCode::where('label', $label)
+            ->where('context', 'License')
+            ->firstOrFail();
+
+        $license = BusinessLicense::findOrFail($id);
+        $license->status_id       = $statusCode->id;
+        $license->verified_at     = $label === 'Verified' ? now() : null;
+        $license->rejection_reason = $label === 'Rejected' ? $reason : null;
+        $license->save();
+
+        return $license->load(['hostel.owner', 'status']);
     }
 }
