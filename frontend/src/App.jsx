@@ -10,6 +10,7 @@ import Profile from './pages/admin/Profile';
 import LicenseVerification from './pages/admin/LicenseVerification';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import CreateHostel from './pages/owner/CreateHostel';
+import HomePage from './pages/HomePage';
 
 const AdminRoute = ({ children }) => (
   <ProtectedRoute requiredRole="Super Admin">
@@ -28,14 +29,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Yangon Focus</h1>
-                <p className="text-gray-600">Hostel Management Platform</p>
-              </div>
-            </div>
-          } />
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
 
           <Route path="/admin/analytics"  element={<AdminRoute><Analytics /></AdminRoute>} />

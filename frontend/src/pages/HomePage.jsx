@@ -1,0 +1,117 @@
+import { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Navbar from '../components/public/Navbar';
+import HeroSection from '../components/public/HeroSection';
+import SearchBar from '../components/public/SearchBar';
+import HostelCard from '../components/public/HostelCard';
+import Footer from '../components/public/Footer';
+import publicService from '../services/publicService';
+import UseDebounce from '../hooks/UseDebounce';
+
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
+    <div className="aspect-[16/10] bg-gray-200" />
+    <div className="p-4 space-y-3">
+      <div className="h-3 bg-gray-200 rounded w-1/3" />
+      <div className="h-4 bg-gray-200 rounded w-4/5" />
+      <div className="h-4 bg-gray-200 rounded w-3/5" />
+      <div className="h-3 bg-gray-100 rounded w-full mt-4" />
+    </div>
+  </div>
+);
+
+const EmptyState = ({ hasFilters }) => (
+  <div className="col-span-full py-20 flex flex-col items-center gap-4 text-center">
+    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+      <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M3 9.5L12 4l9 5.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+      </svg>
+    </div>
+    <div>
+      <p className="font-semibold text-gray-700">No hostels found</p>
+      <p className="text-sm text-gray-400 mt-1">
+        {hasFilters ? 'Try adjusting your filters.' : 'No published listings yet.'}
+      </p>
+    </div>
+  </div>
+);
+
+const HomePage = () => {
+  const resultsRef = useRef(null);
+  const [filters, setFilters] = useState({});
+  const debouncedFilters = UseDebounce(filters, 350);
+
+  const { data: townships = [] } = useQuery({
+    queryKey: ['public-townships'],
+    queryFn: publicService.getTownships,
+    staleTime: Infinity,
+  });
+
+  const activeParams = Object.fromEntries(
+    Object.entries(debouncedFilters).filter(([, v]) => v !== undefined && v !== '')
+  );
+
+  const { data: hostels = [], isLoading, isFetching } = useQuery({
+    queryKey: ['public-hostels', activeParams],
+    queryFn: () => publicService.getHostels(activeParams),
+    staleTime: 60_000,
+    keepPreviousData: true,
+  });
+
+  const hasFilters = Object.keys(activeParams).length > 0;
+
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <HeroSection onFindHostels={scrollToResults} />
+
+      <main className="flex-1">
+        <div ref={resultsRef} id="results" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-6">
+            <SearchBar filters={filters} onChange={setFilters} townships={townships} />
+          </div>
+
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                {hasFilters ? 'Search Results' : 'All Hostels'}
+              </h2>
+              {!isLoading && (
+                <p className="text-sm text-gray-400 mt-0.5">
+                  {hostels.length} hostel{hostels.length !== 1 ? 's' : ''} found
+                </p>
+              )}
+            </div>
+            {isFetching && !isLoading && (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <svg className="w-4 h-4 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Updating…
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+              : hostels.length === 0
+                ? <EmptyState hasFilters={hasFilters} />
+                : hostels.map((h) => <HostelCard key={h.id} hostel={h} />)
+            }
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default HomePage;

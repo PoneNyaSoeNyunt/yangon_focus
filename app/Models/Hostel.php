@@ -37,4 +37,9 @@ class Hostel extends Model
     {
         return $this->hasMany(HostelImage::class, 'hostel_id');
     }
+
+    public function primaryImage()
+    {
+        return $this->hasOne(HostelImage::class, 'hostel_id')->where('is_primary', true);
+    }
 }

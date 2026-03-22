@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\AdminLicenseController;
 use App\Http\Controllers\Api\V1\UserProfileController;
 use App\Http\Controllers\Api\V1\OwnerHostelController;
 use App\Http\Controllers\Api\V1\LookupController;
+use App\Http\Controllers\Api\V1\PublicHostelController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -19,8 +20,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('/user/password', [UserProfileController::class, 'updatePassword']);
     });
 
-    Route::get('/townships',  [LookupController::class, 'townships']);
-    Route::get('/room-types', [LookupController::class, 'roomTypes']);
+    Route::get('/townships',      [LookupController::class, 'townships']);
+    Route::get('/room-types',     [LookupController::class, 'roomTypes']);
+    Route::get('/public/hostels', [PublicHostelController::class, 'index']);
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);

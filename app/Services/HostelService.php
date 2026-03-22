@@ -101,6 +101,38 @@ class HostelService
         return $created;
     }
 
+    public function searchHostels(array $filters): \Illuminate\Database\Eloquent\Collection
+    {
+        $publishedId = StatusCode::where('context', 'Hostel')
+            ->where('label', 'Published')
+            ->value('id');
+
+        $query = Hostel::with(['township:id,name', 'primaryImage:id,hostel_id,image_url,is_primary'])
+            ->withMin('rooms', 'price_per_month')
+            ->where('listing_status_id', $publishedId);
+
+        if (!empty($filters['township_id'])) {
+            $query->where('township_id', (int) $filters['township_id']);
+        }
+
+        if (!empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+            $query->whereHas('rooms', function ($q) use ($filters) {
+                if (!empty($filters['min_price'])) {
+                    $q->where('price_per_month', '>=', (int) $filters['min_price']);
+                }
+                if (!empty($filters['max_price'])) {
+                    $q->where('price_per_month', '<=', (int) $filters['max_price']);
+                }
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
+    }
+
     public function getOwnerHostels(int $ownerId)
     {
         return Hostel::with(['township', 'listingStatus', 'rooms'])
