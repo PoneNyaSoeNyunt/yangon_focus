@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store']);
+        Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);
+        Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update']);
         Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms']);
         Route::post('/hostels/{id}/license',            [OwnerHostelController::class, 'uploadLicense']);
         Route::post('/hostels/{id}/images',             [OwnerHostelController::class, 'uploadImages']);

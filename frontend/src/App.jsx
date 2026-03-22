@@ -43,8 +43,9 @@ function App() {
           <Route path="/admin/profile"    element={<AdminRoute><Profile /></AdminRoute>} />
           <Route path="/admin/licenses"   element={<AdminRoute><LicenseVerification /></AdminRoute>} />
 
-          <Route path="/owner/hostels"     element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
-          <Route path="/owner/hostels/new" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
+          <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
+          <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
+          <Route path="/owner/hostels/edit/:id" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
           <Route path="/owner/bookings"   element={<OwnerRoute>
             <div className="px-8 py-8"><h1 className="text-2xl font-bold text-gray-900">Bookings</h1><p className="text-gray-400 mt-2 text-sm">Coming soon.</p></div>
           </OwnerRoute>} />

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ownerService from '../../services/ownerService';
 
 const STATUS_STYLES = {
@@ -15,9 +15,11 @@ const HOSTEL_TYPE_ICON = {
 };
 
 const HostelCard = ({ hostel }) => {
+  const navigate = useNavigate();
   const status = hostel.listing_status?.label ?? 'Draft';
   const roomCount = hostel.rooms?.length ?? 0;
   const bedCount = hostel.rooms?.reduce((sum, r) => sum + (r.beds?.length ?? r.max_occupancy ?? 0), 0) ?? 0;
+  const editPath = `/owner/hostels/edit/${hostel.id}`;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md transition">
@@ -48,11 +50,35 @@ const HostelCard = ({ hostel }) => {
         </div>
       </div>
 
-      <div className="text-xs text-gray-400">
-        Listed{' '}
-        {hostel.created_at
-          ? new Date(hostel.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-          : '—'}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-400">
+          Listed{' '}
+          {hostel.created_at
+            ? new Date(hostel.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '—'}
+        </span>
+        {status === 'Draft' && (
+          <button
+            onClick={() => navigate(editPath)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Complete Listing
+          </button>
+        )}
+        {status === 'Published' && (
+          <button
+            onClick={() => navigate(editPath)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold rounded-lg transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );

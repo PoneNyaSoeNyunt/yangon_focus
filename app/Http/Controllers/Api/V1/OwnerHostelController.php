@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AddRoomsRequest;
 use App\Http\Requests\Api\CreateHostelRequest;
+use App\Http\Requests\Api\UpdateHostelRequest;
 use App\Http\Requests\Api\UploadImagesRequest;
 use App\Http\Requests\Api\UploadLicenseRequest;
 use App\Services\HostelService;
@@ -31,6 +32,21 @@ class OwnerHostelController extends Controller
             'message' => 'Hostel created successfully.',
             'hostel'  => $hostel->load(['township', 'listingStatus']),
         ], 201);
+    }
+
+    public function show(Request $request, int $id)
+    {
+        $hostel = $this->hostelService->getHostel($request->user()->id, $id);
+        return response()->json($hostel);
+    }
+
+    public function update(UpdateHostelRequest $request, int $id)
+    {
+        $hostel = $this->hostelService->updateHostel($id, $request->validated());
+        return response()->json([
+            'message' => 'Hostel updated successfully.',
+            'hostel'  => $hostel,
+        ]);
     }
 
     public function addRooms(AddRoomsRequest $request, int $id)

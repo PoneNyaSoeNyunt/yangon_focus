@@ -108,4 +108,26 @@ class HostelService
             ->orderBy('created_at', 'desc')
             ->get();
     }
+
+    public function getHostel(int $ownerId, int $hostelId): Hostel
+    {
+        return Hostel::with(['township', 'listingStatus', 'rooms.beds', 'rooms.type', 'businessLicenses.status'])
+            ->where('owner_id', $ownerId)
+            ->findOrFail($hostelId);
+    }
+
+    public function updateHostel(int $hostelId, array $data): Hostel
+    {
+        $hostel = Hostel::findOrFail($hostelId);
+        $hostel->update([
+            'name'        => $data['name'],
+            'description' => $data['description'] ?? null,
+            'address'     => $data['address'],
+            'house_rules' => $data['house_rules'] ?? null,
+            'type'        => $data['type'],
+            'township_id' => $data['township_id'],
+        ]);
+
+        return $hostel->load(['township', 'listingStatus']);
+    }
 }

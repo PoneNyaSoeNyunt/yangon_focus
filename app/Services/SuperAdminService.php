@@ -71,10 +71,17 @@ class SuperAdminService
             ->firstOrFail();
 
         $license = BusinessLicense::findOrFail($id);
-        $license->status_id       = $statusCode->id;
-        $license->verified_at     = $label === 'Verified' ? now() : null;
+        $license->status_id        = $statusCode->id;
+        $license->verified_at      = $label === 'Verified' ? now() : null;
         $license->rejection_reason = $label === 'Rejected' ? $reason : null;
         $license->save();
+
+        if ($label === 'Verified') {
+            $publishedStatus = StatusCode::where('context', 'Hostel')
+                ->where('label', 'Published')
+                ->firstOrFail();
+            $license->hostel()->update(['listing_status_id' => $publishedStatus->id]);
+        }
 
         return $license->load(['hostel.owner', 'status']);
     }

@@ -11,6 +11,16 @@ const ownerService = {
     return response.data;
   },
 
+  async getHostel(id) {
+    const response = await apiClient.get(`/owner/hostels/${id}`);
+    return response.data;
+  },
+
+  async updateHostel(id, data) {
+    const response = await apiClient.patch(`/owner/hostels/${id}`, data);
+    return response.data;
+  },
+
   async addRooms(hostelId, rooms) {
     const response = await apiClient.post(`/owner/hostels/${hostelId}/rooms`, { rooms });
     return response.data;

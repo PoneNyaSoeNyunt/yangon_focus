@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, useBlocker } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
 import ImageUploader from '../../components/owner/ImageUploader';
@@ -45,12 +45,44 @@ const InputCls = (hasErr) =>
 
 const emptyRoom = () => ({ label: '', type_id: '', price_per_month: '', max_occupancy: '' });
 
+const BlockerDialog = ({ blocker }) => {
+  if (blocker.state !== 'blocked') return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
+        <h3 className="text-base font-semibold text-gray-900">Discard changes?</h3>
+        <p className="text-sm text-gray-500 mt-1">You have unsaved changes on this step. Leave without saving?</p>
+        <div className="flex gap-3 mt-5">
+          <button
+            onClick={() => blocker.reset()}
+            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+          >
+            Stay
+          </button>
+          <button
+            onClick={() => blocker.proceed()}
+            className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition"
+          >
+            Leave
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CreateHostel = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const editMode = !!id;
+
   const [step, setStep] = useState(0);
-  const [hostelId, setHostelId] = useState(null);
+  const [hostelId, setHostelId] = useState(id ? Number(id) : null);
   const [errors, setErrors] = useState({});
   const [galleryFiles, setGalleryFiles] = useState([]);
+  const [isDirty, setIsDirty] = useState(false);
+  const [existingRooms, setExistingRooms] = useState([]);
 
   const [basicForm, setBasicForm] = useState({
     name: '', description: '', address: '',
@@ -70,11 +102,65 @@ const CreateHostel = () => {
     staleTime: Infinity,
   });
 
+  const { data: existingHostel, isLoading: hostelLoading } = useQuery({
+    queryKey: ['owner-hostel', id],
+    queryFn: () => ownerService.getHostel(id),
+    enabled: editMode,
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    if (!existingHostel) return;
+    setBasicForm({
+      name:        existingHostel.name ?? '',
+      description: existingHostel.description ?? '',
+      address:     existingHostel.address ?? '',
+      house_rules: existingHostel.house_rules ?? '',
+      type:        existingHostel.type ?? '',
+      township_id: String(existingHostel.township_id ?? ''),
+    });
+    setExistingRooms(existingHostel.rooms ?? []);
+    const license = existingHostel.business_licenses?.[0];
+    if (license) {
+      setLicenseForm((f) => ({ ...f, license_number: license.license_number }));
+    }
+  }, [existingHostel]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  const markDirty = () => { if (!isDirty) setIsDirty(true); };
+
+  const setBasicField = (field, value) => {
+    setBasicForm((f) => ({ ...f, [field]: value }));
+    markDirty();
+  };
+
   const createHostelMutation = useMutation({
     mutationFn: (data) => ownerService.createHostel(data),
     onSuccess: (res) => {
       setHostelId(res.hostel.id);
       setErrors({});
+      setIsDirty(false);
+      setStep(1);
+    },
+    onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
+  });
+
+  const updateHostelMutation = useMutation({
+    mutationFn: (data) => ownerService.updateHostel(hostelId, data),
+    onSuccess: () => {
+      setErrors({});
+      setIsDirty(false);
       setStep(1);
     },
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
@@ -82,7 +168,7 @@ const CreateHostel = () => {
 
   const addRoomsMutation = useMutation({
     mutationFn: (data) => ownerService.addRooms(hostelId, data),
-    onSuccess: () => { setErrors({}); setStep(2); },
+    onSuccess: () => { setErrors({}); setIsDirty(false); setStep(2); },
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
   });
 
@@ -96,62 +182,90 @@ const CreateHostel = () => {
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
   });
 
+  const validateBasic = () => {
+    const local = {};
+    if (!basicForm.name.trim())    local.name = ['Name is required.'];
+    if (!basicForm.address.trim()) local.address = ['Address is required.'];
+    if (!basicForm.type)           local.type = ['Type is required.'];
+    if (!basicForm.township_id)    local.township_id = ['Township is required.'];
+    return local;
+  };
+
   const handleBasicSubmit = (e) => {
     e.preventDefault();
-    const local = {};
-    if (!basicForm.name.trim())        local.name = ['Name is required.'];
-    if (!basicForm.address.trim())     local.address = ['Address is required.'];
-    if (!basicForm.type)               local.type = ['Type is required.'];
-    if (!basicForm.township_id)        local.township_id = ['Township is required.'];
+    const local = validateBasic();
     if (Object.keys(local).length) { setErrors(local); return; }
-    if (hostelId) { setErrors({}); setStep(1); return; }
+    if (editMode && hostelId) { updateHostelMutation.mutate(basicForm); return; }
+    if (!editMode && hostelId) { setErrors({}); setStep(1); return; }
     createHostelMutation.mutate(basicForm);
   };
 
   const handleRoomsSubmit = (e) => {
     e.preventDefault();
+    const hasNewRooms = rooms.some((r) => r.label.trim());
+    if (!hasNewRooms) { setErrors({}); setStep(2); return; }
     const local = {};
     rooms.forEach((r, i) => {
-      if (!r.label.trim())           local[`rooms.${i}.label`] = ['Room label required.'];
-      if (!r.type_id)                local[`rooms.${i}.type_id`] = ['Room type required.'];
-      if (!r.price_per_month)        local[`rooms.${i}.price_per_month`] = ['Price required.'];
-      if (!r.max_occupancy)          local[`rooms.${i}.max_occupancy`] = ['Capacity required.'];
+      if (!r.label.trim())         local[`rooms.${i}.label`] = ['Room label required.'];
+      if (!r.type_id)              local[`rooms.${i}.type_id`] = ['Room type required.'];
+      if (!r.price_per_month)      local[`rooms.${i}.price_per_month`] = ['Price required.'];
+      if (!r.max_occupancy)        local[`rooms.${i}.max_occupancy`] = ['Capacity required.'];
     });
     if (Object.keys(local).length) { setErrors(local); return; }
-    addRoomsMutation.mutate(rooms);
+    addRoomsMutation.mutate(rooms.filter((r) => r.label.trim()));
   };
 
   const handleFinalSubmit = async (e) => {
     e.preventDefault();
     const local = {};
     if (!licenseForm.license_number.trim()) local.license_number = ['License number is required.'];
-    if (!licenseForm.image)                 local.image = ['License image is required.'];
-    if (galleryFiles.length < 5)            local.images = [`At least 5 gallery images required (${galleryFiles.length} selected).`];
+    if (!editMode && !licenseForm.image)    local.image = ['License image is required.'];
+    if (!editMode && galleryFiles.length < 5)
+      local.images = [`At least 5 gallery images required (${galleryFiles.length} selected).`];
     if (Object.keys(local).length) { setErrors(local); return; }
-
     try {
-      await licenseMutation.mutateAsync();
-      await imagesMutation.mutateAsync();
+      if (licenseForm.image) await licenseMutation.mutateAsync();
+      if (galleryFiles.length > 0) await imagesMutation.mutateAsync();
+      setIsDirty(false);
       navigate('/owner/hostels');
     } catch {}
   };
 
-  const addRoom = () => setRooms((r) => [...r, emptyRoom()]);
+  const addRoom = () => { setRooms((r) => [...r, emptyRoom()]); markDirty(); };
   const removeRoom = (idx) => setRooms((r) => r.filter((_, i) => i !== idx));
-  const updateRoom = (idx, field, value) =>
+  const updateRoom = (idx, field, value) => {
     setRooms((r) => r.map((rm, i) => (i === idx ? { ...rm, [field]: value } : rm)));
+    markDirty();
+  };
 
   const isPending =
     createHostelMutation.isPending ||
+    updateHostelMutation.isPending ||
     addRoomsMutation.isPending ||
     licenseMutation.isPending ||
     imagesMutation.isPending;
 
+  if (editMode && hostelLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
+      <BlockerDialog blocker={blocker} />
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">New Hostel Listing</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Complete all 3 steps to submit your hostel</p>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {editMode ? 'Edit Hostel Listing' : 'New Hostel Listing'}
+        </h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          {editMode ? 'Update your listing details' : 'Complete all 3 steps to submit your hostel'}
+        </p>
       </div>
 
       <StepIndicator current={step} />
@@ -165,7 +279,7 @@ const CreateHostel = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Hostel Name *</label>
               <input
                 type="text" value={basicForm.name}
-                onChange={(e) => setBasicForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) => setBasicField('name', e.target.value)}
                 placeholder="e.g. Sunrise Hostel"
                 className={InputCls(errors.name)}
               />
@@ -176,7 +290,7 @@ const CreateHostel = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
               <textarea
                 rows={3} value={basicForm.description}
-                onChange={(e) => setBasicForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) => setBasicField('description', e.target.value)}
                 placeholder="Brief description of your hostel..."
                 className={`${InputCls(false)} resize-none`}
               />
@@ -187,7 +301,7 @@ const CreateHostel = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Hostel Type *</label>
                 <select
                   value={basicForm.type}
-                  onChange={(e) => setBasicForm((f) => ({ ...f, type: e.target.value }))}
+                  onChange={(e) => setBasicField('type', e.target.value)}
                   className={InputCls(errors.type)}
                 >
                   <option value="">Select type...</option>
@@ -201,7 +315,7 @@ const CreateHostel = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Township *</label>
                 <select
                   value={basicForm.township_id}
-                  onChange={(e) => setBasicForm((f) => ({ ...f, township_id: e.target.value }))}
+                  onChange={(e) => setBasicField('township_id', e.target.value)}
                   className={InputCls(errors.township_id)}
                 >
                   <option value="">Select township...</option>
@@ -217,7 +331,7 @@ const CreateHostel = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Address *</label>
               <input
                 type="text" value={basicForm.address}
-                onChange={(e) => setBasicForm((f) => ({ ...f, address: e.target.value }))}
+                onChange={(e) => setBasicField('address', e.target.value)}
                 placeholder="Full street address"
                 className={InputCls(errors.address)}
               />
@@ -228,7 +342,7 @@ const CreateHostel = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">House Rules</label>
               <textarea
                 rows={3} value={basicForm.house_rules}
-                onChange={(e) => setBasicForm((f) => ({ ...f, house_rules: e.target.value }))}
+                onChange={(e) => setBasicField('house_rules', e.target.value)}
                 placeholder="No smoking, quiet hours 10pm–7am..."
                 className={`${InputCls(false)} resize-none`}
               />
@@ -256,8 +370,25 @@ const CreateHostel = () => {
 
         {step === 1 && (
           <form onSubmit={handleRoomsSubmit} className="space-y-5">
+            {existingRooms.length > 0 && (
+              <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 mb-2">
+                <p className="text-xs font-semibold text-teal-700 mb-1.5">
+                  {existingRooms.length} existing room{existingRooms.length !== 1 ? 's' : ''}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {existingRooms.map((r) => (
+                    <span key={r.id} className="text-xs text-teal-600">
+                      {r.label} — {r.max_occupancy} bed{r.max_occupancy !== 1 ? 's' : ''}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-teal-500 mt-2 italic">Use the form below to add more rooms.</p>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Room & Bed Configuration</h2>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                {existingRooms.length > 0 ? 'Add More Rooms' : 'Room & Bed Configuration'}
+              </h2>
               <button
                 type="button" onClick={addRoom}
                 className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 hover:text-teal-700 px-3 py-1.5 rounded-lg hover:bg-teal-50 transition"
