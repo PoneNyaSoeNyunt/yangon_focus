@@ -9,19 +9,20 @@ class UserService
 {
     public function createUser(array $data): object
     {
-        $pendingVerificationStatus = DB::table('status_codes')
+        $activeStatusId = DB::table('status_codes')
             ->where('context', 'User')
-            ->where('label', 'Pending Verification')
-            ->first();
+            ->where('label', 'Active')
+            ->value('id');
 
         $userId = DB::table('users')->insertGetId([
-            'phone_number' => $data['phone_number'],
-            'full_name' => $data['full_name'],
-            'nrc_number' => $data['nrc_number'] ?? null,
-            'password_hash' => Hash::make($data['password']),
-            'role' => $data['role'],
-            'created_at' => now(),
-            'updated_at' => now(),
+            'phone_number'   => $data['phone_number'],
+            'full_name'      => $data['full_name'],
+            'nrc_number'     => $data['nrc_number'] ?? null,
+            'password_hash'  => Hash::make($data['password']),
+            'role'           => $data['role'],
+            'user_status_id' => $activeStatusId,
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ]);
 
         DB::table('auth_rate_limits')->insert([

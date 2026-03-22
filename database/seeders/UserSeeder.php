@@ -11,11 +11,6 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $pendingStatusId = DB::table('status_codes')
-            ->where('context', 'User')
-            ->where('label', 'Pending Verification')
-            ->value('id');
-
         $activeStatusId = DB::table('status_codes')
             ->where('context', 'User')
             ->where('label', 'Active')
@@ -30,7 +25,7 @@ class UserSeeder extends Seeder
             'nrc_number'     => '12(N)111111',
             'password_hash'  => Hash::make('$Admin123'),
             'role'           => 'Super Admin',
-            'user_status_id' => $pendingStatusId,
+            'user_status_id' => $activeStatusId,
             'created_at'     => now(),
             'updated_at'     => now(),
         ];
@@ -87,7 +82,7 @@ class UserSeeder extends Seeder
                 'nrc_number'     => $nrc,
                 'password_hash'  => Hash::make('$Seeker123'),
                 'role'           => 'Guest',
-                'user_status_id' => $pendingStatusId,
+                'user_status_id' => $activeStatusId,
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ];

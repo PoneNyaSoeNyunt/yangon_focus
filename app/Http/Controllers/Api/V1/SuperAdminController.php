@@ -23,7 +23,7 @@ class SuperAdminController extends Controller
     public function updateStatus(Request $request, int $id)
     {
         $request->validate([
-            'label' => ['required', 'string', 'in:Active,Suspended,Blacklisted,Pending Verification'],
+            'label' => ['required', 'string', 'in:Active,Suspended,Blacklisted'],
         ]);
 
         $user = $this->superAdminService->updateUserStatus($id, $request->input('label'));

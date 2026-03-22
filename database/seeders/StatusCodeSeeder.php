@@ -17,7 +17,6 @@ class StatusCodeSeeder extends Seeder
             ['label' => 'Active', 'context' => 'User'],
             ['label' => 'Suspended', 'context' => 'User'],
             ['label' => 'Blacklisted', 'context' => 'User'],
-            ['label' => 'Pending Verification', 'context' => 'User'],
 
             ['label' => 'Pending', 'context' => 'Booking'],
             ['label' => 'Confirmed', 'context' => 'Booking'],

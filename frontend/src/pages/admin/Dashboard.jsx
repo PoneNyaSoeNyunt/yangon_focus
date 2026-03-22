@@ -10,10 +10,9 @@ const ROLES = {
 };
 
 const STATUS_STYLES = {
-  'Active':               'bg-green-100 text-green-700',
-  'Suspended':            'bg-yellow-100 text-yellow-700',
-  'Blacklisted':          'bg-red-100 text-red-700',
-  'Pending Verification': 'bg-gray-100 text-gray-500',
+  'Active':      'bg-green-100 text-green-700',
+  'Suspended':   'bg-yellow-100 text-yellow-700',
+  'Blacklisted': 'bg-red-100 text-red-700',
 };
 
 const ACTION_BUTTONS = [
@@ -159,7 +158,6 @@ const Dashboard = () => {
             <option value="Active">Active</option>
             <option value="Suspended">Suspended</option>
             <option value="Blacklisted">Blacklisted</option>
-            <option value="Pending Verification">Pending Verification</option>
           </select>
         </div>
       </div>
