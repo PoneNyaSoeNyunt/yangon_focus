@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useBlocker } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
 import ImageUploader from '../../components/owner/ImageUploader';
@@ -44,33 +44,6 @@ const InputCls = (hasErr) =>
   }`;
 
 const emptyRoom = () => ({ label: '', type_id: '', price_per_month: '', max_occupancy: '' });
-
-const BlockerDialog = ({ blocker }) => {
-  if (blocker.state !== 'blocked') return null;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
-        <h3 className="text-base font-semibold text-gray-900">Discard changes?</h3>
-        <p className="text-sm text-gray-500 mt-1">You have unsaved changes on this step. Leave without saving?</p>
-        <div className="flex gap-3 mt-5">
-          <button
-            onClick={() => blocker.reset()}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
-          >
-            Stay
-          </button>
-          <button
-            onClick={() => blocker.proceed()}
-            className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition"
-          >
-            Leave
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const CreateHostel = () => {
   const navigate = useNavigate();
@@ -132,11 +105,6 @@ const CreateHostel = () => {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
-
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isDirty && currentLocation.pathname !== nextLocation.pathname
-  );
 
   const markDirty = () => { if (!isDirty) setIsDirty(true); };
 
@@ -258,7 +226,6 @@ const CreateHostel = () => {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
-      <BlockerDialog blocker={blocker} />
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
           {editMode ? 'Edit Hostel Listing' : 'New Hostel Listing'}
