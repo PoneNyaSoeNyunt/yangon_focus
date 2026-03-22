@@ -116,6 +116,12 @@ class HostelService
             ->findOrFail($hostelId);
     }
 
+    public function makeImagePrimary(int $hostelId, int $imageId): void
+    {
+        HostelImage::where('hostel_id', $hostelId)->update(['is_primary' => false]);
+        HostelImage::where('id', $imageId)->where('hostel_id', $hostelId)->update(['is_primary' => true]);
+    }
+
     public function deleteImage(int $imageId): void
     {
         $image = HostelImage::findOrFail($imageId);

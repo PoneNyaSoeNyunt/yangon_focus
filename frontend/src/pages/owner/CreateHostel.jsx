@@ -152,9 +152,24 @@ const CreateHostel = () => {
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
   });
 
+  const [lightboxImage, setLightboxImage] = useState(null);
+
   const deleteImageMutation = useMutation({
     mutationFn: (imageId) => ownerService.deleteImage(hostelId, imageId),
-    onSuccess: (_, imageId) => setExistingImages((imgs) => imgs.filter((i) => i.id !== imageId)),
+    onSuccess: (_, imageId) => {
+      setExistingImages((imgs) => imgs.filter((i) => i.id !== imageId));
+      setLightboxImage(null);
+    },
+  });
+
+  const makePrimaryMutation = useMutation({
+    mutationFn: (imageId) => ownerService.makeImagePrimary(hostelId, imageId),
+    onSuccess: (_, imageId) => {
+      setExistingImages((imgs) =>
+        imgs.map((i) => ({ ...i, is_primary: i.id === imageId }))
+      );
+      setLightboxImage((prev) => prev ? { ...prev, is_primary: true } : null);
+    },
   });
 
   const validateBasic = () => {
@@ -222,7 +237,8 @@ const CreateHostel = () => {
     addRoomsMutation.isPending ||
     licenseMutation.isPending ||
     imagesMutation.isPending ||
-    deleteImageMutation.isPending;
+    deleteImageMutation.isPending ||
+    makePrimaryMutation.isPending;
 
   if (editMode && hostelLoading) {
     return (
@@ -520,31 +536,99 @@ const CreateHostel = () => {
               {existingImages.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-500 mb-2">
-                    {existingImages.length} existing image{existingImages.length !== 1 ? 's' : ''} — click × to remove
+                    {existingImages.length} existing image{existingImages.length !== 1 ? 's' : ''} — click to view
                   </p>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {existingImages.map((img) => (
-                      <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
-                        <img
-                          src={img.image_url}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
+                      <button
+                        key={img.id}
+                        type="button"
+                        onClick={() => setLightboxImage(img)}
+                        className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 hover:ring-2 hover:ring-teal-400 transition"
+                      >
+                        <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                         {img.is_primary && (
                           <span className="absolute top-1 left-1 bg-teal-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
                             Primary
                           </span>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => deleteImageMutation.mutate(img.id)}
-                          disabled={deleteImageMutation.isPending}
-                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs font-bold"
-                        >
-                          ×
-                        </button>
-                      </div>
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <svg className="w-6 h-6 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                          </svg>
+                        </div>
+                      </button>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {lightboxImage && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                  onClick={() => setLightboxImage(null)}
+                >
+                  <div
+                    className="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-lg w-full"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="relative">
+                      <img
+                        src={lightboxImage.image_url}
+                        alt=""
+                        className="w-full max-h-[60vh] object-contain bg-gray-100"
+                      />
+                      {lightboxImage.is_primary && (
+                        <span className="absolute top-3 left-3 bg-teal-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                          Primary
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setLightboxImage(null)}
+                        className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition text-lg font-bold"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="flex gap-3 p-4">
+                      <button
+                        type="button"
+                        onClick={() => makePrimaryMutation.mutate(lightboxImage.id)}
+                        disabled={lightboxImage.is_primary || makePrimaryMutation.isPending}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-teal-500 text-teal-600 text-sm font-semibold hover:bg-teal-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {makePrimaryMutation.isPending ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l14 9-14 9V3z" />
+                          </svg>
+                        )}
+                        {lightboxImage.is_primary ? 'Already Primary' : 'Make Primary'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteImageMutation.mutate(lightboxImage.id)}
+                        disabled={deleteImageMutation.isPending}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-red-400 text-red-500 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deleteImageMutation.isPending ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -45,6 +45,11 @@ const ownerService = {
     return response.data;
   },
 
+  async makeImagePrimary(hostelId, imageId) {
+    const response = await apiClient.patch(`/owner/hostels/${hostelId}/images/${imageId}/primary`);
+    return response.data;
+  },
+
   async deleteImage(hostelId, imageId) {
     const response = await apiClient.delete(`/owner/hostels/${hostelId}/images/${imageId}`);
     return response.data;

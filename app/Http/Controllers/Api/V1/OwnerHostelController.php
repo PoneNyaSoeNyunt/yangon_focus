@@ -83,6 +83,12 @@ class OwnerHostelController extends Controller
         ], 201);
     }
 
+    public function makeImagePrimary(Request $request, int $hostelId, int $imageId)
+    {
+        $this->hostelService->makeImagePrimary($hostelId, $imageId);
+        return response()->json(['message' => 'Primary image updated.']);
+    }
+
     public function deleteImage(Request $request, int $hostelId, int $imageId)
     {
         $this->hostelService->deleteImage($imageId);

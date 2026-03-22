@@ -75,11 +75,6 @@ const ImageUploader = ({ files, onChange, maxFiles = 100, minFiles = 5 }) => {
                   alt=""
                   className="w-full h-full object-cover rounded-xl border border-gray-200"
                 />
-                {idx === 0 && (
-                  <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-teal-500 text-white px-1.5 py-0.5 rounded-md font-semibold">
-                    Primary
-                  </span>
-                )}
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
