@@ -82,4 +82,10 @@ class OwnerHostelController extends Controller
             'images'  => $images,
         ], 201);
     }
+
+    public function deleteImage(Request $request, int $hostelId, int $imageId)
+    {
+        $this->hostelService->deleteImage($imageId);
+        return response()->json(['message' => 'Image deleted successfully.']);
+    }
 }

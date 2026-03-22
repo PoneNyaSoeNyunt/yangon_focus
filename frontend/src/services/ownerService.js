@@ -45,6 +45,11 @@ const ownerService = {
     return response.data;
   },
 
+  async deleteImage(hostelId, imageId) {
+    const response = await apiClient.delete(`/owner/hostels/${hostelId}/images/${imageId}`);
+    return response.data;
+  },
+
   async getTownships() {
     const response = await apiClient.get('/townships');
     return response.data;

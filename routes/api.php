@@ -29,7 +29,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update']);
         Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms']);
         Route::post('/hostels/{id}/license',            [OwnerHostelController::class, 'uploadLicense']);
-        Route::post('/hostels/{id}/images',             [OwnerHostelController::class, 'uploadImages']);
+        Route::post('/hostels/{id}/images',              [OwnerHostelController::class, 'uploadImages']);
+        Route::delete('/hostels/{id}/images/{imageId}', [OwnerHostelController::class, 'deleteImage']);
     });
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'admin.only'])->group(function () {

@@ -111,9 +111,17 @@ class HostelService
 
     public function getHostel(int $ownerId, int $hostelId): Hostel
     {
-        return Hostel::with(['township', 'listingStatus', 'rooms.beds', 'rooms.type', 'businessLicenses.status'])
+        return Hostel::with(['township', 'listingStatus', 'rooms.beds', 'rooms.type', 'businessLicenses.status', 'images'])
             ->where('owner_id', $ownerId)
             ->findOrFail($hostelId);
+    }
+
+    public function deleteImage(int $imageId): void
+    {
+        $image = HostelImage::findOrFail($imageId);
+        $path  = ltrim(str_replace('/storage', 'public', $image->image_url), '/');
+        Storage::delete($path);
+        $image->delete();
     }
 
     public function updateHostel(int $hostelId, array $data): Hostel

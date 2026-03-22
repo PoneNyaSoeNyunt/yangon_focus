@@ -56,6 +56,7 @@ const CreateHostel = () => {
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
   const [existingRooms, setExistingRooms] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   const [basicForm, setBasicForm] = useState({
     name: '', description: '', address: '',
@@ -93,6 +94,7 @@ const CreateHostel = () => {
       township_id: String(existingHostel.township_id ?? ''),
     });
     setExistingRooms(existingHostel.rooms ?? []);
+    setExistingImages(existingHostel.images ?? []);
     const license = existingHostel.business_licenses?.[0];
     if (license) {
       setLicenseForm((f) => ({ ...f, license_number: license.license_number }));
@@ -150,6 +152,11 @@ const CreateHostel = () => {
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
   });
 
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageId) => ownerService.deleteImage(hostelId, imageId),
+    onSuccess: (_, imageId) => setExistingImages((imgs) => imgs.filter((i) => i.id !== imageId)),
+  });
+
   const validateBasic = () => {
     const local = {};
     if (!basicForm.name.trim())    local.name = ['Name is required.'];
@@ -188,8 +195,11 @@ const CreateHostel = () => {
     const local = {};
     if (!licenseForm.license_number.trim()) local.license_number = ['License number is required.'];
     if (!editMode && !licenseForm.image)    local.image = ['License image is required.'];
+    const totalImages = existingImages.length + galleryFiles.length;
     if (!editMode && galleryFiles.length < 5)
       local.images = [`At least 5 gallery images required (${galleryFiles.length} selected).`];
+    if (editMode && totalImages === 0)
+      local.images = ['At least 1 gallery image required.'];
     if (Object.keys(local).length) { setErrors(local); return; }
     try {
       if (licenseForm.image) await licenseMutation.mutateAsync();
@@ -211,7 +221,8 @@ const CreateHostel = () => {
     updateHostelMutation.isPending ||
     addRoomsMutation.isPending ||
     licenseMutation.isPending ||
-    imagesMutation.isPending;
+    imagesMutation.isPending ||
+    deleteImageMutation.isPending;
 
   if (editMode && hostelLoading) {
     return (
@@ -370,7 +381,7 @@ const CreateHostel = () => {
             {rooms.map((room, idx) => (
               <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-gray-700">Room {idx + 1}</span>
+                  <span className="text-sm font-semibold text-gray-700">Room {existingRooms.length + idx + 1}</span>
                   {rooms.length > 1 && (
                     <button
                       type="button" onClick={() => removeRoom(idx)}
@@ -505,10 +516,43 @@ const CreateHostel = () => {
 
             <div>
               <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Property Gallery</h2>
+
+              {existingImages.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-gray-500 mb-2">
+                    {existingImages.length} existing image{existingImages.length !== 1 ? 's' : ''} — click × to remove
+                  </p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {existingImages.map((img) => (
+                      <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+                        <img
+                          src={img.image_url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        {img.is_primary && (
+                          <span className="absolute top-1 left-1 bg-teal-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                            Primary
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteImageMutation.mutate(img.id)}
+                          disabled={deleteImageMutation.isPending}
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <ImageUploader
                 files={galleryFiles}
                 onChange={setGalleryFiles}
-                minFiles={5}
+                minFiles={editMode ? 0 : 5}
                 maxFiles={100}
               />
               <FieldError msg={errors.images?.[0]} />
