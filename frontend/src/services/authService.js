@@ -1,4 +1,3 @@
-import axios from 'axios';
 import apiClient from '../api/client';
 
 const authService = {
@@ -8,10 +7,6 @@ const authService = {
   },
 
   async login(credentials) {
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
-      withCredentials: true,
-    });
-    
     const response = await apiClient.post('/login', credentials);
     return response.data;
   },
