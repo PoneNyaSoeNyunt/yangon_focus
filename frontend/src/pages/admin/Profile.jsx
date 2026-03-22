@@ -101,8 +101,12 @@ const Profile = () => {
             </div>
             <div>
               <p className="font-semibold text-gray-900">{user?.full_name}</p>
-              <span className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                Super Admin
+              <span className={`inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                user?.role === 'Super Admin' ? 'bg-amber-100 text-amber-700' :
+                user?.role === 'Owner'       ? 'bg-purple-100 text-purple-700' :
+                                               'bg-blue-100 text-blue-700'
+              }`}>
+                {user?.role}
               </span>
             </div>
           </div>
