@@ -6,6 +6,11 @@ const publicService = {
     return response.data;
   },
 
+  async getHostel(id) {
+    const response = await apiClient.get(`/public/hostels/${id}`);
+    return response.data;
+  },
+
   async getTownships() {
     const response = await apiClient.get('/townships');
     return response.data;

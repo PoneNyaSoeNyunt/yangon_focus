@@ -11,6 +11,7 @@ import LicenseVerification from './pages/admin/LicenseVerification';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import CreateHostel from './pages/owner/CreateHostel';
 import HomePage from './pages/HomePage';
+import HostelDetailPage from './pages/HostelDetailPage';
 
 const AdminRoute = ({ children }) => (
   <ProtectedRoute requiredRole="Super Admin">
@@ -30,6 +31,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           <Route path="/admin/analytics"  element={<AdminRoute><Analytics /></AdminRoute>} />

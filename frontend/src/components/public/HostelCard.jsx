@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const TYPE_STYLES = {
   'Male Only':   'bg-blue-100 text-blue-700',
   'Female Only': 'bg-pink-100 text-pink-700',
@@ -11,7 +13,7 @@ const HostelCard = ({ hostel }) => {
   const minPrice = hostel.rooms_min_price_per_month;
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+    <Link to={`/hostels/${hostel.id}`} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
       <div className="relative overflow-hidden aspect-[16/10] flex-shrink-0">
         <img
           src={imageUrl}
@@ -63,7 +65,7 @@ const HostelCard = ({ hostel }) => {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
