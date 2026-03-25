@@ -12,6 +12,9 @@ import OwnerDashboard from './pages/owner/OwnerDashboard';
 import CreateHostel from './pages/owner/CreateHostel';
 import HomePage from './pages/HomePage';
 import HostelDetailPage from './pages/HostelDetailPage';
+import MyBookings from './pages/guest/MyBookings';
+import ManageRenters from './pages/owner/ManageRenters';
+import VerifyPayments from './pages/owner/VerifyPayments';
 
 const AdminRoute = ({ children }) => (
   <ProtectedRoute requiredRole="Super Admin">
@@ -32,6 +35,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
+          <Route path="/my-bookings"  element={<MyBookings />} />
           <Route path="/login" element={<LoginPage />} />
 
           <Route path="/admin/analytics"  element={<AdminRoute><Analytics /></AdminRoute>} />
@@ -42,12 +46,8 @@ function App() {
           <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
           <Route path="/owner/hostels/edit/:id" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
-          <Route path="/owner/bookings"   element={<OwnerRoute>
-            <div className="px-8 py-8"><h1 className="text-2xl font-bold text-gray-900">Bookings</h1><p className="text-gray-400 mt-2 text-sm">Coming soon.</p></div>
-          </OwnerRoute>} />
-          <Route path="/owner/payments"   element={<OwnerRoute>
-            <div className="px-8 py-8"><h1 className="text-2xl font-bold text-gray-900">Payment Requests</h1><p className="text-gray-400 mt-2 text-sm">Coming soon.</p></div>
-          </OwnerRoute>} />
+          <Route path="/owner/bookings"  element={<OwnerRoute><ManageRenters /></OwnerRoute>} />
+          <Route path="/owner/payments"  element={<OwnerRoute><VerifyPayments /></OwnerRoute>} />
           <Route path="/owner/profile"    element={<OwnerRoute><Profile /></OwnerRoute>} />
           <Route path="/owner"            element={<Navigate to="/owner/hostels" replace />} />
 

@@ -27,4 +27,9 @@ class Booking extends Model
     {
         return $this->belongsTo(StatusCode::class, 'booking_status_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'booking_id');
+    }
 }

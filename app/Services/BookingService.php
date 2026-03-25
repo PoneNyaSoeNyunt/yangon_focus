@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Bed;
 use App\Models\Booking;
 use App\Models\StatusCode;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class BookingService
@@ -35,5 +36,30 @@ class BookingService
 
             return $booking->load(['bed.room', 'status']);
         });
+    }
+
+    public function getGuestBookings(int $guestId): Collection
+    {
+        return Booking::with([
+            'status',
+            'bed.room.hostel.township',
+            'payments.status',
+        ])
+        ->where('guest_id', $guestId)
+        ->orderBy('created_at', 'desc')
+        ->get();
+    }
+
+    public function getOwnerBookings(int $ownerId): Collection
+    {
+        return Booking::with([
+            'status',
+            'guest',
+            'bed.room.hostel',
+            'payments.status',
+        ])
+        ->whereHas('bed.room.hostel', fn($q) => $q->where('owner_id', $ownerId))
+        ->orderBy('created_at', 'desc')
+        ->get();
     }
 }

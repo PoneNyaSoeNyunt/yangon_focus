@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\OwnerHostelController;
 use App\Http\Controllers\Api\V1\LookupController;
 use App\Http\Controllers\Api\V1\PublicHostelController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -22,12 +23,19 @@ Route::prefix('v1')->group(function () {
     Route::get('/public/hostels/{id}', [PublicHostelController::class, 'show']);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::patch('/user/profile',  [UserProfileController::class, 'updateProfile']);
-        Route::patch('/user/password', [UserProfileController::class, 'updatePassword']);
-        Route::post('/bookings',       [BookingController::class, 'store']);
+        Route::patch('/user/profile',                    [UserProfileController::class, 'updateProfile']);
+        Route::patch('/user/password',                   [UserProfileController::class, 'updatePassword']);
+        Route::post('/bookings',                         [BookingController::class, 'store']);
+        Route::get('/my-bookings',                       [BookingController::class, 'guestIndex']);
+        Route::post('/bookings/{id}/payment',            [PaymentController::class, 'guestUpload']);
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
+        Route::get('/bookings',                          [BookingController::class, 'ownerIndex']);
+        Route::post('/bookings/{id}/cash',               [PaymentController::class, 'recordCash']);
+        Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
+        Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
+
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store']);
         Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);

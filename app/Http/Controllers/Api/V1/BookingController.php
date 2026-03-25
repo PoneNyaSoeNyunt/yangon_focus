@@ -10,6 +10,18 @@ class BookingController extends Controller
 {
     public function __construct(private BookingService $bookingService) {}
 
+    public function guestIndex(Request $request)
+    {
+        $bookings = $this->bookingService->getGuestBookings($request->user()->id);
+        return response()->json($bookings);
+    }
+
+    public function ownerIndex(Request $request)
+    {
+        $bookings = $this->bookingService->getOwnerBookings($request->user()->id);
+        return response()->json($bookings);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
