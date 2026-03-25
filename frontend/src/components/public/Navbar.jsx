@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 const getDashboardPath = (role) => {
   if (role === 'Super Admin') return '/admin/analytics';
   if (role === 'Owner')       return '/owner/hostels';
+  if (role === 'Guest')       return '/guest/bookings';
   return '/';
 };
 

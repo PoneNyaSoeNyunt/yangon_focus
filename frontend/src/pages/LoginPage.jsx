@@ -44,6 +44,7 @@ const LoginPage = () => {
       const role = data.user?.role;
       if (role === 'Super Admin') navigate('/admin/analytics');
       else if (role === 'Owner') navigate('/owner/hostels');
+      else if (role === 'Guest') navigate('/guest/bookings');
       else navigate('/');
     },
     onError: (error) => {
