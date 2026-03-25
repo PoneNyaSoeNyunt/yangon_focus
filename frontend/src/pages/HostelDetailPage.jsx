@@ -81,7 +81,7 @@ const GallerySection = ({ images }) => {
 
   return (
     <div className="bg-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3">
         <div className="relative w-full max-h-[60vh] overflow-hidden rounded-b-2xl">
           <img
             src={active?.image_url}
