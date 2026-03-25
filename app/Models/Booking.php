@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
@@ -11,7 +12,16 @@ class Booking extends Model
         'stay_duration', 'locked_price', 'booking_status_id',
     ];
 
+    protected $appends = ['expires_at'];
+
     protected $casts = ['check_in_date' => 'date'];
+
+    protected function expiresAt(): Attribute
+    {
+        return Attribute::get(
+            fn() => $this->created_at?->addHours(24)->toIso8601String()
+        );
+    }
 
     public function guest()
     {

@@ -38,6 +38,55 @@ class BookingService
         });
     }
 
+    public function cancelGuestBooking(int $guestId, int $bookingId): Booking
+    {
+        return DB::transaction(function () use ($guestId, $bookingId) {
+            $booking = Booking::with('bed')
+                ->where('guest_id', $guestId)
+                ->lockForUpdate()
+                ->findOrFail($bookingId);
+
+            $pendingId = StatusCode::where('context', 'Booking')
+                ->where('label', 'Pending')->value('id');
+
+            if ($booking->booking_status_id !== $pendingId) {
+                throw new \Exception('Only Pending bookings can be cancelled.');
+            }
+
+            $cancelledId = StatusCode::where('context', 'Booking')
+                ->where('label', 'Cancelled')->firstOrFail()->id;
+
+            $booking->update(['booking_status_id' => $cancelledId]);
+            $booking->bed->update(['is_occupied' => false]);
+
+            return $booking->fresh(['status', 'bed']);
+        });
+    }
+
+    public function guestPayCash(int $guestId, int $bookingId): \App\Models\Payment
+    {
+        $booking = Booking::with('bed.room')
+            ->where('guest_id', $guestId)
+            ->findOrFail($bookingId);
+
+        $pendingId = StatusCode::where('context', 'Booking')
+            ->where('label', 'Pending')->value('id');
+
+        if ($booking->booking_status_id !== $pendingId) {
+            throw new \Exception('Booking is not in Pending status.');
+        }
+
+        $pendingReviewId = StatusCode::where('context', 'Payment')
+            ->where('label', 'Pending Review')->firstOrFail()->id;
+
+        return \App\Models\Payment::create([
+            'type'              => 'Cash',
+            'booking_id'        => $bookingId,
+            'hostel_id'         => $booking->bed->room->hostel_id,
+            'payment_status_id' => $pendingReviewId,
+        ]);
+    }
+
     public function getGuestBookings(int $guestId): Collection
     {
         return Booking::with([

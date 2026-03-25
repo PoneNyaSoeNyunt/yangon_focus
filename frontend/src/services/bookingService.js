@@ -18,6 +18,21 @@ const bookingService = {
     return response.data;
   },
 
+  async getGuestBookings() {
+    const response = await apiClient.get('/guest/bookings');
+    return response.data;
+  },
+
+  async cancelBooking(bookingId) {
+    const response = await apiClient.delete(`/guest/bookings/${bookingId}`);
+    return response.data;
+  },
+
+  async payCash(bookingId) {
+    const response = await apiClient.patch(`/guest/bookings/${bookingId}/pay-cash`);
+    return response.data;
+  },
+
   async getOwnerBookings() {
     const response = await apiClient.get('/owner/bookings');
     return response.data;
