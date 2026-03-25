@@ -111,6 +111,10 @@ class HostelService
             ->withMin('rooms', 'price_per_month')
             ->where('listing_status_id', $publishedId);
 
+        if (!empty($filters['name'])) {
+            $query->where('name', 'like', '%' . $filters['name'] . '%');
+        }
+
         if (!empty($filters['township_id'])) {
             $query->where('township_id', (int) $filters['township_id']);
         }

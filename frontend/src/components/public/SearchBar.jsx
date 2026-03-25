@@ -30,7 +30,7 @@ const SearchBar = ({ filters, onChange, townships }) => {
     onChange({});
   };
 
-  const hasFilters = filters.township_id || filters.type || filters.min_price || filters.max_price;
+  const hasFilters = filters.name || filters.township_id || filters.type || filters.min_price || filters.max_price;
 
   const minPercent = ((priceMin - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
   const maxPercent = ((priceMax - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
@@ -51,6 +51,32 @@ const SearchBar = ({ filters, onChange, townships }) => {
       `}</style>
 
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 sm:p-6">
+        <div className="mb-4">
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search by Name</label>
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="e.g. Golden Land, Star Hostel…"
+              value={filters.name ?? ''}
+              onChange={(e) => commit('name', e.target.value || undefined)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent hover:border-gray-300 transition"
+            />
+            {filters.name && (
+              <button
+                type="button"
+                onClick={() => commit('name', undefined)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
 
           <div>
