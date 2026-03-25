@@ -80,7 +80,7 @@ const Navbar = () => {
           </div>
 
           <button
-            className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+            className="md:hidden ml-auto p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition"
             onClick={() => setMenuOpen((o) => !o)}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,24 +94,24 @@ const Navbar = () => {
 
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
-          <a href="#about" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg">About</a>
-          <a href="#contact" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg">Contact</a>
+          <a href="#about" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">About</a>
+          <a href="#contact" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">Contact</a>
           <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
             {isAuthenticated ? (
               <>
                 <Link to={getDashboardPath(user?.role)}
-                  className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg">
+                  className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg text-center">
                   Dashboard
                 </Link>
                 <button onClick={handleLogout}
-                  className="text-left px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-lg">
+                  className="w-full px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-lg text-center">
                   Sign Out
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Login</Link>
-                <Link to="/login" className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg">Register</Link>
+                <Link to="/login" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg text-center">Login</Link>
+                <Link to="/login" className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg text-center">Register</Link>
               </>
             )}
           </div>
