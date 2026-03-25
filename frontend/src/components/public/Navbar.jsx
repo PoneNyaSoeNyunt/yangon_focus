@@ -21,8 +21,8 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center h-16">
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-8">
             <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -33,7 +33,7 @@ const Navbar = () => {
             <span className="text-lg font-bold text-gray-900 tracking-tight">Yangon Focus</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 flex-1">
             <a href="#about"
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition">
               About
@@ -44,7 +44,7 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 ml-auto">
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-gray-500">Hi, {user?.full_name?.split(' ')[0]}</span>
