@@ -104,7 +104,7 @@ class BookingService
             }
 
             $finishedId = StatusCode::where('context', 'Booking')
-                ->where('label', 'Stay Finished')
+                ->where('label', 'Completed')
                 ->firstOrFail()->id;
 
             $booking->update(['booking_status_id' => $finishedId]);
