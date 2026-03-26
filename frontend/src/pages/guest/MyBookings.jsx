@@ -225,21 +225,27 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling }) => {
 
       {isPending && (
         <div className="pt-3 border-t border-gray-100 space-y-3">
-          <div className={`flex items-center gap-2 text-sm font-semibold ${expired ? 'text-red-500' : 'text-amber-600'}`}>
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {expired ? 'Payment window expired — booking will be cancelled.' : `Time remaining to pay: ${display}`}
-          </div>
+          {!latestPayment && (
+            <div className={`flex items-center gap-2 text-sm font-semibold ${expired ? 'text-red-500' : 'text-amber-600'}`}>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {expired ? 'Payment window expired — booking will be cancelled.' : `Time remaining to pay: ${display}`}
+            </div>
+          )}
 
           {!expired && !confirmCancel && (
             <div className="flex gap-2">
-              <button onClick={() => setConfirmCancel(true)}
-                className="px-4 py-2 border border-red-200 text-red-500 hover:bg-red-50 text-xs font-semibold rounded-xl transition">
-                Cancel Booking
-              </button>
-              <button onClick={() => onPayNow(booking)}
-                className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold rounded-xl transition">
+              {!latestPayment && (
+                <button onClick={() => setConfirmCancel(true)}
+                  className="px-4 py-2 border border-red-200 text-red-500 hover:bg-red-50 text-xs font-semibold rounded-xl transition">
+                  Cancel Booking
+                </button>
+              )}
+              <button
+                disabled={!!latestPayment}
+                onClick={() => onPayNow(booking)}
+                className="px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl transition">
                 Pay Now
               </button>
             </div>
