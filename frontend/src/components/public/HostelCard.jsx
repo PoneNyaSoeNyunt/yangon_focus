@@ -47,7 +47,7 @@ const HostelCard = ({ hostel }) => {
           <div>
             {minPrice != null ? (
               <>
-                <span className="text-xs text-gray-400">from</span>
+                <span className="text-xs text-gray-400">price</span>
                 <p className="text-base font-bold text-teal-600 leading-tight">
                   {Number(minPrice).toLocaleString()}
                   <span className="text-xs font-medium text-gray-400 ml-1">MMK/mo</span>
