@@ -15,6 +15,7 @@ import HostelDetailPage from './pages/HostelDetailPage';
 import MyBookings from './pages/guest/MyBookings';
 import MyProfile from './pages/guest/MyProfile';
 import Support from './pages/guest/Support';
+import CurrentStay from './pages/guest/CurrentStay';
 import GuestLayout from './components/guest/GuestLayout';
 import ManageRenters from './pages/owner/ManageRenters';
 import VerifyPayments from './pages/owner/VerifyPayments';
@@ -46,10 +47,11 @@ function App() {
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/guest/bookings" element={<GuestRoute><MyBookings /></GuestRoute>} />
-          <Route path="/guest/profile"  element={<GuestRoute><MyProfile /></GuestRoute>} />
-          <Route path="/guest/support"  element={<GuestRoute><Support /></GuestRoute>} />
-          <Route path="/guest"          element={<Navigate to="/guest/bookings" replace />} />
+          <Route path="/guest/current-stay" element={<GuestRoute><CurrentStay /></GuestRoute>} />
+          <Route path="/guest/bookings"    element={<GuestRoute><MyBookings /></GuestRoute>} />
+          <Route path="/guest/profile"     element={<GuestRoute><MyProfile /></GuestRoute>} />
+          <Route path="/guest/support"     element={<GuestRoute><Support /></GuestRoute>} />
+          <Route path="/guest"             element={<Navigate to="/guest/bookings" replace />} />
 
           <Route path="/admin/analytics"  element={<AdminRoute><Analytics /></AdminRoute>} />
           <Route path="/admin/users"      element={<AdminRoute><Dashboard /></AdminRoute>} />

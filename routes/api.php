@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\PublicHostelController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\CurrentStayController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -34,6 +35,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/guest/bookings/{id}/pay-cash',    [BookingController::class, 'guestPayCash']);
         Route::post('/bookings/{id}/payment',            [PaymentController::class, 'guestUpload']);
         Route::post('/guest/bookings/{id}/review',       [ReviewController::class, 'store']);
+        Route::get('/guest/current-stay',                [CurrentStayController::class, 'show']);
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
