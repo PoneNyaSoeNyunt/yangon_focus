@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\CurrentStayController;
+use App\Http\Controllers\Api\V1\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -39,6 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/guest/bookings/{id}/advance-payment',  [PaymentController::class, 'guestUploadAdvance']);
         Route::get('/guest/current-stays',               [CurrentStayController::class, 'index']);
         Route::get('/guest/current-stays/{booking_id}',  [CurrentStayController::class, 'show']);
+        Route::post('/reports',                          [ReportController::class, 'store']);
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
@@ -64,5 +66,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/users/{id}/status',   [SuperAdminController::class, 'updateStatus']);
         Route::get('/licenses',              [AdminLicenseController::class, 'index']);
         Route::patch('/licenses/{id}/verify',[AdminLicenseController::class, 'verify']);
+        Route::get('/reports',               [ReportController::class, 'adminIndex']);
+        Route::patch('/reports/{id}/resolve',[ReportController::class, 'resolve']);
     });
 });

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import bookingService from '../../services/bookingService';
 import paymentService from '../../services/paymentService';
+import ReportModal from '../../components/shared/ReportModal';
 
 const STATUS_STYLES = {
   Pending:   'bg-amber-100 text-amber-700',
@@ -17,6 +18,7 @@ const ManageRenters = () => {
   const [activeTab, setActiveTab]   = useState('All');
   const [actionMsg, setActionMsg]   = useState('');
   const [actionErr, setActionErr]   = useState('');
+  const [reportTarget, setReportTarget] = useState(null);
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['owner-bookings'],
@@ -146,8 +148,8 @@ const ManageRenters = () => {
                   </div>
                 )}
 
-                {isPending && (
-                  <div className="pt-3 border-t border-gray-100">
+                <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                  {isPending && (
                     <button
                       disabled={cashMutation.isPending}
                       onClick={() => cashMutation.mutate(booking.id)}
@@ -158,12 +160,30 @@ const ManageRenters = () => {
                       </svg>
                       Record Cash Payment
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={() => setReportTarget({ id: booking.guest?.id, name: booking.guest?.full_name })}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-semibold rounded-xl transition border border-orange-100"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Report Renter
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
+      )}
+      {reportTarget && (
+        <ReportModal
+          offenderId={reportTarget.id}
+          offenderName={reportTarget.name}
+          onClose={() => setReportTarget(null)}
+          onSuccess={() => setReportTarget(null)}
+        />
       )}
     </div>
   );

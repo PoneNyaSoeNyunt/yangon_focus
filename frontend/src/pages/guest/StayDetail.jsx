@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import currentStayService from '../../services/currentStayService';
+import ReportModal from '../../components/shared/ReportModal';
 
 const TYPE_STYLES = {
   'Male Only':   'bg-blue-100 text-blue-700',
@@ -128,6 +129,7 @@ const StayDetail = () => {
   const queryClient = useQueryClient();
   const [showFinishModal, setShowFinishModal]   = useState(false);
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showReportModal, setShowReportModal]   = useState(false);
   const [finishError, setFinishError]           = useState('');
 
   const finishMutation = useMutation({
@@ -329,8 +331,8 @@ const StayDetail = () => {
             <span className="truncate">Finish Stay</span>
           </button>
 
-          <Link
-            to="/guest/support"
+          <button
+            onClick={() => setShowReportModal(true)}
             className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs sm:text-sm font-semibold rounded-xl transition border border-orange-100"
           >
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +340,7 @@ const StayDetail = () => {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span className="truncate">Report Issue</span>
-          </Link>
+          </button>
         </div>
 
         {finishError && <p className="text-xs text-red-500 mt-3 break-words">{finishError}</p>}
@@ -357,6 +359,14 @@ const StayDetail = () => {
           bookingId={id}
           onClose={() => setShowAdvanceModal(false)}
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['guest-stay-detail', id] })}
+        />
+      )}
+      {showReportModal && (
+        <ReportModal
+          offenderId={stay.hostel?.owner_id}
+          offenderName={stay.hostel?.name}
+          onClose={() => setShowReportModal(false)}
+          onSuccess={() => {}}
         />
       )}
     </div>

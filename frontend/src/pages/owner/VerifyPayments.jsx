@@ -65,20 +65,23 @@ const VerifyPayments = () => {
           {payments.map((payment) => {
             const booking = payment.booking;
             const hostel  = booking?.bed?.room?.hostel;
-            const total   = Number(booking?.locked_price ?? 0) * Number(booking?.stay_duration ?? 1);
+            const total   = payment.type === 'Advance'
+              ? Number(booking?.locked_price ?? 0)
+              : Number(booking?.locked_price ?? 0) * Number(booking?.stay_duration ?? 1);
 
             return (
               <div key={payment.id} className="bg-white rounded-2xl border border-amber-200 shadow-sm p-5 hover:shadow-md transition">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                <div className="flex items-start justify-between mb-4 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 self-start">
                       Pending Review
                     </span>
                     <span className="text-xs text-gray-400">{payment.type}</span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {new Date(payment.created_at).toLocaleString()}
-                  </span>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs text-gray-400">{new Date(payment.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-400">{new Date(payment.created_at).toLocaleTimeString()}</p>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 mb-4">
