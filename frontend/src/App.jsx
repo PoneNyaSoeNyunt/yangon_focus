@@ -17,6 +17,7 @@ import MyBookings from './pages/guest/MyBookings';
 import MyProfile from './pages/guest/MyProfile';
 import Support from './pages/guest/Support';
 import CurrentStay from './pages/guest/CurrentStay';
+import StayDetail from './pages/guest/StayDetail';
 import GuestLayout from './components/guest/GuestLayout';
 import ManageRenters from './pages/owner/ManageRenters';
 import VerifyPayments from './pages/owner/VerifyPayments';
@@ -68,7 +69,8 @@ function App() {
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/guest/current-stay" element={<GuestRoute><CurrentStay /></GuestRoute>} />
+          <Route path="/guest/current-stay"     element={<GuestRoute><CurrentStay /></GuestRoute>} />
+          <Route path="/guest/current-stay/:id" element={<GuestRoute><StayDetail /></GuestRoute>} />
           <Route path="/guest/bookings"    element={<GuestRoute><MyBookings /></GuestRoute>} />
           <Route path="/guest/profile"     element={<GuestRoute><MyProfile /></GuestRoute>} />
           <Route path="/guest/support"     element={<GuestRoute><Support /></GuestRoute>} />

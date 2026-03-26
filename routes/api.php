@@ -35,7 +35,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/guest/bookings/{id}/pay-cash',    [BookingController::class, 'guestPayCash']);
         Route::post('/bookings/{id}/payment',            [PaymentController::class, 'guestUpload']);
         Route::post('/guest/bookings/{id}/review',       [ReviewController::class, 'store']);
-        Route::get('/guest/current-stay',                [CurrentStayController::class, 'show']);
+        Route::get('/guest/current-stays',               [CurrentStayController::class, 'index']);
+        Route::get('/guest/current-stays/{booking_id}',  [CurrentStayController::class, 'show']);
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
