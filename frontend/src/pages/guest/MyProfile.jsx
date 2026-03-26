@@ -40,7 +40,7 @@ const MyProfile = () => {
   });
 
   return (
-    <div className="p-6 sm:p-8 max-w-2xl">
+    <div className="p-6 sm:p-8 max-w-2xl mx-auto w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-gray-900">My Profile</h1>
         <p className="text-sm text-gray-400 mt-0.5">Manage your personal information</p>
