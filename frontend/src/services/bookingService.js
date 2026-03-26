@@ -20,7 +20,7 @@ const bookingService = {
 
   async getGuestBookings() {
     const response = await apiClient.get('/guest/bookings');
-    return response.data;
+    return response.data.data ?? response.data;
   },
 
   async cancelBooking(bookingId) {
