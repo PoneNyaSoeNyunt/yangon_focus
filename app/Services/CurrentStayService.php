@@ -15,6 +15,7 @@ class CurrentStayService
 
         $booking = Booking::with([
             'status',
+            'bed.room.type',
             'bed.room.hostel.township',
             'payments' => fn($q) => $q->latest()->limit(1),
             'payments.status',
@@ -50,7 +51,7 @@ class CurrentStayService
             'room'  => [
                 'id'        => $room?->id,
                 'label'     => $room?->label,
-                'type'      => $room?->type,
+                'type'      => $room?->type?->name,
             ],
             'hostel' => [
                 'id'       => $hostel?->id,
