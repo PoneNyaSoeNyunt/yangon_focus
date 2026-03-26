@@ -43,6 +43,12 @@ class UserProfileController extends Controller
             ], 422);
         }
 
+        if (Hash::check($request->password, $user->password_hash)) {
+            return response()->json([
+                'errors' => ['password' => ['New password must be different from the current password.']],
+            ], 422);
+        }
+
         $user->update(['password_hash' => Hash::make($request->password)]);
 
         return response()->json(['message' => 'Password updated successfully.']);

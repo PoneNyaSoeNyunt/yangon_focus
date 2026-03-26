@@ -10,7 +10,7 @@ const InputField = ({ label, id, error, ...props }) => (
     </label>
     <input
       id={id}
-      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-teal-400 ${
         error ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
       {...props}
@@ -19,7 +19,16 @@ const InputField = ({ label, id, error, ...props }) => (
   </div>
 );
 
-const Profile = () => {
+const SuccessAlert = ({ message }) => (
+  <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+    {message}
+  </div>
+);
+
+const MyProfile = () => {
   const { user, login } = useAuth();
 
   const [profileForm, setProfileForm] = useState({
@@ -27,15 +36,15 @@ const Profile = () => {
     phone_number: user?.phone_number ?? '',
     nrc_number:   user?.nrc_number   ?? '',
   });
-  const [profileErrors, setProfileErrors] = useState({});
+  const [profileErrors, setProfileErrors]   = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
 
   const [passwordForm, setPasswordForm] = useState({
-    current_password: '',
-    password:         '',
+    current_password:      '',
+    password:              '',
     password_confirmation: '',
   });
-  const [passwordErrors, setPasswordErrors] = useState({});
+  const [passwordErrors, setPasswordErrors]   = useState({});
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const profileMutation = useMutation({
@@ -46,10 +55,7 @@ const Profile = () => {
       login(res.user, localStorage.getItem('yf_token'));
       setTimeout(() => setProfileSuccess(''), 3000);
     },
-    onError: (err) => {
-      const errors = err?.response?.data?.errors ?? {};
-      setProfileErrors(errors);
-    },
+    onError: (err) => setProfileErrors(err?.response?.data?.errors ?? {}),
   });
 
   const passwordMutation = useMutation({
@@ -61,7 +67,7 @@ const Profile = () => {
       setTimeout(() => setPasswordSuccess(''), 3000);
     },
     onError: (err) => {
-      const errors = err?.response?.data?.errors ?? {};
+      const errors  = err?.response?.data?.errors ?? {};
       const message = err?.response?.data?.message ?? '';
       if (Object.keys(errors).length > 0) setPasswordErrors(errors);
       else setPasswordErrors({ current_password: message || 'Password change failed.' });
@@ -81,6 +87,7 @@ const Profile = () => {
       setPasswordErrors({ password_confirmation: 'Passwords do not match.' });
       return;
     }
+    setPasswordErrors({});
     passwordMutation.mutate(passwordForm);
   };
 
@@ -92,21 +99,18 @@ const Profile = () => {
       </div>
 
       <div className="space-y-6">
+        {/* ── Personal Information ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100">
-            <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-xl font-bold text-amber-700">
+            <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-xl font-bold text-teal-700">
                 {user?.full_name?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
               <p className="font-semibold text-gray-900">{user?.full_name}</p>
-              <span className={`inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                user?.role === 'Super Admin' ? 'bg-amber-100 text-amber-700' :
-                user?.role === 'Owner'       ? 'bg-purple-100 text-purple-700' :
-                                               'bg-blue-100 text-blue-700'
-              }`}>
-                {user?.role}
+              <span className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                Owner
               </span>
             </div>
           </div>
@@ -116,35 +120,22 @@ const Profile = () => {
               Personal Information
             </h2>
 
-            {profileSuccess && (
-              <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {profileSuccess}
-              </div>
-            )}
+            {profileSuccess && <SuccessAlert message={profileSuccess} />}
 
             <InputField
-              label="Full Name"
-              id="full_name"
-              type="text"
+              label="Full Name" id="full_name" type="text"
               value={profileForm.full_name}
               onChange={(e) => setProfileForm((f) => ({ ...f, full_name: e.target.value }))}
               error={profileErrors.full_name?.[0]}
             />
             <InputField
-              label="Phone Number"
-              id="phone_number"
-              type="text"
+              label="Phone Number" id="phone_number" type="text"
               value={profileForm.phone_number}
               onChange={(e) => setProfileForm((f) => ({ ...f, phone_number: e.target.value }))}
               error={profileErrors.phone_number?.[0]}
             />
             <InputField
-              label="NRC Number"
-              id="nrc_number"
-              type="text"
+              label="NRC Number" id="nrc_number" type="text"
               value={profileForm.nrc_number}
               onChange={(e) => setProfileForm((f) => ({ ...f, nrc_number: e.target.value }))}
               error={profileErrors.nrc_number?.[0]}
@@ -154,7 +145,7 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={profileMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {profileMutation.isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -168,41 +159,29 @@ const Profile = () => {
           </form>
         </div>
 
+        {/* ── Change Password ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">
               Change Password
             </h2>
 
-            {passwordSuccess && (
-              <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {passwordSuccess}
-              </div>
-            )}
+            {passwordSuccess && <SuccessAlert message={passwordSuccess} />}
 
             <InputField
-              label="Current Password"
-              id="current_password"
-              type="password"
+              label="Current Password" id="current_password" type="password"
               value={passwordForm.current_password}
               onChange={(e) => setPasswordForm((f) => ({ ...f, current_password: e.target.value }))}
               error={Array.isArray(passwordErrors.current_password) ? passwordErrors.current_password[0] : passwordErrors.current_password}
             />
             <InputField
-              label="New Password"
-              id="password"
-              type="password"
+              label="New Password" id="password" type="password"
               value={passwordForm.password}
               onChange={(e) => setPasswordForm((f) => ({ ...f, password: e.target.value }))}
               error={passwordErrors.password?.[0]}
             />
             <InputField
-              label="Confirm New Password"
-              id="password_confirmation"
-              type="password"
+              label="Confirm New Password" id="password_confirmation" type="password"
               value={passwordForm.password_confirmation}
               onChange={(e) => setPasswordForm((f) => ({ ...f, password_confirmation: e.target.value }))}
               error={Array.isArray(passwordErrors.password_confirmation) ? passwordErrors.password_confirmation[0] : passwordErrors.password_confirmation}
@@ -230,4 +209,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default MyProfile;
