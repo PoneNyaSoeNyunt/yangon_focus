@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-const PRICE_MIN = 0;
-const PRICE_MAX = 500000;
-const PRICE_STEP = 10000;
+const PRICE_MIN = 50000;
+const PRICE_MAX = 160000;
+const PRICE_STEP = 5000;
 
-const fmt = (val) => val === 0 ? 'Any' : `${(val / 1000).toFixed(0)}k MMK`;
+const fmt = (val) => `${(val / 1000).toFixed(0)}k MMK`;
 
 const SearchBar = ({ filters, onChange, townships }) => {
   const [priceMin, setPriceMin] = useState(filters.min_price ?? PRICE_MIN);
@@ -15,13 +15,13 @@ const SearchBar = ({ filters, onChange, townships }) => {
   const handleMinChange = (e) => {
     const val = Math.min(Number(e.target.value), priceMax - PRICE_STEP);
     setPriceMin(val);
-    onChange({ ...filters, min_price: val || undefined, max_price: priceMax < PRICE_MAX ? priceMax : undefined });
+    onChange({ ...filters, min_price: val > PRICE_MIN ? val : undefined, max_price: priceMax < PRICE_MAX ? priceMax : undefined });
   };
 
   const handleMaxChange = (e) => {
     const val = Math.max(Number(e.target.value), priceMin + PRICE_STEP);
     setPriceMax(val);
-    onChange({ ...filters, min_price: priceMin || undefined, max_price: val < PRICE_MAX ? val : undefined });
+    onChange({ ...filters, min_price: priceMin > PRICE_MIN ? priceMin : undefined, max_price: val < PRICE_MAX ? val : undefined });
   };
 
   const handleReset = () => {
@@ -44,10 +44,11 @@ const SearchBar = ({ filters, onChange, townships }) => {
           background: #14b8a6; cursor: pointer;
           border: 2px solid white; box-shadow: 0 0 0 2px #14b8a6;
           transition: box-shadow 0.15s;
+          pointer-events: auto;
         }
         .range-thumb::-webkit-slider-thumb:hover { box-shadow: 0 0 0 4px rgba(20,184,166,0.25); }
-        .range-thumb::-webkit-slider-runnable-track { height: 0; background: transparent; }
-        .range-thumb { -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+        .range-thumb::-webkit-slider-runnable-track { height: 100%; background: transparent; }
+        .range-thumb { -webkit-appearance: none; appearance: none; background: transparent; outline: none; pointer-events: none; }
       `}</style>
 
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 sm:p-6">
@@ -114,35 +115,33 @@ const SearchBar = ({ filters, onChange, townships }) => {
                 {fmt(priceMin)} – {fmt(priceMax)}
               </span>
             </label>
-            <div className="relative pt-2 pb-1">
-              <div className="absolute top-[18px] left-0 right-0 h-1.5 rounded-full bg-gray-200" />
+            <div className="relative h-6 my-1">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-gray-200" />
               <div
-                className="absolute top-[18px] h-1.5 rounded-full bg-teal-400"
+                className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-teal-400"
                 style={{ left: `${minPercent}%`, right: `${100 - maxPercent}%` }}
               />
-              <div className="relative h-6">
-                <input
-                  type="range" min={PRICE_MIN} max={PRICE_MAX} step={PRICE_STEP}
-                  value={priceMin}
-                  onChange={handleMinChange}
-                  className="range-thumb absolute w-full h-6"
-                  style={{ zIndex: priceMin >= PRICE_MAX - PRICE_STEP ? 5 : 3 }}
-                />
-                <input
-                  type="range" min={PRICE_MIN} max={PRICE_MAX} step={PRICE_STEP}
-                  value={priceMax}
-                  onChange={handleMaxChange}
-                  className="range-thumb absolute w-full h-6"
-                  style={{ zIndex: 4 }}
-                />
-              </div>
-              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
-                <span>0</span>
-                <span>125k</span>
-                <span>250k</span>
-                <span>375k</span>
-                <span>500k</span>
-              </div>
+              <input
+                type="range" min={PRICE_MIN} max={PRICE_MAX} step={PRICE_STEP}
+                value={priceMin}
+                onChange={handleMinChange}
+                className="range-thumb absolute inset-0 w-full h-full"
+                style={{ zIndex: priceMin >= PRICE_MAX - PRICE_STEP ? 5 : 3 }}
+              />
+              <input
+                type="range" min={PRICE_MIN} max={PRICE_MAX} step={PRICE_STEP}
+                value={priceMax}
+                onChange={handleMaxChange}
+                className="range-thumb absolute inset-0 w-full h-full"
+                style={{ zIndex: 4 }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+              <span>50k</span>
+              <span>80k</span>
+              <span>110k</span>
+              <span>140k</span>
+              <span>160k</span>
             </div>
           </div>
 

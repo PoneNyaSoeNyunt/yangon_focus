@@ -7,8 +7,9 @@ const MyProfile = () => {
   const { user, login } = useAuth();
   const [form, setForm]         = useState({ full_name: '', phone_number: '', nrc_number: '' });
   const [pwForm, setPwForm]     = useState({ current_password: '', password: '', password_confirmation: '' });
-  const [toast, setToast]       = useState('');
-  const [toastErr, setToastErr] = useState('');
+  const [toast, setToast]     = useState('');
+  const [profileErr, setProfileErr] = useState('');
+  const [pwErr, setPwErr]           = useState('');
 
   useEffect(() => {
     if (user) {
@@ -16,27 +17,26 @@ const MyProfile = () => {
     }
   }, [user]);
 
-  const showToast = (msg, isErr = false) => {
-    isErr ? setToastErr(msg) : setToast(msg);
-    setTimeout(() => { setToast(''); setToastErr(''); }, 4000);
-  };
-
   const profileMutation = useMutation({
     mutationFn: (data) => apiClient.patch('/user/profile', data).then((r) => r.data),
     onSuccess: (data) => {
       if (data.user) login(data.user, localStorage.getItem('yf_token'));
-      showToast('Profile updated successfully.');
+      setProfileErr('');
+      setToast('Profile updated successfully.');
+      setTimeout(() => setToast(''), 4000);
     },
-    onError: (err) => showToast(err?.response?.data?.message ?? 'Update failed.', true),
+    onError: (err) => setProfileErr(err?.response?.data?.message ?? 'Update failed.'),
   });
 
   const passwordMutation = useMutation({
     mutationFn: (data) => apiClient.patch('/user/password', data).then((r) => r.data),
     onSuccess: () => {
-      showToast('Password changed successfully.');
+      setPwErr('');
+      setToast('Password changed successfully.');
+      setTimeout(() => setToast(''), 4000);
       setPwForm({ current_password: '', password: '', password_confirmation: '' });
     },
-    onError: (err) => showToast(err?.response?.data?.message ?? 'Password change failed.', true),
+    onError: (err) => setPwErr(err?.response?.data?.message ?? 'Password change failed.'),
   });
 
   return (
@@ -54,11 +54,11 @@ const MyProfile = () => {
           {toast}
         </div>
       )}
-      {toastErr && (
-        <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{toastErr}</div>
-      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+        {profileErr && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{profileErr}</div>
+        )}
         <div className="flex items-center gap-4 mb-6">
           <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
             <span className="text-xl font-bold text-teal-700">{user?.full_name?.charAt(0) ?? 'G'}</span>
@@ -110,6 +110,9 @@ const MyProfile = () => {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="text-sm font-bold text-gray-700 mb-4">Change Password</h2>
+        {pwErr && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{pwErr}</div>
+        )}
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Current Password</label>

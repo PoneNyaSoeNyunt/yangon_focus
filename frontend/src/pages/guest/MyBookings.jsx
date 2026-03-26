@@ -90,7 +90,7 @@ const ReviewModal = ({ booking, onClose, onSuccess }) => {
             <StarPicker value={form.rating} onChange={(v) => setForm((f) => ({ ...f, rating: v }))} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Service Quality</label>
               <StarPicker value={form.service_quality} onChange={(v) => setForm((f) => ({ ...f, service_quality: v }))} />
