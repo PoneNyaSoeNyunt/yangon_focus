@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -38,10 +39,30 @@ const GuestRoute = ({ children }) => (
   </ProtectedRoute>
 );
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
+            <p className="text-red-500 font-semibold mb-2">Something went wrong</p>
+            <p className="text-xs text-gray-400 font-mono break-all mb-4">{this.state.error?.message}</p>
+            <button onClick={() => this.setState({ hasError: false, error: null })} className="px-4 py-2 bg-teal-500 text-white text-sm rounded-xl hover:bg-teal-600 transition">Try again</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
@@ -69,6 +90,7 @@ function App() {
           <Route path="/admin/dashboard"  element={<Navigate to="/admin/analytics" replace />} />
           <Route path="/admin"            element={<Navigate to="/admin/analytics" replace />} />
         </Routes>
+        </ErrorBoundary>
       </Router>
     </AuthProvider>
   );
