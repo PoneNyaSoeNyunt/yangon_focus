@@ -5,6 +5,7 @@ import Navbar from '../components/public/Navbar';
 import Footer from '../components/public/Footer';
 import publicService from '../services/publicService';
 import bookingService from '../services/bookingService';
+import reviewService from '../services/reviewService';
 import { useAuth } from '../context/AuthContext';
 
 const TYPE_STYLES = {
@@ -109,6 +110,105 @@ const GallerySection = ({ images }) => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+/* ── Star Display ──────────────────────────────────── */
+const StarDisplay = ({ value, max = 5, size = 'sm' }) => {
+  const cls = size === 'lg' ? 'w-5 h-5' : 'w-3.5 h-3.5';
+  return (
+    <span className="inline-flex gap-0.5">
+      {Array.from({ length: max }, (_, i) => (
+        <svg key={i} className={`${cls} ${i < value ? 'text-amber-400' : 'text-gray-200'}`} viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </span>
+  );
+};
+
+/* ── Score Bar ─────────────────────────────────────── */
+const ScoreBar = ({ label, value, max = 5 }) => (
+  <div className="flex items-center gap-3 text-sm">
+    <span className="w-28 text-gray-500 flex-shrink-0">{label}</span>
+    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-full bg-teal-400 rounded-full transition-all" style={{ width: `${(value / max) * 100}%` }} />
+    </div>
+    <span className="w-8 text-right font-semibold text-gray-700">{value ?? '—'}</span>
+  </div>
+);
+
+/* ── Reviews Section ───────────────────────────────── */
+const ReviewsSection = ({ hostelId }) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['hostel-reviews', hostelId],
+    queryFn: () => reviewService.getHostelReviews(hostelId),
+    enabled: !!hostelId,
+  });
+
+  if (isLoading) return (
+    <div className="mt-10">
+      <h2 className="text-lg font-bold text-gray-900 mb-4">Reviews</h2>
+      <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />)}</div>
+    </div>
+  );
+
+  const total   = data?.total ?? 0;
+  const reviews = data?.reviews ?? [];
+
+  return (
+    <div className="mt-10">
+      <h2 className="text-lg font-bold text-gray-900 mb-4">
+        Reviews
+        {total > 0 && <span className="ml-2 text-sm font-normal text-gray-400">— {total} {total === 1 ? 'review' : 'reviews'}</span>}
+      </h2>
+
+      {total === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+          <p className="text-gray-400 text-sm">No reviews yet. Be the first to review!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Summary card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center gap-3">
+            <p className="text-5xl font-extrabold text-gray-900">{data.avg_rating}</p>
+            <StarDisplay value={Math.round(data.avg_rating)} size="lg" />
+            <p className="text-xs text-gray-400">{total} {total === 1 ? 'review' : 'reviews'}</p>
+            <div className="w-full mt-2 space-y-2">
+              <ScoreBar label="Service Quality" value={data.avg_service_quality} />
+              <ScoreBar label="Hygiene" value={data.avg_hygiene_score} />
+            </div>
+          </div>
+
+          {/* Comment list */}
+          <div className="lg:col-span-2 space-y-3">
+            {reviews.map((r) => (
+              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-teal-700">{r.guest_name?.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{r.guest_name}</p>
+                      <p className="text-xs text-gray-400">{r.created_at}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <StarDisplay value={r.rating} />
+                    <div className="flex gap-3 text-xs text-gray-400">
+                      <span>Service: <span className="font-semibold text-gray-600">{r.service_quality}/5</span></span>
+                      <span>Hygiene: <span className="font-semibold text-gray-600">{r.hygiene_score}/5</span></span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">{r.comment}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -370,6 +470,9 @@ const HostelDetailPage = () => {
             </div>
           </div>
         )}
+
+        {/* ── Reviews ── */}
+        <ReviewsSection hostelId={hostel.id} />
       </main>
 
       <Footer />

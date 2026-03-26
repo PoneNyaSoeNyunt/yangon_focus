@@ -93,6 +93,7 @@ class BookingService
             'status',
             'bed.room.hostel.township',
             'payments.status',
+            'review',
         ])
         ->where('guest_id', $guestId)
         ->orderBy('created_at', 'desc')
