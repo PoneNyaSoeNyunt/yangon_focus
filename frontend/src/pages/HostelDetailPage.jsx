@@ -113,106 +113,112 @@ const GallerySection = ({ images }) => {
   );
 };
 
-/* ── Booking Sidebar ────────────────────────────────── */
-const BookingSidebar = ({
-  hostel, selectedBed, selectedRoomLabel, selectedRoomPrice,
+/* ── Booking Modal ────────────────────────────────── */
+const BookingModal = ({
+  bed, roomLabel, roomPrice,
   checkInDate, setCheckInDate, stayDuration, setStayDuration,
-  onBook, isPending, error, success, isAuthenticated, userRole,
+  onBook, onClose, isPending, error, success, isAuthenticated, userRole,
 }) => {
-  const total = selectedRoomPrice ? Number(selectedRoomPrice) * Number(stayDuration) : null;
+  const total = Number(roomPrice) * Number(stayDuration);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-5 sticky top-20">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Starting from</p>
-      <p className="text-2xl font-extrabold text-teal-600 mb-4">
-        {hostel.rooms_min_price_per_month
-          ? `${Number(hostel.rooms_min_price_per_month).toLocaleString()} MMK`
-          : 'Contact for price'}
-        <span className="text-sm font-normal text-gray-400 ml-1">/mo</span>
-      </p>
-
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-medium">
-          ✓ Booking submitted! The owner will confirm shortly.
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900 text-lg">Book a Bed</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      )}
 
-      {selectedBed ? (
-        <div className="space-y-4">
-          <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm">
-            <p className="text-xs text-teal-600 font-semibold mb-0.5">Selected</p>
-            <p className="font-semibold text-gray-800">{selectedRoomLabel} — Bed {selectedBed.bed_number}</p>
-            <p className="text-teal-700 font-bold">{Number(selectedRoomPrice).toLocaleString()} MMK/mo</p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Check-in Date</label>
-            <input
-              type="date"
-              min={today}
-              value={checkInDate}
-              onChange={(e) => setCheckInDate(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Stay Duration</label>
-            <select
-              value={stayDuration}
-              onChange={(e) => setStayDuration(Number(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-            >
-              {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>{n} month{n > 1 ? 's' : ''}</option>
-              ))}
-            </select>
-          </div>
-
-          {total !== null && (
-            <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-xl text-sm">
-              <span className="text-gray-500">Total</span>
-              <span className="font-bold text-gray-900">{total.toLocaleString()} MMK</span>
-            </div>
-          )}
-
-          {error && (
-            <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
-          )}
-
-          {!isAuthenticated ? (
-            <Link
-              to="/login"
-              className="block text-center w-full py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl transition"
-            >
-              Log in to Book
-            </Link>
-          ) : userRole !== 'Guest' ? (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
-              Only guests can place bookings.
-            </p>
-          ) : (
-            <button
-              type="button"
-              disabled={!checkInDate || isPending}
-              onClick={onBook}
-              className="w-full py-3 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
-            >
-              {isPending && (
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        <div className="p-5 space-y-4">
+          {success ? (
+            <div className="py-6 text-center space-y-3">
+              <div className="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
+              </div>
+              <p className="font-semibold text-gray-800">Booking submitted!</p>
+              <p className="text-sm text-gray-400">The owner will confirm your reservation shortly.</p>
+              <button onClick={onClose} className="mt-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition">
+                Done
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm">
+                <p className="text-xs text-teal-600 font-semibold mb-0.5">Selected</p>
+                <p className="font-semibold text-gray-800">{roomLabel} — Bed {bed.bed_number}</p>
+                <p className="text-teal-700 font-bold">{Number(roomPrice).toLocaleString()} MMK/mo</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Check-in Date</label>
+                <input
+                  type="date"
+                  min={today}
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Stay Duration</label>
+                <select
+                  value={stayDuration}
+                  onChange={(e) => setStayDuration(Number(e.target.value))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                >
+                  {Array.from({ length: 24 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n} month{n > 1 ? 's' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-xl text-sm">
+                <span className="text-gray-500">Total</span>
+                <span className="font-bold text-gray-900">{total.toLocaleString()} MMK</span>
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
               )}
-              Book Now
-            </button>
+
+              {!isAuthenticated ? (
+                <Link
+                  to="/login"
+                  className="block text-center w-full py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl transition"
+                >
+                  Log in to Book
+                </Link>
+              ) : userRole !== 'Guest' ? (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
+                  Only guests can place bookings.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!checkInDate || isPending}
+                  onClick={onBook}
+                  className="w-full py-3 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  {isPending && (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                  Book Now
+                </button>
+              )}
+            </>
           )}
         </div>
-      ) : (
-        <p className="text-sm text-gray-400 text-center py-4">
-          Select a bed below to proceed with booking.
-        </p>
-      )}
+      </div>
     </div>
   );
 };
@@ -223,6 +229,7 @@ const HostelDetailPage = () => {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
 
+  const [modalOpen, setModalOpen]               = useState(false);
   const [selectedBed, setSelectedBed]           = useState(null);
   const [selectedRoomPrice, setSelectedRoomPrice] = useState(null);
   const [selectedRoomLabel, setSelectedRoomLabel] = useState('');
@@ -240,7 +247,6 @@ const HostelDetailPage = () => {
     mutationFn: () => bookingService.create({ bed_id: selectedBed.id, check_in_date: checkInDate, stay_duration: stayDuration }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hostel', id] });
-      setSelectedBed(null);
       setBookingSuccess(true);
       setBookingError('');
     },
@@ -251,8 +257,16 @@ const HostelDetailPage = () => {
     setSelectedBed(bed);
     setSelectedRoomPrice(roomPrice);
     setSelectedRoomLabel(roomLabel);
+    setCheckInDate('');
+    setStayDuration(1);
     setBookingError('');
     setBookingSuccess(false);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    if (bookingSuccess) setSelectedBed(null);
   };
 
   if (isLoading) return (
@@ -292,29 +306,33 @@ const HostelDetailPage = () => {
       <GallerySection images={images} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* ── Left: Info ── */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                {hostel.type && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${TYPE_STYLES[hostel.type] ?? 'bg-gray-100 text-gray-600'}`}>
-                    {hostel.type}
-                  </span>
-                )}
-                <span className="flex items-center gap-1 text-sm text-gray-400">
-                  <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {hostel.township?.name}
+        <div className="space-y-6">
+          <div>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              {hostel.type && (
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${TYPE_STYLES[hostel.type] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {hostel.type}
                 </span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">{hostel.name}</h1>
-              {hostel.address && <p className="text-sm text-gray-400 mt-1">{hostel.address}</p>}
+              )}
+              <span className="flex items-center gap-1 text-sm text-gray-400">
+                <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {hostel.township?.name}
+              </span>
+              {hostel.rooms_min_price_per_month && (
+                <span className="ml-auto text-teal-600 font-bold text-sm">
+                  from {Number(hostel.rooms_min_price_per_month).toLocaleString()} MMK
+                  <span className="text-gray-400 font-normal">/mo</span>
+                </span>
+              )}
             </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">{hostel.name}</h1>
+            {hostel.address && <p className="text-sm text-gray-400 mt-1">{hostel.address}</p>}
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hostel.description && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">About this Hostel</h2>
@@ -328,26 +346,6 @@ const HostelDetailPage = () => {
                 <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{hostel.house_rules}</p>
               </div>
             )}
-          </div>
-
-          {/* ── Right: Booking sidebar ── */}
-          <div>
-            <BookingSidebar
-              hostel={hostel}
-              selectedBed={selectedBed}
-              selectedRoomLabel={selectedRoomLabel}
-              selectedRoomPrice={selectedRoomPrice}
-              checkInDate={checkInDate}
-              setCheckInDate={setCheckInDate}
-              stayDuration={stayDuration}
-              setStayDuration={setStayDuration}
-              onBook={() => bookingMutation.mutate()}
-              isPending={bookingMutation.isPending}
-              error={bookingError}
-              success={bookingSuccess}
-              isAuthenticated={isAuthenticated}
-              userRole={user?.role}
-            />
           </div>
         </div>
 
@@ -375,6 +373,25 @@ const HostelDetailPage = () => {
       </main>
 
       <Footer />
+
+      {modalOpen && selectedBed && (
+        <BookingModal
+          bed={selectedBed}
+          roomLabel={selectedRoomLabel}
+          roomPrice={selectedRoomPrice}
+          checkInDate={checkInDate}
+          setCheckInDate={setCheckInDate}
+          stayDuration={stayDuration}
+          setStayDuration={setStayDuration}
+          onBook={() => bookingMutation.mutate()}
+          onClose={handleCloseModal}
+          isPending={bookingMutation.isPending}
+          error={bookingError}
+          success={bookingSuccess}
+          isAuthenticated={isAuthenticated}
+          userRole={user?.role}
+        />
+      )}
     </div>
   );
 };
