@@ -27,6 +27,24 @@ class PaymentController extends Controller
         }
     }
 
+    public function guestUploadAdvance(Request $request, int $bookingId)
+    {
+        $data = $request->validate([
+            'screenshot'     => ['nullable', 'image', 'max:5120'],
+            'transaction_id' => ['nullable', 'string', 'max:100'],
+        ]);
+        if ($request->hasFile('screenshot')) {
+            $data['screenshot'] = $request->file('screenshot');
+        }
+
+        try {
+            $payment = $this->paymentService->uploadAdvancePayment($request->user()->id, $bookingId, $data);
+            return response()->json(['message' => 'Advance payment submitted for review.', 'payment' => $payment], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
     public function recordCash(Request $request, int $bookingId)
     {
         try {

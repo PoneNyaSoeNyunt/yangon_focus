@@ -43,6 +43,16 @@ class BookingController extends Controller
         return response()->json($bookings);
     }
 
+    public function guestFinish(Request $request, int $id)
+    {
+        try {
+            $booking = $this->bookingService->finishStay($request->user()->id, $id);
+            return response()->json(['message' => 'Stay finished. Bed has been vacated.', 'booking' => new BookingResource($booking)]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

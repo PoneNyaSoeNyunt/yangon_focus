@@ -20,6 +20,7 @@ class CurrentStayService
             'status',
             'bed.room.type',
             'bed.room.hostel.township',
+            'bed.room.hostel.owner',
             'payments' => fn($q) => $q->latest()->limit(1),
             'payments.status',
         ];
@@ -70,11 +71,12 @@ class CurrentStayService
                 'type'  => $room?->type?->name,
             ],
             'hostel' => [
-                'id'       => $hostel?->id,
-                'name'     => $hostel?->name,
-                'type'     => $hostel?->type,
-                'address'  => $hostel?->address,
-                'township' => $hostel?->township?->name,
+                'id'          => $hostel?->id,
+                'name'        => $hostel?->name,
+                'type'        => $hostel?->type,
+                'address'     => $hostel?->address,
+                'township'    => $hostel?->township?->name,
+                'owner_phone' => $hostel?->owner?->phone_number,
             ],
             'latest_payment' => $booking->payments->first()
                 ? [

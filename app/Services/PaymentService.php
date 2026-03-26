@@ -79,6 +79,39 @@ class PaymentService
         });
     }
 
+    public function uploadAdvancePayment(int $guestId, int $bookingId, array $data): Payment
+    {
+        $booking = Booking::with('bed.room')
+            ->where('guest_id', $guestId)
+            ->findOrFail($bookingId);
+
+        $activeIds = StatusCode::where('context', 'Booking')
+            ->whereIn('label', ['Active', 'Confirmed'])
+            ->pluck('id');
+
+        if (!$activeIds->contains($booking->booking_status_id)) {
+            throw new \Exception('Booking must be Active or Confirmed for advance payment.');
+        }
+
+        $pendingReviewId = StatusCode::where('context', 'Payment')
+            ->where('label', 'Pending Review')->firstOrFail()->id;
+
+        $screenshotUrl = null;
+        if (!empty($data['screenshot'])) {
+            $path = $data['screenshot']->store('payment-screenshots', 'public');
+            $screenshotUrl = Storage::url($path);
+        }
+
+        return Payment::create([
+            'type'              => 'Advance',
+            'booking_id'        => $bookingId,
+            'hostel_id'         => $booking->bed->room->hostel_id,
+            'screenshot_url'    => $screenshotUrl,
+            'transaction_id'    => $data['transaction_id'] ?? null,
+            'payment_status_id' => $pendingReviewId,
+        ]);
+    }
+
     public function verifyDigitalPayment(int $ownerId, int $paymentId): Payment
     {
         return DB::transaction(function () use ($ownerId, $paymentId) {
@@ -90,14 +123,19 @@ class PaymentService
                 throw new \Exception('Unauthorized.');
             }
 
-            $verifiedId  = StatusCode::where('context', 'Payment')
+            $verifiedId = StatusCode::where('context', 'Payment')
                 ->where('label', 'Verified')->firstOrFail()->id;
-            $confirmedId = StatusCode::where('context', 'Booking')
-                ->where('label', 'Confirmed')->firstOrFail()->id;
 
             $payment->update(['payment_status_id' => $verifiedId]);
-            $payment->booking->update(['booking_status_id' => $confirmedId]);
-            $payment->booking->bed->update(['is_occupied' => true]);
+
+            if ($payment->type === 'Advance') {
+                $payment->booking->increment('stay_duration');
+            } else {
+                $confirmedId = StatusCode::where('context', 'Booking')
+                    ->where('label', 'Confirmed')->firstOrFail()->id;
+                $payment->booking->update(['booking_status_id' => $confirmedId]);
+                $payment->booking->bed->update(['is_occupied' => true]);
+            }
 
             return $payment->fresh(['status', 'booking.status']);
         });

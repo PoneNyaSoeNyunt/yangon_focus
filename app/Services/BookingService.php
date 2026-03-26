@@ -87,6 +87,33 @@ class BookingService
         ]);
     }
 
+    public function finishStay(int $guestId, int $bookingId): Booking
+    {
+        return DB::transaction(function () use ($guestId, $bookingId) {
+            $booking = Booking::with('bed')
+                ->where('guest_id', $guestId)
+                ->lockForUpdate()
+                ->findOrFail($bookingId);
+
+            $allowedIds = StatusCode::where('context', 'Booking')
+                ->whereIn('label', ['Active', 'Confirmed'])
+                ->pluck('id');
+
+            if (!$allowedIds->contains($booking->booking_status_id)) {
+                throw new \Exception('Only Active or Confirmed stays can be finished.');
+            }
+
+            $finishedId = StatusCode::where('context', 'Booking')
+                ->where('label', 'Stay Finished')
+                ->firstOrFail()->id;
+
+            $booking->update(['booking_status_id' => $finishedId]);
+            $booking->bed->update(['is_occupied' => false]);
+
+            return $booking->fresh(['status', 'bed']);
+        });
+    }
+
     public function getGuestBookings(int $guestId): Collection
     {
         return Booking::with([
