@@ -266,7 +266,7 @@ const HostelDetailPage = () => {
 
   const handleCloseModal = () => {
     setModalOpen(false);
-    if (bookingSuccess) setSelectedBed(null);
+    setSelectedBed(null);
   };
 
   if (isLoading) return (
