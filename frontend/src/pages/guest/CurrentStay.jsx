@@ -16,12 +16,12 @@ const InfoRow = ({ label, value }) => (
 );
 
 const CurrentStay = () => {
-  const { data: stay, isLoading } = useQuery({
+  const { data: stay, isPending, isError } = useQuery({
     queryKey: ['guest-current-stay'],
-    queryFn:  currentStayService.getCurrentStay,
+    queryFn:  () => currentStayService.getCurrentStay(),
   });
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="p-6 sm:p-8 space-y-4">
         {[1, 2, 3].map((i) => (
@@ -31,7 +31,7 @@ const CurrentStay = () => {
     );
   }
 
-  if (!stay) {
+  if (isError || !stay) {
     return (
       <div className="p-6 sm:p-8">
         <div className="mb-6">
@@ -167,19 +167,7 @@ const CurrentStay = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          {stay.hostel?.phone ? (
-            <a
-              href={`tel:${stay.hostel.phone}`}
-              className="flex items-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              Contact Owner
-            </a>
-          ) : (
-            <button
+          <button
               disabled
               className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-400 text-sm font-semibold rounded-xl cursor-not-allowed"
             >
@@ -189,7 +177,6 @@ const CurrentStay = () => {
               </svg>
               Contact Owner
             </button>
-          )}
 
           <Link
             to="/guest/support"

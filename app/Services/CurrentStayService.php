@@ -58,7 +58,6 @@ class CurrentStayService
                 'type'     => $hostel?->type,
                 'address'  => $hostel?->address,
                 'township' => $hostel?->township?->name,
-                'phone'    => $hostel?->contact_phone,
             ],
             'latest_payment' => $booking->payments->first()
                 ? [
