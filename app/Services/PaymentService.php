@@ -153,6 +153,7 @@ class PaymentService
             'status',
         ])
         ->where('payment_status_id', $pendingReviewId)
+        ->where('type', '!=', 'Cash')
         ->whereHas('booking.bed.room.hostel', fn($q) => $q->where('owner_id', $ownerId))
         ->orderBy('created_at', 'desc')
         ->get();
