@@ -14,7 +14,7 @@ class PublicHostelController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['name', 'township_id', 'type', 'min_price', 'max_price']);
+        $filters = $request->only(['name', 'township_id', 'type', 'min_price', 'max_price', 'facilities']);
         $hostels = $this->hostelService->searchHostels($filters);
         return response()->json($hostels);
     }

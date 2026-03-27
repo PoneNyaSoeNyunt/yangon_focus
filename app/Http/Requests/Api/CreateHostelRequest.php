@@ -17,6 +17,8 @@ class CreateHostelRequest extends FormRequest
             'house_rules' => ['nullable', 'string'],
             'type'        => ['required', 'in:Male Only,Female Only,Mixed'],
             'township_id' => ['required', 'integer', 'exists:townships,id'],
+            'facilities'  => ['nullable', 'array'],
+            'facilities.*' => ['string', 'max:100'],
         ];
     }
 }

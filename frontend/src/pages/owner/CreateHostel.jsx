@@ -6,6 +6,19 @@ import ImageUploader from '../../components/owner/ImageUploader';
 
 const STEPS = ['Basic Info', 'Rooms & Beds', 'License & Gallery'];
 
+const FACILITIES = [
+  { key: 'WiFi',         icon: 'M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0' },
+  { key: 'Aircon',       icon: 'M12 3v1m0 16v1M4.22 4.22l.707.707m12.02 12.02.707.707M1 12h1m18 0h1M4.22 19.78l.707-.707M18.364 5.636l.707-.707M12 7a5 5 0 100 10A5 5 0 0012 7z' },
+  { key: 'CCTV',         icon: 'M15 10l4.553-2.07A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
+  { key: 'Laundry',      icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10' },
+  { key: 'Water Cooler', icon: 'M12 2a10 10 0 00-6.88 17.24M12 2a10 10 0 016.88 17.24M12 2v4m0 16v-4m0 0a4 4 0 000-8 4 4 0 000 8z' },
+  { key: 'Parking',      icon: 'M8 7h8M8 12h5m-5 5h8M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z' },
+  { key: 'Hot Water',    icon: 'M12 3v1m0 16v1M4.22 4.22l.707.707m12.02 12.02.707.707M1 12h1m18 0h1M4.22 19.78l.707-.707M18.364 5.636l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z' },
+  { key: 'Kitchen',      icon: 'M3 6h18M3 12h18M3 18h18' },
+  { key: 'Generator',    icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { key: 'Elevator',     icon: 'M19 9l-7-7-7 7M5 15l7 7 7-7' },
+];
+
 const StepIndicator = ({ current }) => (
   <div className="flex items-center gap-0 mb-8">
     {STEPS.map((label, idx) => {
@@ -60,7 +73,7 @@ const CreateHostel = () => {
 
   const [basicForm, setBasicForm] = useState({
     name: '', description: '', address: '',
-    house_rules: '', type: '', township_id: '',
+    house_rules: '', type: '', township_id: '', facilities: [],
   });
   const [rooms, setRooms] = useState([emptyRoom()]);
   const [licenseForm, setLicenseForm] = useState({ license_number: '', image: null });
@@ -92,6 +105,7 @@ const CreateHostel = () => {
       house_rules: existingHostel.house_rules ?? '',
       type:        existingHostel.type ?? '',
       township_id: String(existingHostel.township_id ?? ''),
+      facilities:  existingHostel.facilities ?? [],
     });
     setExistingRooms(existingHostel.rooms ?? []);
     setExistingImages(existingHostel.images ?? []);
@@ -112,6 +126,14 @@ const CreateHostel = () => {
 
   const setBasicField = (field, value) => {
     setBasicForm((f) => ({ ...f, [field]: value }));
+    markDirty();
+  };
+
+  const toggleFacility = (key) => {
+    setBasicForm((f) => {
+      const has = f.facilities.includes(key);
+      return { ...f, facilities: has ? f.facilities.filter((k) => k !== key) : [...f.facilities, key] };
+    });
     markDirty();
   };
 
@@ -340,6 +362,32 @@ const CreateHostel = () => {
                 placeholder="No smoking, quiet hours 10pm–7am..."
                 className={`${InputCls(false)} resize-none`}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                {FACILITIES.map(({ key, icon }) => {
+                  const selected = basicForm.facilities.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFacility(key)}
+                      className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 text-xs font-medium transition ${
+                        selected
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-gray-200 bg-white text-gray-500 hover:border-teal-300 hover:bg-teal-50'
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={icon} />
+                      </svg>
+                      {key}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="pt-2 flex justify-end">

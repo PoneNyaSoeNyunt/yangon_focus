@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const FACILITY_OPTIONS = ['WiFi', 'Aircon', 'CCTV', 'Laundry', 'Water Cooler', 'Parking', 'Hot Water', 'Kitchen', 'Generator', 'Elevator'];
+
 const PRICE_MIN = 50000;
 const PRICE_MAX = 160000;
 const PRICE_STEP = 5000;
@@ -11,6 +13,12 @@ const SearchBar = ({ filters, onChange, townships }) => {
   const [priceMax, setPriceMax] = useState(filters.max_price ?? PRICE_MAX);
 
   const commit = (key, val) => onChange({ ...filters, [key]: val });
+
+  const toggleFacility = (f) => {
+    const current = filters.facilities ?? [];
+    const next = current.includes(f) ? current.filter((x) => x !== f) : [...current, f];
+    onChange({ ...filters, facilities: next.length ? next : undefined });
+  };
 
   const handleMinChange = (e) => {
     const val = Math.min(Number(e.target.value), priceMax - PRICE_STEP);
@@ -30,7 +38,7 @@ const SearchBar = ({ filters, onChange, townships }) => {
     onChange({});
   };
 
-  const hasFilters = filters.name || filters.township_id || filters.type || filters.min_price || filters.max_price;
+  const hasFilters = filters.name || filters.township_id || filters.type || filters.min_price || filters.max_price || filters.facilities?.length;
 
   const minPercent = ((priceMin - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
   const maxPercent = ((priceMax - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
@@ -145,6 +153,29 @@ const SearchBar = ({ filters, onChange, townships }) => {
             </div>
           </div>
 
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Facilities</label>
+          <div className="flex flex-wrap gap-2">
+            {FACILITY_OPTIONS.map((f) => {
+              const active = (filters.facilities ?? []).includes(f);
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => toggleFacility(f)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                    active
+                      ? 'bg-teal-500 text-white border-teal-500'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-teal-400 hover:text-teal-600'
+                  }`}
+                >
+                  {f}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {hasFilters && (

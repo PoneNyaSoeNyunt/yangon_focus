@@ -25,6 +25,7 @@ class HostelService
             'description'       => $data['description'] ?? null,
             'address'           => $data['address'],
             'house_rules'       => $data['house_rules'] ?? null,
+            'facilities'        => $data['facilities'] ?? [],
             'type'              => $data['type'],
             'owner_id'          => $ownerId,
             'township_id'       => $data['township_id'],
@@ -134,6 +135,12 @@ class HostelService
             });
         }
 
+        if (!empty($filters['facilities']) && is_array($filters['facilities'])) {
+            foreach ($filters['facilities'] as $facility) {
+                $query->whereRaw("JSON_CONTAINS(facilities, ?)", [json_encode($facility)]);
+            }
+        }
+
         return $query->orderBy('created_at', 'desc')->get();
     }
 
@@ -174,6 +181,7 @@ class HostelService
             'description' => $data['description'] ?? null,
             'address'     => $data['address'],
             'house_rules' => $data['house_rules'] ?? null,
+            'facilities'  => $data['facilities'] ?? [],
             'type'        => $data['type'],
             'township_id' => $data['township_id'],
         ]);
