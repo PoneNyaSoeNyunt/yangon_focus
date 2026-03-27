@@ -20,8 +20,8 @@ import Support from './pages/guest/Support';
 import CurrentStay from './pages/guest/CurrentStay';
 import StayDetail from './pages/guest/StayDetail';
 import GuestLayout from './components/guest/GuestLayout';
+import ManageBookings from './pages/owner/ManageBookings';
 import ManageRenters from './pages/owner/ManageRenters';
-import LiveRenters from './pages/owner/LiveRenters';
 import OwnerMyProfile from './pages/owner/MyProfile';
 import VerifyPayments from './pages/owner/VerifyPayments';
 
@@ -88,8 +88,8 @@ function App() {
           <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
           <Route path="/owner/hostels/edit/:id" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
-          <Route path="/owner/bookings"  element={<OwnerRoute><ManageRenters /></OwnerRoute>} />
-          <Route path="/owner/renters"   element={<OwnerRoute><LiveRenters /></OwnerRoute>} />
+          <Route path="/owner/bookings"  element={<OwnerRoute><ManageBookings /></OwnerRoute>} />
+          <Route path="/owner/renters"   element={<OwnerRoute><ManageRenters /></OwnerRoute>} />
           <Route path="/owner/payments"  element={<OwnerRoute><VerifyPayments /></OwnerRoute>} />
           <Route path="/owner/profile"    element={<OwnerRoute><OwnerMyProfile /></OwnerRoute>} />
           <Route path="/owner"            element={<Navigate to="/owner/hostels" replace />} />
