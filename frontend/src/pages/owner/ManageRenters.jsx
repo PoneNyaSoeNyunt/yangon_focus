@@ -225,7 +225,7 @@ function InfoRow({ label, value, icon }) {
   );
 }
 
-export default function LiveRenters() {
+export default function ManageRenters() {
   const [search, setSearch] = useState('');
   const [drawerRenter, setDrawerRenter]   = useState(null);
   const [historyRenter, setHistoryRenter] = useState(null);
