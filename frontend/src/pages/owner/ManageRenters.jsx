@@ -206,7 +206,7 @@ const ManageRenters = () => {
                       Cancel Booking
                     </button>
                   )}
-                  <button
+                  {!isPending && <button
                     onClick={() => setReportTarget({ id: booking.guest?.id, name: booking.guest?.full_name })}
                     className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-semibold rounded-xl transition border border-orange-100"
                   >
@@ -215,7 +215,7 @@ const ManageRenters = () => {
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     Report Renter
-                  </button>
+                  </button>}
                 </div>
               </div>
             );
