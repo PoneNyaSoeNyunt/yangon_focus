@@ -173,6 +173,47 @@ class HostelService
         $image->delete();
     }
 
+    public function updateRoom(int $ownerId, int $roomId, array $data): Room
+    {
+        $room = Room::with('beds')->findOrFail($roomId);
+
+        Hostel::where('id', $room->hostel_id)
+            ->where('owner_id', $ownerId)
+            ->firstOrFail();
+
+        $room->update([
+            'label'           => $data['label'],
+            'type_id'         => $data['type_id'],
+            'price_per_month' => $data['price_per_month'],
+        ]);
+
+        $newCapacity  = (int) $data['max_occupancy'];
+        $currentBeds  = $room->beds->count();
+        $occupiedCount = $room->beds->where('is_occupied', true)->count();
+
+        if ($newCapacity < $occupiedCount) {
+            throw new \Exception('Cannot reduce capacity; ' . $occupiedCount . ' bed(s) are currently occupied.');
+        }
+
+        if ($newCapacity > $currentBeds) {
+            for ($i = $currentBeds + 1; $i <= $newCapacity; $i++) {
+                Bed::create(['room_id' => $room->id, 'bed_number' => $i, 'is_occupied' => false]);
+            }
+        } elseif ($newCapacity < $currentBeds) {
+            $toDelete = $room->beds
+                ->where('is_occupied', false)
+                ->sortByDesc('bed_number')
+                ->take($currentBeds - $newCapacity)
+                ->pluck('id');
+
+            Bed::whereIn('id', $toDelete)->delete();
+        }
+
+        $room->update(['max_occupancy' => $newCapacity]);
+
+        return $room->load(['beds', 'type']);
+    }
+
     public function updateHostel(int $hostelId, array $data): Hostel
     {
         $hostel = Hostel::findOrFail($hostelId);

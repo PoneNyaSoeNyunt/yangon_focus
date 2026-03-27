@@ -70,6 +70,8 @@ const CreateHostel = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [existingRooms, setExistingRooms] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [roomEdits, setRoomEdits] = useState({});
+  const [roomSaveState, setRoomSaveState] = useState({});
 
   const [basicForm, setBasicForm] = useState({
     name: '', description: '', address: '',
@@ -95,6 +97,24 @@ const CreateHostel = () => {
     enabled: editMode,
     staleTime: 0,
   });
+
+  useEffect(() => {
+    if (!existingRooms.length) return;
+    setRoomEdits((prev) => {
+      const next = { ...prev };
+      existingRooms.forEach((r) => {
+        if (!(r.id in next)) {
+          next[r.id] = {
+            label:           r.label ?? '',
+            type_id:         String(r.type_id ?? ''),
+            price_per_month: String(r.price_per_month ?? ''),
+            max_occupancy:   String(r.max_occupancy ?? ''),
+          };
+        }
+      });
+      return next;
+    });
+  }, [existingRooms]);
 
   useEffect(() => {
     if (!existingHostel) return;
@@ -127,6 +147,33 @@ const CreateHostel = () => {
   const setBasicField = (field, value) => {
     setBasicForm((f) => ({ ...f, [field]: value }));
     markDirty();
+  };
+
+  const saveRoom = async (roomId) => {
+    const data = roomEdits[roomId];
+    setRoomSaveState((s) => ({ ...s, [roomId]: { loading: true, error: null, success: false } }));
+    try {
+      const res = await ownerService.updateRoom(roomId, {
+        label:           data.label,
+        type_id:         Number(data.type_id),
+        price_per_month: Number(data.price_per_month),
+        max_occupancy:   Number(data.max_occupancy),
+      });
+      setExistingRooms((rooms) =>
+        rooms.map((r) => r.id === roomId ? { ...r, ...res.room } : r)
+      );
+      setRoomSaveState((s) => ({ ...s, [roomId]: { loading: false, error: null, success: true } }));
+      setTimeout(() =>
+        setRoomSaveState((s) => ({ ...s, [roomId]: { ...(s[roomId] ?? {}), success: false } })),
+        2500
+      );
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        Object.values(err?.response?.data?.errors ?? {})[0]?.[0] ??
+        'Failed to save room.';
+      setRoomSaveState((s) => ({ ...s, [roomId]: { loading: false, error: msg, success: false } }));
+    }
   };
 
   const toggleFacility = (key) => {
@@ -413,18 +460,91 @@ const CreateHostel = () => {
         {step === 1 && (
           <form onSubmit={handleRoomsSubmit} className="space-y-5">
             {existingRooms.length > 0 && (
-              <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 mb-2">
-                <p className="text-xs font-semibold text-teal-700 mb-1.5">
-                  {existingRooms.length} existing room{existingRooms.length !== 1 ? 's' : ''}
-                </p>
-                <div className="flex flex-col gap-1">
-                  {existingRooms.map((r) => (
-                    <span key={r.id} className="text-xs text-teal-600">
-                      {r.label} — {r.max_occupancy} bed{r.max_occupancy !== 1 ? 's' : ''}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs text-teal-500 mt-2 italic">Use the form below to add more rooms.</p>
+              <div className="space-y-3 mb-2">
+                <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Existing Rooms ({existingRooms.length})
+                </h3>
+                {existingRooms.map((r) => {
+                  const edit      = roomEdits[r.id] ?? {};
+                  const saveState = roomSaveState[r.id] ?? {};
+                  const occupiedCount = r.beds?.filter((b) => b.is_occupied).length ?? 0;
+                  return (
+                    <div key={r.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Room Label *</label>
+                          <input
+                            type="text"
+                            value={edit.label ?? ''}
+                            onChange={(e) => setRoomEdits((s) => ({ ...s, [r.id]: { ...s[r.id], label: e.target.value } }))}
+                            className={InputCls(false)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Room Type *</label>
+                          <select
+                            value={edit.type_id ?? ''}
+                            onChange={(e) => setRoomEdits((s) => ({ ...s, [r.id]: { ...s[r.id], type_id: e.target.value } }))}
+                            className={InputCls(false)}
+                          >
+                            <option value="">Select type...</option>
+                            {roomTypes.map((t) => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Price / Month (MMK) *</label>
+                          <input
+                            type="number" min="0"
+                            value={edit.price_per_month ?? ''}
+                            onChange={(e) => setRoomEdits((s) => ({ ...s, [r.id]: { ...s[r.id], price_per_month: e.target.value } }))}
+                            className={InputCls(false)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Max Capacity *
+                            {occupiedCount > 0 && (
+                              <span className="ml-1 text-amber-600 font-normal">({occupiedCount} occupied)</span>
+                            )}
+                          </label>
+                          <input
+                            type="number" min={Math.max(occupiedCount, 1)} max="50"
+                            value={edit.max_occupancy ?? ''}
+                            onChange={(e) => setRoomEdits((s) => ({ ...s, [r.id]: { ...s[r.id], max_occupancy: e.target.value } }))}
+                            className={InputCls(false)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0 text-xs">
+                          {saveState.error && <p className="text-red-500">{saveState.error}</p>}
+                          {saveState.success && <p className="text-teal-600 font-medium">✓ Saved successfully</p>}
+                        </div>
+                        <button
+                          type="button"
+                          disabled={saveState.loading}
+                          onClick={() => saveRoom(r.id)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-xs font-semibold rounded-xl transition"
+                        >
+                          {saveState.loading ? (
+                            <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-xs text-gray-400 italic">Use the form below to add more rooms.</p>
               </div>
             )}
             <div className="flex items-center justify-between mb-2">

@@ -26,6 +26,11 @@ const ownerService = {
     return response.data;
   },
 
+  async updateRoom(roomId, data) {
+    const response = await apiClient.patch(`/owner/rooms/${roomId}`, data);
+    return response.data;
+  },
+
   async uploadLicense(hostelId, licenseNumber, imageFile) {
     const form = new FormData();
     form.append('license_number', licenseNumber);

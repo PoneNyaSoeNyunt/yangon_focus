@@ -94,4 +94,21 @@ class OwnerHostelController extends Controller
         $this->hostelService->deleteImage($imageId);
         return response()->json(['message' => 'Image deleted successfully.']);
     }
+
+    public function updateRoom(Request $request, int $roomId)
+    {
+        $data = $request->validate([
+            'label'           => ['required', 'string', 'max:255'],
+            'type_id'         => ['required', 'integer', 'exists:room_types,id'],
+            'price_per_month' => ['required', 'numeric', 'min:0'],
+            'max_occupancy'   => ['required', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        try {
+            $room = $this->hostelService->updateRoom($request->user()->id, $roomId, $data);
+            return response()->json(['message' => 'Room updated successfully.', 'room' => $room]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }
