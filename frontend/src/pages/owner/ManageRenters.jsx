@@ -118,8 +118,7 @@ const ManageRenters = () => {
             const total   = Number(booking.locked_price) * Number(booking.stay_duration);
             const statusLabel = booking.status?.label;
             const isPending   = statusLabel === 'Pending';
-            const isActive    = statusLabel === 'Confirmed' || statusLabel === 'Active';
-            const canCancel   = isPending || isActive;
+            const canCancel   = isPending;
             const hasPendingCash = booking.payments?.some(
               (p) => p.type === 'Cash' && p.status?.label === 'Pending Review'
             );

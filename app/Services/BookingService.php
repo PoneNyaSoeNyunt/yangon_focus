@@ -125,12 +125,12 @@ class BookingService
                 throw new \Exception('Unauthorized.');
             }
 
-            $allowedIds = StatusCode::where('context', 'Booking')
-                ->whereIn('label', ['Pending', 'Confirmed'])
-                ->pluck('id');
+            $pendingId = StatusCode::where('context', 'Booking')
+                ->where('label', 'Pending')
+                ->value('id');
 
-            if (!$allowedIds->contains($booking->booking_status_id)) {
-                throw new \Exception('Only Pending or Confirmed bookings can be cancelled.');
+            if ($booking->booking_status_id !== $pendingId) {
+                throw new \Exception('Only unpaid (Pending) bookings can be cancelled by the owner.');
             }
 
             $cancelledId = StatusCode::where('context', 'Booking')

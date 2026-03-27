@@ -363,6 +363,13 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
         </div>
       )}
 
+      {isCancelled && booking.cancel_reason && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">Cancellation Reason</p>
+          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 italic">"{booking.cancel_reason}"</p>
+        </div>
+      )}
+
       {isCompleted && (
         <div className="pt-3 border-t border-gray-100">
           {booking.has_review ? (
