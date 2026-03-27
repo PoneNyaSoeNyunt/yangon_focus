@@ -292,79 +292,141 @@ export default function LiveRenters() {
       )}
 
       {!isLoading && !isError && filtered.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/80">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenant</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room / Bed</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Due</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map(renter => {
-                const overdue = isOverdue(renter.next_payment_due);
-                const soon    = isDueSoon(renter.next_payment_due);
-                return (
-                  <tr key={renter.booking_id} className="hover:bg-gray-50/60 transition">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-teal-700">{renter.full_name?.charAt(0)}</span>
+        <>
+          {/* ── Mobile cards (hidden on md+) ── */}
+          <div className="md:hidden space-y-3">
+            {filtered.map(renter => {
+              const overdue = isOverdue(renter.next_payment_due);
+              const soon    = isDueSoon(renter.next_payment_due);
+              return (
+                <div key={renter.booking_id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-teal-700">{renter.full_name?.charAt(0)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold text-gray-900 text-sm truncate">{renter.full_name}</p>
+                        <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                          renter.booking_status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {renter.booking_status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{renter.phone_number}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                    <div className="bg-gray-50 rounded-xl px-3 py-2">
+                      <p className="text-xs text-gray-400 font-medium">Room / Bed</p>
+                      <p className="font-semibold text-gray-700 mt-0.5">Room {renter.room_label}</p>
+                      <p className="text-xs text-gray-500">Bed {renter.bed_number}</p>
+                    </div>
+                    <div className={`rounded-xl px-3 py-2 ${overdue ? 'bg-red-50' : soon ? 'bg-yellow-50' : 'bg-teal-50'}`}>
+                      <p className="text-xs text-gray-400 font-medium">Next Due</p>
+                      <p className={`font-semibold mt-0.5 text-sm ${overdue ? 'text-red-600' : soon ? 'text-yellow-700' : 'text-teal-700'}`}>
+                        {formatDate(renter.next_payment_due)}
+                      </p>
+                      {overdue && <p className="text-xs text-red-500 font-semibold">Overdue</p>}
+                      {soon && !overdue && <p className="text-xs text-yellow-600 font-semibold">Due soon</p>}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setDrawerRenter(renter)}
+                      className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() => setHistoryRenter(renter)}
+                      className="flex-1 py-2 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition border border-teal-100"
+                    >
+                      Payment History
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Desktop table (hidden below md) ── */}
+          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/80">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenant</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room / Bed</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Due</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map(renter => {
+                  const overdue = isOverdue(renter.next_payment_due);
+                  const soon    = isDueSoon(renter.next_payment_due);
+                  return (
+                    <tr key={renter.booking_id} className="hover:bg-gray-50/60 transition">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-bold text-teal-700">{renter.full_name?.charAt(0)}</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{renter.full_name}</p>
+                            <p className="text-xs text-gray-400">{renter.phone_number}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">{renter.full_name}</p>
-                          <p className="text-xs text-gray-400">{renter.phone_number}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <p className="font-medium text-gray-700">Room {renter.room_label}</p>
+                        <p className="text-xs text-gray-400">Bed {renter.bed_number}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                          renter.booking_status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {renter.booking_status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className={`inline-flex items-center gap-1.5 ${overdue ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
+                          {(overdue || soon) && (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                          )}
+                          <span className="font-medium text-sm">{formatDate(renter.next_payment_due)}</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <p className="font-medium text-gray-700">Room {renter.room_label}</p>
-                      <p className="text-xs text-gray-400">Bed {renter.bed_number}</p>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                        renter.booking_status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {renter.booking_status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className={`inline-flex items-center gap-1.5 ${overdue ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
-                        {(overdue || soon) && (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                        )}
-                        <span className="font-medium text-sm">{formatDate(renter.next_payment_due)}</span>
-                      </div>
-                      {overdue && <p className="text-xs text-red-500 font-semibold mt-0.5">Overdue</p>}
-                      {soon && !overdue && <p className="text-xs text-yellow-600 font-semibold mt-0.5">Due soon</p>}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setDrawerRenter(renter)}
-                          className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                        >
-                          Details
-                        </button>
-                        <button
-                          onClick={() => setHistoryRenter(renter)}
-                          className="px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg transition border border-teal-100"
-                        >
-                          Payment History
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                        {overdue && <p className="text-xs text-red-500 font-semibold mt-0.5">Overdue</p>}
+                        {soon && !overdue && <p className="text-xs text-yellow-600 font-semibold mt-0.5">Due soon</p>}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setDrawerRenter(renter)}
+                            className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                          >
+                            Details
+                          </button>
+                          <button
+                            onClick={() => setHistoryRenter(renter)}
+                            className="px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg transition border border-teal-100"
+                          >
+                            Payment History
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {drawerRenter && (
