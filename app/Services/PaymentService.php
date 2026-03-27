@@ -60,17 +60,28 @@ class PaymentService
                 throw new \Exception('Booking is not in Pending status.');
             }
 
-            $confirmedId = StatusCode::where('context', 'Booking')
+            $confirmedId     = StatusCode::where('context', 'Booking')
                 ->where('label', 'Confirmed')->firstOrFail()->id;
-            $verifiedId  = StatusCode::where('context', 'Payment')
+            $verifiedId      = StatusCode::where('context', 'Payment')
                 ->where('label', 'Verified')->firstOrFail()->id;
+            $pendingReviewId = StatusCode::where('context', 'Payment')
+                ->where('label', 'Pending Review')->value('id');
 
-            Payment::create([
-                'type'              => 'Cash',
-                'booking_id'        => $bookingId,
-                'hostel_id'         => $booking->bed->room->hostel_id,
-                'payment_status_id' => $verifiedId,
-            ]);
+            $pending = Payment::where('booking_id', $bookingId)
+                ->where('type', 'Cash')
+                ->where('payment_status_id', $pendingReviewId)
+                ->first();
+
+            if ($pending) {
+                $pending->update(['payment_status_id' => $verifiedId]);
+            } else {
+                Payment::create([
+                    'type'              => 'Cash',
+                    'booking_id'        => $bookingId,
+                    'hostel_id'         => $booking->bed->room->hostel_id,
+                    'payment_status_id' => $verifiedId,
+                ]);
+            }
 
             $booking->update(['booking_status_id' => $confirmedId]);
             $booking->bed->update(['is_occupied' => true]);
