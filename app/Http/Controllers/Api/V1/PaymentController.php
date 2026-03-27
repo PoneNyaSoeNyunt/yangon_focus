@@ -30,6 +30,7 @@ class PaymentController extends Controller
     public function guestUploadAdvance(Request $request, int $bookingId)
     {
         $data = $request->validate([
+            'type'           => ['required', 'in:KBZPay,WaveMoney,Bank Transfer,Cash'],
             'screenshot'     => ['nullable', 'image', 'max:5120'],
             'transaction_id' => ['nullable', 'string', 'max:100'],
         ]);

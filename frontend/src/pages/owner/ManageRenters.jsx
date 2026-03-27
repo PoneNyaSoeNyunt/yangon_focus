@@ -76,15 +76,15 @@ function PaymentHistoryModal({ renter, onClose }) {
                     p.is_advance ? 'border-purple-200 bg-purple-50/40' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex-shrink-0 mt-0.5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.type] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
-                      {p.is_advance && (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      )}
-                      {p.type}
+                  <div className="flex-shrink-0 mt-0.5 flex flex-col items-center gap-1">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.is_advance ? (p.payment_method ?? p.type) : p.type] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                      {p.is_advance ? (p.payment_method ?? 'Unknown') : p.type}
                     </span>
+                    {p.is_advance && (
+                      <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        Paid Ahead
+                      </span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -92,15 +92,10 @@ function PaymentHistoryModal({ renter, onClose }) {
                       <span className={`text-xs font-medium ${STATUS_COLORS[p.status] ?? 'text-gray-500'}`}>{p.status}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {p.is_advance ? 'Advance payment' : `Payment #${idx + 1}`} · {formatDate(p.paid_at)}
+                      {p.is_advance ? `Advance · ${p.payment_method ?? ''}` : `Payment #${idx + 1}`} · {formatDate(p.paid_at)}
                     </p>
                     {p.transaction_id && (
                       <p className="text-xs text-gray-400 mt-0.5">TXN: {p.transaction_id}</p>
-                    )}
-                    {p.is_advance && (
-                      <span className="inline-block mt-1.5 text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
-                        Paid Ahead
-                      </span>
                     )}
                   </div>
                   {p.screenshot_url && (

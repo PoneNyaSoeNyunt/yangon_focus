@@ -94,6 +94,7 @@ class RenterService
                 $result[] = [
                     'payment_id'     => $payment->id,
                     'type'           => $payment->type,
+                    'payment_method' => $payment->payment_method,
                     'amount'         => (float) $amount,
                     'status'         => $payment->status->label ?? 'Unknown',
                     'is_advance'     => $isAdvance,

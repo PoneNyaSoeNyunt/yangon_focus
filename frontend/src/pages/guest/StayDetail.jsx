@@ -44,17 +44,27 @@ const FinishModal = ({ onConfirm, onCancel, isLoading }) => (
   </div>
 );
 
+const PAYMENT_METHODS = [
+  { id: 'KBZPay',        label: 'KBZPay',        digital: true },
+  { id: 'WaveMoney',     label: 'WaveMoney',      digital: true },
+  { id: 'Bank Transfer', label: 'Bank Transfer',  digital: true },
+  { id: 'Cash',          label: 'Pay at Property', digital: false },
+];
+
 const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
-  const [method, setMethod]               = useState('screenshot');
+  const [payMethod, setPayMethod]         = useState('KBZPay');
   const [file, setFile]                   = useState(null);
   const [transactionId, setTransactionId] = useState('');
   const [error, setError]                 = useState('');
   const fileRef                           = useRef(null);
 
+  const selectedMethod = PAYMENT_METHODS.find(m => m.id === payMethod);
+
   const mutation = useMutation({
     mutationFn: () => {
       const fd = new FormData();
-      if (method === 'screenshot' && file) fd.append('screenshot', file);
+      fd.append('type', payMethod);
+      if (selectedMethod.digital && file) fd.append('screenshot', file);
       if (transactionId) fd.append('transaction_id', transactionId);
       return currentStayService.submitAdvancePayment(bookingId, fd);
     },
@@ -74,21 +84,22 @@ const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
           </button>
         </div>
 
-        <div className="flex gap-2 mb-5">
-          {['screenshot', 'cash'].map((m) => (
-            <button key={m} onClick={() => setMethod(m)}
-              className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition ${method === m ? 'bg-teal-500 border-teal-500 text-white' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-              {m === 'screenshot' ? 'Upload Screenshot' : 'Pay at Property'}
+        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Payment Method</p>
+        <div className="grid grid-cols-2 gap-2 mb-5">
+          {PAYMENT_METHODS.map((m) => (
+            <button key={m.id} onClick={() => { setPayMethod(m.id); setFile(null); }}
+              className={`py-2 rounded-xl text-xs font-semibold border transition ${payMethod === m.id ? 'bg-teal-500 border-teal-500 text-white' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+              {m.label}
             </button>
           ))}
         </div>
 
-        {method === 'screenshot' && (
+        {selectedMethod.digital && (
           <div className="space-y-3 mb-4">
             <button onClick={() => fileRef.current?.click()}
               className="w-full h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 hover:border-teal-400 transition">
               {file
-                ? <span className="text-xs font-medium text-teal-600 px-2 text-center truncate w-full px-4">{file.name}</span>
+                ? <span className="text-xs font-medium text-teal-600 text-center truncate w-full px-4">{file.name}</span>
                 : <>
                     <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -104,7 +115,7 @@ const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
           </div>
         )}
 
-        {method === 'cash' && (
+        {!selectedMethod.digital && (
           <p className="text-sm text-gray-500 mb-4">
             Your advance cash payment request will be sent to the owner for confirmation.
           </p>
@@ -114,7 +125,7 @@ const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
 
         <button
           onClick={() => mutation.mutate()}
-          disabled={mutation.isPending || (method === 'screenshot' && !file)}
+          disabled={mutation.isPending || (selectedMethod.digital && !file)}
           className="w-full py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60">
           {mutation.isPending ? 'Submitting…' : 'Submit Payment'}
         </button>
