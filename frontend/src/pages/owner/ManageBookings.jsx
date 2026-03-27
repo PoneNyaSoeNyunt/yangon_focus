@@ -68,7 +68,7 @@ const ManageRenters = () => {
   return (
     <div className="p-6 sm:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900">Manage Renters</h1>
+        <h1 className="text-2xl font-extrabold text-gray-900">Manage Bookings</h1>
         <p className="text-sm text-gray-400 mt-0.5">All bookings across your properties</p>
       </div>
 
