@@ -116,6 +116,7 @@ class PaymentService
         return Payment::create([
             'type'              => 'Advance',
             'payment_method'    => $data['type'] ?? null,
+            'total_amount'      => $booking->bed->room->price_per_month,
             'booking_id'        => $bookingId,
             'hostel_id'         => $booking->bed->room->hostel_id,
             'screenshot_url'    => $screenshotUrl,

@@ -60,6 +60,7 @@ class CurrentStayService
             'check_in_date'    => $booking->check_in_date?->toDateString(),
             'stay_duration'    => $booking->stay_duration,
             'locked_price'     => $booking->locked_price,
+            'live_price'       => $room?->price_per_month,
             'next_payment_due' => $nextPaymentDue,
             'bed'              => [
                 'id'         => $booking->bed?->id,

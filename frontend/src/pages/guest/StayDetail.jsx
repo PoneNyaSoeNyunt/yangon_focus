@@ -51,7 +51,7 @@ const PAYMENT_METHODS = [
   { id: 'Cash',          label: 'Pay at Property', digital: false },
 ];
 
-const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
+const AdvancePayModal = ({ bookingId, livePrice, onClose, onSuccess }) => {
   const [payMethod, setPayMethod]         = useState('KBZPay');
   const [file, setFile]                   = useState(null);
   const [transactionId, setTransactionId] = useState('');
@@ -76,7 +76,14 @@ const AdvancePayModal = ({ bookingId, onClose, onSuccess }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-gray-900">Pay for Next Month</h3>
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Pay for Next Month</h3>
+            {livePrice && (
+              <p className="text-xs text-teal-600 font-semibold mt-0.5">
+                {Number(livePrice).toLocaleString()} MMK
+              </p>
+            )}
+          </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -183,7 +190,9 @@ const StayDetail = () => {
     );
   }
 
-  const total = Number(stay.locked_price) * Number(stay.stay_duration);
+  const livePrice    = stay.live_price ?? stay.locked_price;
+  const priceChanged  = Number(livePrice) !== Number(stay.locked_price);
+  const total         = Number(stay.locked_price) * Number(stay.stay_duration);
 
   return (
     <div className="p-6 sm:p-8 space-y-5">
@@ -271,7 +280,15 @@ const StayDetail = () => {
           </div>
           <div>
             <p className="text-[10px] sm:text-xs opacity-70 mb-0.5">Monthly Rate</p>
-            <p className="text-xs sm:text-sm font-bold truncate">{Number(stay.locked_price).toLocaleString()} MMK</p>
+            <p className="text-xs sm:text-sm font-bold truncate">{Number(livePrice).toLocaleString()} MMK</p>
+            {priceChanged && (
+              <p className="text-[9px] sm:text-[10px] opacity-80 mt-0.5 flex items-center gap-0.5">
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Rate updated by owner
+              </p>
+            )}
           </div>
           <div>
             <p className="text-[10px] sm:text-xs opacity-70 mb-0.5">Total Amount</p>
@@ -368,6 +385,7 @@ const StayDetail = () => {
       {showAdvanceModal && (
         <AdvancePayModal
           bookingId={id}
+          livePrice={livePrice}
           onClose={() => setShowAdvanceModal(false)}
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['guest-stay-detail', id] })}
         />
