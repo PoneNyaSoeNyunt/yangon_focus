@@ -37,7 +37,8 @@ class BookingResource extends JsonResource
                     'status' => $p->status?->label,
                 ])
             ),
-            'cancel_reason' => $this->cancel_reason,
+            'cancel_reason'  => $this->cancel_reason,
+            'cancelled_by'   => $this->cancelled_by,
             'has_review' => $this->whenLoaded('review', fn() => $this->review !== null, false),
         ];
     }

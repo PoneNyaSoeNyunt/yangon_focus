@@ -281,6 +281,7 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
   const hostel       = booking.bed?.room?.hostel;
   const latestPayment = booking.payments?.[0];
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelReason, setCancelReason]   = useState('');
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm p-5 transition ${isCancelled ? 'opacity-60 border-gray-100' : 'border-gray-100 hover:shadow-md'}`}>
@@ -351,22 +352,35 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
           )}
 
           {confirmCancel && (
-            <div className="flex items-center gap-2 bg-red-50 rounded-xl px-3 py-2 text-sm">
-              <span className="text-red-600 flex-1">Cancel this booking?</span>
-              <button onClick={() => setConfirmCancel(false)} className="text-gray-400 hover:text-gray-600 text-xs">No</button>
-              <button disabled={cancelling} onClick={() => { onCancel(booking.id); setConfirmCancel(false); }}
-                className="px-3 py-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition">
-                {cancelling ? '…' : 'Yes, cancel'}
-              </button>
+            <div className="bg-red-50 rounded-xl px-3 py-3 text-sm space-y-2">
+              <p className="text-red-600 font-semibold text-xs">Cancel this booking?</p>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={2}
+                placeholder="Reason for cancelling (optional)…"
+                className="w-full px-2.5 py-2 rounded-xl border border-red-200 bg-white text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setConfirmCancel(false); setCancelReason(''); }} className="text-gray-400 hover:text-gray-600 text-xs px-3 py-1">No</button>
+                <button disabled={cancelling} onClick={() => { onCancel(booking.id, cancelReason); setConfirmCancel(false); setCancelReason(''); }}
+                  className="px-3 py-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition">
+                  {cancelling ? '…' : 'Yes, cancel'}
+                </button>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {isCancelled && booking.cancel_reason && (
+      {isCancelled && (
         <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">Cancellation Reason</p>
-          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 italic">Cancelled by the hostel owner: "{booking.cancel_reason}"</p>
+          <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">Cancellation Info</p>
+          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 italic">
+            {booking.cancelled_by === 'owner'
+              ? <>Cancellation by the hostel owner{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>  
+              : <>Cancellation by you{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>}
+          </p>
         </div>
       )}
 
@@ -405,7 +419,7 @@ const MyBookings = () => {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (id) => bookingService.cancelBooking(id),
+    mutationFn: ({ id, reason }) => bookingService.cancelBooking(id, reason || null),
     onSuccess:  () => {
       queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
       setToast('Booking cancelled.');
@@ -449,7 +463,7 @@ const MyBookings = () => {
               key={b.id}
               booking={b}
               onPayNow={setPayTarget}
-              onCancel={(id) => cancelMutation.mutate(id)}
+              onCancel={(id, reason) => cancelMutation.mutate({ id, reason })}
               cancelling={cancelMutation.isPending}
               onReview={setReviewTarget}
             />

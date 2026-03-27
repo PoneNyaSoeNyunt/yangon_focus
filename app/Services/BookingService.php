@@ -38,9 +38,9 @@ class BookingService
         });
     }
 
-    public function cancelGuestBooking(int $guestId, int $bookingId): Booking
+    public function cancelGuestBooking(int $guestId, int $bookingId, ?string $reason = null): Booking
     {
-        return DB::transaction(function () use ($guestId, $bookingId) {
+        return DB::transaction(function () use ($guestId, $bookingId, $reason) {
             $booking = Booking::with('bed')
                 ->where('guest_id', $guestId)
                 ->lockForUpdate()
@@ -56,7 +56,11 @@ class BookingService
             $cancelledId = StatusCode::where('context', 'Booking')
                 ->where('label', 'Cancelled')->firstOrFail()->id;
 
-            $booking->update(['booking_status_id' => $cancelledId]);
+            $booking->update([
+                'booking_status_id' => $cancelledId,
+                'cancel_reason'     => $reason,
+                'cancelled_by'      => 'guest',
+            ]);
             $booking->bed->update(['is_occupied' => false]);
 
             return $booking->fresh(['status', 'bed']);
@@ -139,6 +143,7 @@ class BookingService
             $booking->update([
                 'booking_status_id' => $cancelledId,
                 'cancel_reason'     => $reason,
+                'cancelled_by'      => 'owner',
             ]);
             $booking->bed->update(['is_occupied' => false]);
 

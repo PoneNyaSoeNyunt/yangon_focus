@@ -23,8 +23,10 @@ const bookingService = {
     return response.data.data ?? response.data;
   },
 
-  async cancelBooking(bookingId) {
-    const response = await apiClient.delete(`/guest/bookings/${bookingId}`);
+  async cancelBooking(bookingId, reason = null) {
+    const response = await apiClient.delete(`/guest/bookings/${bookingId}`, {
+      data: reason ? { reason } : {},
+    });
     return response.data;
   },
 

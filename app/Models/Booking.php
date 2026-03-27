@@ -9,7 +9,7 @@ class Booking extends Model
 {
     protected $fillable = [
         'guest_id', 'bed_id', 'check_in_date',
-        'stay_duration', 'locked_price', 'booking_status_id', 'cancel_reason',
+        'stay_duration', 'locked_price', 'booking_status_id', 'cancel_reason', 'cancelled_by',
     ];
 
     protected $appends = ['expires_at'];
