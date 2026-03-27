@@ -43,6 +43,22 @@ class BookingController extends Controller
         return response()->json($bookings);
     }
 
+    public function ownerCancel(Request $request, int $id)
+    {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        try {
+            $booking = $this->bookingService->ownerCancelBooking(
+                $request->user()->id, $id, $request->reason
+            );
+            return response()->json(['message' => 'Booking cancelled.', 'booking' => $booking]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
     public function guestFinish(Request $request, int $id)
     {
         try {

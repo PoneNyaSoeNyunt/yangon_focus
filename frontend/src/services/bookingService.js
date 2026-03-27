@@ -37,6 +37,11 @@ const bookingService = {
     const response = await apiClient.get('/owner/bookings');
     return response.data;
   },
+
+  async ownerCancelBooking(bookingId, reason) {
+    const response = await apiClient.patch(`/owner/bookings/${bookingId}/cancel`, { reason });
+    return response.data;
+  },
 };
 
 export default bookingService;

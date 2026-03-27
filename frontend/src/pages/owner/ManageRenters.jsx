@@ -15,14 +15,32 @@ const TABS = ['All', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 
 const ManageRenters = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab]   = useState('All');
-  const [actionMsg, setActionMsg]   = useState('');
-  const [actionErr, setActionErr]   = useState('');
+  const [activeTab, setActiveTab]       = useState('All');
+  const [actionMsg, setActionMsg]       = useState('');
+  const [actionErr, setActionErr]       = useState('');
   const [reportTarget, setReportTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelErr, setCancelErr]       = useState('');
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['owner-bookings'],
     queryFn: bookingService.getOwnerBookings,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: ({ bookingId, reason }) => bookingService.ownerCancelBooking(bookingId, reason),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['owner-bookings'] });
+      setActionMsg(data.message ?? 'Booking cancelled.');
+      setActionErr('');
+      setCancelTarget(null);
+      setCancelReason('');
+      setCancelErr('');
+    },
+    onError: (err) => {
+      setCancelErr(err?.response?.data?.message ?? 'Could not cancel booking.');
+    },
   });
 
   const cashMutation = useMutation({
@@ -98,7 +116,13 @@ const ManageRenters = () => {
           {filtered.map((booking) => {
             const hostel  = booking.bed?.room?.hostel;
             const total   = Number(booking.locked_price) * Number(booking.stay_duration);
-            const isPending = booking.status?.label === 'Pending';
+            const statusLabel = booking.status?.label;
+            const isPending   = statusLabel === 'Pending';
+            const isActive    = statusLabel === 'Confirmed' || statusLabel === 'Active';
+            const canCancel   = isPending || isActive;
+            const hasPendingCash = booking.payments?.some(
+              (p) => p.type === 'Cash' && p.status?.label === 'Pending Review'
+            );
 
             return (
               <div key={booking.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
@@ -149,7 +173,7 @@ const ManageRenters = () => {
                 )}
 
                 <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-                  {isPending && (
+                  {isPending && hasPendingCash && (
                     <button
                       disabled={cashMutation.isPending}
                       onClick={() => cashMutation.mutate(booking.id)}
@@ -159,6 +183,17 @@ const ManageRenters = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       Record Cash Payment
+                    </button>
+                  )}
+                  {canCancel && (
+                    <button
+                      onClick={() => { setCancelTarget(booking); setCancelReason(''); setCancelErr(''); }}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-xl transition border border-red-100"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Cancel Booking
                     </button>
                   )}
                   <button
@@ -184,6 +219,56 @@ const ManageRenters = () => {
           onClose={() => setReportTarget(null)}
           onSuccess={() => setReportTarget(null)}
         />
+      )}
+
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-900">Cancel Booking</h2>
+              <button onClick={() => setCancelTarget(null)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                You are cancelling the booking of <span className="font-semibold text-gray-900">{cancelTarget.guest?.full_name}</span>.
+                This will vacate the bed immediately.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason for Cancellation</label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  rows={3}
+                  placeholder="Explain why you are cancelling this booking…"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+                />
+              </div>
+              {cancelErr && <p className="text-xs text-red-500">{cancelErr}</p>}
+              <div className="flex gap-3 pt-1">
+                <button onClick={() => setCancelTarget(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">
+                  Back
+                </button>
+                <button
+                  disabled={cancelMutation.isPending || !cancelReason.trim()}
+                  onClick={() => cancelMutation.mutate({ bookingId: cancelTarget.id, reason: cancelReason })}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-sm font-semibold transition">
+                  {cancelMutation.isPending && (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                  Confirm Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

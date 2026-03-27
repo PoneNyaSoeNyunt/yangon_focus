@@ -114,6 +114,38 @@ class BookingService
         });
     }
 
+    public function ownerCancelBooking(int $ownerId, int $bookingId, string $reason): Booking
+    {
+        return DB::transaction(function () use ($ownerId, $bookingId, $reason) {
+            $booking = Booking::with('bed.room.hostel')
+                ->lockForUpdate()
+                ->findOrFail($bookingId);
+
+            if ($booking->bed->room->hostel->owner_id !== $ownerId) {
+                throw new \Exception('Unauthorized.');
+            }
+
+            $allowedIds = StatusCode::where('context', 'Booking')
+                ->whereIn('label', ['Pending', 'Confirmed'])
+                ->pluck('id');
+
+            if (!$allowedIds->contains($booking->booking_status_id)) {
+                throw new \Exception('Only Pending or Confirmed bookings can be cancelled.');
+            }
+
+            $cancelledId = StatusCode::where('context', 'Booking')
+                ->where('label', 'Cancelled')->firstOrFail()->id;
+
+            $booking->update([
+                'booking_status_id' => $cancelledId,
+                'cancel_reason'     => $reason,
+            ]);
+            $booking->bed->update(['is_occupied' => false]);
+
+            return $booking->fresh(['status', 'bed']);
+        });
+    }
+
     public function getGuestBookings(int $guestId): Collection
     {
         return Booking::with([

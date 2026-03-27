@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
         Route::get('/bookings',                          [BookingController::class, 'ownerIndex']);
+        Route::patch('/bookings/{id}/cancel',            [BookingController::class, 'ownerCancel']);
         Route::post('/bookings/{id}/cash',               [PaymentController::class, 'recordCash']);
         Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
         Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
