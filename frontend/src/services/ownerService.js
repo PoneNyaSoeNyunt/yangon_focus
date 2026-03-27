@@ -64,6 +64,16 @@ const ownerService = {
     const response = await apiClient.get('/room-types');
     return response.data;
   },
+
+  async getOwnerRenters() {
+    const response = await apiClient.get('/owner/renters');
+    return response.data;
+  },
+
+  async getRenterPayments(userId) {
+    const response = await apiClient.get(`/owner/renters/${userId}/payments`);
+    return response.data;
+  },
 };
 
 export default ownerService;

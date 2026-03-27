@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\CurrentStayController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\RenterController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -49,6 +50,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/bookings/{id}/cash',               [PaymentController::class, 'recordCash']);
         Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
         Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
+
+        Route::get('/renters',                           [RenterController::class, 'index']);
+        Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
 
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store']);
