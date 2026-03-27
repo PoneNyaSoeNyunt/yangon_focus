@@ -11,6 +11,47 @@ const STATUS_STYLES = {
   Completed: 'bg-blue-100 text-blue-700',
 };
 
+const TYPE_COLORS = {
+  KBZPay:         'bg-blue-50   text-blue-700   border-blue-200',
+  WaveMoney:      'bg-purple-50 text-purple-700 border-purple-200',
+  'Bank Transfer': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  Cash:           'bg-emerald-50 text-emerald-700 border-emerald-200',
+};
+
+const PAYMENT_STATUS_COLORS = {
+  'Pending Review': 'text-amber-600',
+  Verified:         'text-green-600',
+  Rejected:         'text-red-500',
+};
+
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+const PaymentRow = ({ p, idx }) => {
+  const isAdv   = p.type === 'Advance';
+  const method  = isAdv ? (p.payment_method ?? 'Unknown') : p.type;
+  const colorCls = TYPE_COLORS[method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+  return (
+    <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border text-xs ${
+      isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
+    }`}>
+      <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+        <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${colorCls}`}>{method}</span>
+        {isAdv && (
+          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">Paid Ahead</span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-gray-500">{isAdv ? 'Advance' : `Payment #${idx + 1}`}</span>
+        {' · '}
+        <span className="text-gray-400">{fmtDate(p.created_at)}</span>
+      </div>
+      <span className={`font-semibold flex-shrink-0 ${PAYMENT_STATUS_COLORS[p.status?.label] ?? 'text-gray-500'}`}>
+        {p.status?.label}
+      </span>
+    </div>
+  );
+};
+
 const TABS = ['All', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 
 const ManageRenters = () => {
@@ -162,11 +203,10 @@ const ManageRenters = () => {
                 </div>
 
                 {booking.payments?.length > 0 && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {booking.payments.map((p) => (
-                      <span key={p.id} className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {p.type} · {p.status?.label}
-                      </span>
+                  <div className="mb-3 space-y-1.5">
+                    <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">Payments</p>
+                    {booking.payments.map((p, idx) => (
+                      <PaymentRow key={p.id} p={p} idx={idx} />
                     ))}
                   </div>
                 )}
