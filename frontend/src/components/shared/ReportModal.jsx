@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import reportService from '../../services/reportService';
+import { normalizePhoneNumber } from '../../utils/phoneUtils';
 
 const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSuccess }) => {
   const [categoryId, setCategoryId]   = useState('');
@@ -50,6 +51,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
     setErrors({});
     const fd = new FormData();
     fd.append('offender_id', offenderId);
+    if (offenderPhone) fd.append('offender_phone', normalizePhoneNumber(offenderPhone));
     fd.append('category_id', categoryId);
     if (description) fd.append('description', description);
     if (file) fd.append('evidence', file);
@@ -84,7 +86,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               disabled={catLoading}
-              className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-60 ${
+              className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white disabled:opacity-60 ${
                 errors.category_id ? 'border-red-400 bg-red-50' : 'border-gray-200'
               }`}
             >
@@ -105,7 +107,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
                 rows={4}
                 required
                 placeholder="Provide a detailed account of what happened…"
-                className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none ${
+                className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none ${
                   errors.description ? 'border-red-400 bg-red-50' : 'border-gray-200'
                 }`}
               />
@@ -116,7 +118,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Evidence Photo</label>
             <label className={`flex flex-col items-center justify-center w-full h-36 rounded-xl border-2 border-dashed cursor-pointer transition ${
-              errors.evidence ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-orange-400 hover:bg-orange-50'
+              errors.evidence ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-teal-400 hover:bg-teal-50'
             }`}>
               {preview ? (
                 <img src={preview} alt="Evidence preview" className="h-full w-full object-cover rounded-xl" />
@@ -140,7 +142,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
               Cancel
             </button>
             <button type="submit" disabled={mutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold transition">
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-semibold transition">
               {mutation.isPending && (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

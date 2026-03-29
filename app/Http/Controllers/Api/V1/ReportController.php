@@ -8,10 +8,13 @@ use App\Models\ReportCategory;
 use App\Models\StatusCode;
 use App\Models\User;
 use App\Services\ReportService;
+use App\Traits\HandlesPhoneNormalization;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    use HandlesPhoneNormalization;
+
     public function __construct(private ReportService $reportService) {}
 
     public function categories(Request $request)

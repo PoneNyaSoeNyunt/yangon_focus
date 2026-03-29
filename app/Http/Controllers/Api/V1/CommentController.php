@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\StatusCode;
+use App\Traits\HandlesPhoneNormalization;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
+    use HandlesPhoneNormalization;
+
     private function statusId(string $label): int
     {
         return StatusCode::where('context', 'Comment')
