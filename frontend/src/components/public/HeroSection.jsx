@@ -47,19 +47,6 @@ const HeroSection = ({ onFindHostels }) => (
           </Link>
         </div>
       </div>
-
-      <div className="mt-12 grid grid-cols-3 gap-6 max-w-sm">
-        {[
-          { label: 'Verified Hostels', value: '100+' },
-          { label: 'Townships', value: '20+' },
-          { label: 'Happy Tenants', value: '500+' },
-        ].map(({ label, value }) => (
-          <div key={label} className="text-center">
-            <p className="text-2xl font-extrabold text-white">{value}</p>
-            <p className="text-xs text-teal-300 mt-0.5">{label}</p>
-          </div>
-        ))}
-      </div>
     </div>
   </section>
 );
