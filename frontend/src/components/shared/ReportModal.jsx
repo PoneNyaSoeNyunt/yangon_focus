@@ -94,24 +94,24 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
             {errors.category_id && <p className="mt-1 text-xs text-red-500">{errors.category_id[0]}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              {isOther ? 'Please describe the issue in detail' : (
-                <>Description <span className="text-gray-400 font-normal">(optional)</span></>
-              )}
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={isOther ? 4 : 3}
-              required={isOther}
-              placeholder={isOther ? 'Provide a detailed account of what happened…' : 'Describe what happened…'}
-              className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none ${
-                errors.description ? 'border-red-400 bg-red-50' : 'border-gray-200'
-              }`}
-            />
-            {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description[0]}</p>}
-          </div>
+          {isOther && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Please describe the issue in detail
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                required
+                placeholder="Provide a detailed account of what happened…"
+                className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none ${
+                  errors.description ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                }`}
+              />
+              {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description[0]}</p>}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Evidence Photo</label>

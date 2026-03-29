@@ -16,6 +16,7 @@ class ReportCategorySeeder extends Seeder
             ['name' => 'Facility Issue',      'target_role' => 'Owner'],
             ['name' => 'Safety Concern',      'target_role' => 'Owner'],
             ['name' => 'Listing Inaccuracy',  'target_role' => 'Owner'],
+            ['name' => 'Other',               'target_role' => 'Both'],
         ];
 
         foreach ($categories as $cat) {
