@@ -29,6 +29,7 @@ import ManageBookings from './pages/owner/ManageBookings';
 import ManageRenters from './pages/owner/ManageRenters';
 import OwnerMyProfile from './pages/owner/MyProfile';
 import VerifyPayments from './pages/owner/VerifyPayments';
+import RegisterWizard from './pages/RegisterWizard';
 
 const AdminRoute = ({ children }) => (
   <ProtectedRoute requiredRole="Super Admin">
@@ -78,6 +79,7 @@ function App() {
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterWizard />} />
 
           <Route path="/guest/current-stay"     element={<GuestRoute><CurrentStay /></GuestRoute>} />
           <Route path="/guest/current-stay/:id" element={<GuestRoute><StayDetail /></GuestRoute>} />
