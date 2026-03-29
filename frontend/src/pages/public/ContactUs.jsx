@@ -36,18 +36,10 @@ const ContactUs = () => {
       <Navbar />
 
       <main className="flex-1">
-        <div className="bg-gradient-to-br from-teal-500 to-teal-600 text-white py-16">
+        <div className="bg-gradient-to-br from-teal-500 to-teal-600 text-white py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold mb-3">Contact Us</h1>
-            <p className="text-teal-100 text-base max-w-md mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
+            <p className="text-xl md:text-2xl text-teal-50 font-light">
               Have a question or issue? Submit your inquiry and our team will get back to you shortly.
             </p>
           </div>
