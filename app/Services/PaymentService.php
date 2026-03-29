@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\HostelPaymentMethod;
 use App\Models\Payment;
 use App\Models\StatusCode;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +33,11 @@ class PaymentService
             $screenshotUrl = Storage::url($path);
         }
 
+        $method = HostelPaymentMethod::findOrFail($data['hostel_payment_method_id']);
+
         return Payment::create([
-            'hostel_payment_method_id' => $data['hostel_payment_method_id'],
+            'hostel_payment_method_id' => $method->id,
+            'payment_method'           => $method->method_name,
             'booking_id'               => $bookingId,
             'hostel_id'                => $booking->bed->room->hostel_id,
             'screenshot_url'           => $screenshotUrl,
@@ -113,11 +117,14 @@ class PaymentService
             $screenshotUrl = Storage::url($path);
         }
 
-        $isCash = empty($data['hostel_payment_method_id']);
+        $isCash     = empty($data['hostel_payment_method_id']);
+        $methodName = $isCash
+            ? 'Cash'
+            : HostelPaymentMethod::findOrFail($data['hostel_payment_method_id'])->method_name;
 
         return Payment::create([
             'hostel_payment_method_id' => $isCash ? null : $data['hostel_payment_method_id'],
-            'payment_method'           => $isCash ? 'Cash' : null,
+            'payment_method'           => $methodName,
             'total_amount'             => $booking->bed->room->price_per_month,
             'is_advance'               => true,
             'booking_id'               => $bookingId,

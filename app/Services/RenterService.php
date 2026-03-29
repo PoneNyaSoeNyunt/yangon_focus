@@ -30,7 +30,7 @@ class RenterService
 
         return $bookings->map(function (Booking $booking) use ($verifiedId) {
             $verifiedAdvanceCount = $booking->payments
-                ->where('type', 'Advance')
+                ->where('is_advance', true)
                 ->where('payment_status_id', $verifiedId)
                 ->count();
 
@@ -72,7 +72,7 @@ class RenterService
 
         foreach ($bookings as $booking) {
             $verifiedAdvanceCount = $booking->payments
-                ->where('type', 'Advance')
+                ->where('is_advance', true)
                 ->where('payment_status_id', $verifiedId)
                 ->count();
 
@@ -82,7 +82,7 @@ class RenterService
             $firstNonAdvanceSeen = false;
 
             foreach ($sortedPayments as $payment) {
-                $isAdvance = $payment->type === 'Advance';
+                $isAdvance = (bool) $payment->is_advance;
 
                 if (!$isAdvance && !$firstNonAdvanceSeen) {
                     $amount = $booking->locked_price * $originalDuration;
@@ -93,13 +93,11 @@ class RenterService
 
                 $result[] = [
                     'payment_id'     => $payment->id,
-                    'type'           => $payment->type,
                     'payment_method' => $payment->payment_method,
                     'amount'         => (float) $amount,
                     'status'         => $payment->status->label ?? 'Unknown',
                     'is_advance'     => $isAdvance,
                     'screenshot_url' => $payment->screenshot_url,
-                    'transaction_id' => $payment->transaction_id,
                     'paid_at'        => $payment->created_at->toDateString(),
                     'room_label'     => $booking->bed->room->label,
                     'bed_number'     => $booking->bed->bed_number,

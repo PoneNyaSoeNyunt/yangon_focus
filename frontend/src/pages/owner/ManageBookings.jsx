@@ -27,9 +27,10 @@ const PAYMENT_STATUS_COLORS = {
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
 
 const PaymentRow = ({ p, idx }) => {
-  const isAdv   = p.type === 'Advance';
-  const method  = isAdv ? (p.payment_method ?? 'Unknown') : p.type;
+  const isAdv    = !!p.is_advance;
+  const method   = p.payment_method ?? 'Unknown';
   const colorCls = TYPE_COLORS[method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+  const label    = isAdv ? 'Advance' : `Payment #${idx + 1}`;
   return (
     <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border text-xs ${
       isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
@@ -40,10 +41,8 @@ const PaymentRow = ({ p, idx }) => {
           <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">Paid Ahead</span>
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-gray-500">{isAdv ? 'Advance' : `Payment #${idx + 1}`}</span>
-        {' · '}
-        <span className="text-gray-400">{fmtDate(p.created_at)}</span>
+      <div className="flex-1 min-w-0 text-gray-500">
+        {label} · <span className="text-gray-400">{fmtDate(p.created_at)}</span>
       </div>
       <span className={`font-semibold flex-shrink-0 ${PAYMENT_STATUS_COLORS[p.status?.label] ?? 'text-gray-500'}`}>
         {p.status?.label}
