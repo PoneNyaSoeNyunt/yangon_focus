@@ -21,9 +21,7 @@ class CurrentStayService
             'bed.room.type',
             'bed.room.hostel.township',
             'bed.room.hostel.owner',
-            'payments' => fn($q) => $q->latest()->limit(1),
-            'payments.status',
-            'payments.paymentMethod',
+            'payments' => fn($q) => $q->with('status')->orderBy('created_at', 'desc'),
         ];
     }
 
@@ -84,11 +82,20 @@ class CurrentStayService
             'latest_payment' => $booking->payments->first()
                 ? [
                     'id'          => $booking->payments->first()->id,
-                    'method_name' => $booking->payments->first()->paymentMethod?->method_name ?? $booking->payments->first()->payment_method,
+                    'method_name' => $booking->payments->first()->payment_method,
                     'is_advance'  => $booking->payments->first()->is_advance,
                     'status'      => $booking->payments->first()->status?->label,
                 ]
                 : null,
+            'payments' => $booking->payments->map(fn($p) => [
+                'id'             => $p->id,
+                'payment_method' => $p->payment_method,
+                'total_amount'   => $p->total_amount,
+                'is_advance'     => (bool) $p->is_advance,
+                'status'         => $p->status?->label,
+                'screenshot_url' => $p->screenshot_url,
+                'paid_at'        => $p->created_at?->toDateString(),
+            ])->values()->all(),
         ];
     }
 

@@ -178,6 +178,7 @@ const StayDetail = () => {
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
   const [showReportModal, setShowReportModal]   = useState(false);
   const [finishError, setFinishError]           = useState('');
+  const [lightboxUrl, setLightboxUrl]           = useState(null);
 
   const finishMutation = useMutation({
     mutationFn: () => currentStayService.finishStay(id),
@@ -332,7 +333,7 @@ const StayDetail = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {stay.latest_payment && (
               <span className="px-2.5 sm:px-3 py-1.5 bg-white/20 backdrop-blur rounded-xl text-[10px] sm:text-xs font-semibold text-center truncate">
-                {stay.latest_payment.type} · {stay.latest_payment.status}
+                {stay.latest_payment.method_name} · {stay.latest_payment.status}
               </span>
             )}
             <button
@@ -353,6 +354,69 @@ const StayDetail = () => {
           <InfoRow label="Stay Duration" value={`${stay.stay_duration} month${stay.stay_duration > 1 ? 's' : ''}`} />
         </div>
       </div>
+
+      {/* ── Payment History ── */}
+      {Array.isArray(stay.payments) && stay.payments.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
+          <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 sm:mb-4">Payment History</h3>
+          <div className="space-y-2.5">
+            {stay.payments.map((p, idx) => {
+              const isAdv      = !!p.is_advance;
+              const label      = isAdv ? 'Advance' : `Payment #${stay.payments.length - idx}`;
+              const statusCls  =
+                p.status === 'Verified'       ? 'bg-green-100 text-green-700' :
+                p.status === 'Pending Review' ? 'bg-amber-100 text-amber-700' :
+                p.status === 'Rejected'       ? 'bg-red-100 text-red-500'     :
+                'bg-gray-100 text-gray-600';
+              const methodColors = {
+                KBZPay:          'bg-blue-50 text-blue-700 border-blue-200',
+                WaveMoney:       'bg-orange-50 text-orange-700 border-orange-200',
+                'Bank Transfer': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                Cash:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+              };
+              const methodCls = methodColors[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+              return (
+                <div
+                  key={p.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-xs ${
+                    isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-start gap-1 flex-shrink-0">
+                    <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                      {p.payment_method ?? 'Unknown'}
+                    </span>
+                    {isAdv && (
+                      <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                        Paid Ahead
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 truncate">{label}</p>
+                    <p className="text-gray-400 mt-0.5 truncate">
+                      {p.paid_at}
+                      {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
+                    </p>
+                  </div>
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                    {p.status ?? '—'}
+                  </span>
+                  {p.screenshot_url && (
+                    <button
+                      onClick={() => setLightboxUrl(p.screenshot_url)}
+                      className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                      aria-label="View receipt"
+                    >
+                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Quick Actions ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
@@ -427,6 +491,28 @@ const StayDetail = () => {
           onClose={() => setShowReportModal(false)}
           onSuccess={() => {}}
         />
+      )}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Payment receipt"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );
