@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import reportService from '../../services/reportService';
-import { normalizePhoneNumber } from '../../utils/phoneUtils';
 
 const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSuccess }) => {
   const [categoryId, setCategoryId]   = useState('');
@@ -51,7 +50,6 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
     setErrors({});
     const fd = new FormData();
     fd.append('offender_id', offenderId);
-    if (offenderPhone) fd.append('offender_phone', normalizePhoneNumber(offenderPhone));
     fd.append('category_id', categoryId);
     if (description) fd.append('description', description);
     if (file) fd.append('evidence', file);

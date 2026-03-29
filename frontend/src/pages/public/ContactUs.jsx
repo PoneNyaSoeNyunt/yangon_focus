@@ -5,7 +5,6 @@ import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
-import { normalizePhoneNumber } from '../../utils/phoneUtils';
 
 const ContactUs = () => {
   const { isAuthenticated } = useAuth();
