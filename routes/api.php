@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\CurrentStayController;
+use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\RenterController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/guest/current-stays',               [CurrentStayController::class, 'index']);
         Route::get('/guest/current-stays/{booking_id}',  [CurrentStayController::class, 'show']);
         Route::post('/reports',                          [ReportController::class, 'store']);
+        Route::post('/comments',                         [CommentController::class, 'store']);
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
@@ -76,5 +78,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/licenses/{id}/verify',[AdminLicenseController::class, 'verify']);
         Route::get('/reports',               [ReportController::class, 'adminIndex']);
         Route::patch('/reports/{id}/resolve',[ReportController::class, 'resolve']);
+        Route::get('/comments',                          [CommentController::class, 'adminIndex']);
+        Route::patch('/comments/{id}/resolve',           [CommentController::class, 'adminResolve']);
     });
 });

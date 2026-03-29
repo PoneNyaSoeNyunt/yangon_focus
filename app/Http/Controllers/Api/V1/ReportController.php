@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReportRequest;
 use App\Models\ReportCategory;
+use App\Models\StatusCode;
+use App\Models\User;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 
@@ -48,19 +50,32 @@ class ReportController extends Controller
     public function resolve(Request $request, int $id)
     {
         $request->validate([
-            'status'     => ['required', 'in:Resolved,Action Taken'],
+            'action'     => ['required', 'in:Dismiss,Issue Warning,Suspend User'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $report = $this->reportService->resolveReport(
-            $id,
-            $request->status,
-            $request->admin_note
-        );
+        $actionStatusMap = [
+            'Dismiss'       => 'Dismissed',
+            'Issue Warning' => 'Warning Issued',
+            'Suspend User'  => 'Action Taken',
+        ];
+
+        $status = $actionStatusMap[$request->action];
+
+        $report = $this->reportService->resolveReport($id, $status, $request->admin_note);
+
+        if ($request->action === 'Suspend User') {
+            $suspendedStatus = StatusCode::where('context', 'User')
+                ->where('label', 'Suspended')
+                ->firstOrFail();
+
+            User::findOrFail($report->offender_id)
+                ->update(['user_status_id' => $suspendedStatus->id]);
+        }
 
         return response()->json([
             'message' => 'Report updated.',
-            'report'  => $report,
+            'report'  => $report->load(['reporter', 'offender', 'category']),
         ]);
     }
 }

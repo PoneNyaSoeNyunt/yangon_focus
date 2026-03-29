@@ -29,6 +29,16 @@ const adminService = {
     const response = await apiClient.patch(`/admin/licenses/${id}/verify`, { label, reason });
     return response.data;
   },
+
+  async getComments(filters = {}) {
+    const response = await apiClient.get('/admin/comments', { params: filters });
+    return response.data;
+  },
+
+  async resolveComment(id) {
+    const response = await apiClient.patch(`/admin/comments/${id}/resolve`);
+    return response.data;
+  },
 };
 
 export default adminService;
