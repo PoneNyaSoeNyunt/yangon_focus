@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\StatusCode;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class StatusCodeSeeder extends Seeder
 {
@@ -13,37 +12,42 @@ class StatusCodeSeeder extends Seeder
      */
     public function run(): void
     {
-        $statusCodes = [
-            ['label' => 'Active', 'context' => 'User'],
-            ['label' => 'Suspended', 'context' => 'User'],
-            ['label' => 'Blacklisted', 'context' => 'User'],
+        $statuses = [
+            ['id' => 1,  'context' => 'User',    'label' => 'Active'],
+            ['id' => 2,  'context' => 'User',    'label' => 'Suspended'],
+            ['id' => 3,  'context' => 'User',    'label' => 'Blacklisted'],
 
-            ['label' => 'Pending', 'context' => 'Booking'],
-            ['label' => 'Confirmed', 'context' => 'Booking'],
-            ['label' => 'Cancelled', 'context' => 'Booking'],
-            ['label' => 'Completed', 'context' => 'Booking'],
+            ['id' => 4,  'context' => 'Booking', 'label' => 'Pending'],
+            ['id' => 5,  'context' => 'Booking', 'label' => 'Confirmed'],
+            ['id' => 6,  'context' => 'Booking', 'label' => 'Cancelled'],
+            ['id' => 7,  'context' => 'Booking', 'label' => 'Completed'],
 
-            ['label' => 'Pending Review', 'context' => 'Payment'],
-            ['label' => 'Verified', 'context' => 'Payment'],
-            ['label' => 'Rejected', 'context' => 'Payment'],
+            ['id' => 8,  'context' => 'Payment', 'label' => 'Pending Review'],
+            ['id' => 9,  'context' => 'Payment', 'label' => 'Verified'],
+            ['id' => 10, 'context' => 'Payment', 'label' => 'Rejected'],
 
-            ['label' => 'Draft', 'context' => 'Hostel'],
-            ['label' => 'Published', 'context' => 'Hostel'],
-            ['label' => 'Disabled', 'context' => 'Hostel'],
+            ['id' => 11, 'context' => 'Hostel',  'label' => 'Draft'],
+            ['id' => 12, 'context' => 'Hostel',  'label' => 'Published'],
+            ['id' => 13, 'context' => 'Hostel',  'label' => 'Disabled'],
 
-            ['label' => 'Open', 'context' => 'Report'],
-            ['label' => 'Investigating', 'context' => 'Report'],
-            ['label' => 'Action Taken', 'context' => 'Report'],
-            ['label' => 'Dismissed', 'context' => 'Report'],
+            ['id' => 14, 'context' => 'Report',  'label' => 'Open'],
+            ['id' => 15, 'context' => 'Report',  'label' => 'Investigating'],
+            ['id' => 16, 'context' => 'Report',  'label' => 'Action Taken'],
+            ['id' => 17, 'context' => 'Report',  'label' => 'Dismissed'],
 
-            ['label' => 'Pending Review', 'context' => 'License'],
-            ['label' => 'Verified', 'context' => 'License'],
-            ['label' => 'Rejected', 'context' => 'License'],
+            ['id' => 18, 'context' => 'License', 'label' => 'Pending Review'],
+            ['id' => 19, 'context' => 'License', 'label' => 'Verified'],
+            ['id' => 20, 'context' => 'License', 'label' => 'Rejected'],
 
-            ['label' => 'Open', 'context' => 'Comment'],
-            ['label' => 'Resolved', 'context' => 'Comment'],
+            ['id' => 21, 'context' => 'Comment', 'label' => 'Open'],
+            ['id' => 22, 'context' => 'Comment', 'label' => 'Resolved'],
         ];
 
-        DB::table('status_codes')->insert($statusCodes);
+        foreach ($statuses as $status) {
+            StatusCode::updateOrCreate(
+                ['id' => $status['id']],
+                ['context' => $status['context'], 'label' => $status['label']]
+            );
+        }
     }
 }
