@@ -80,9 +80,20 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-green-100 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium mb-6 transition"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </Link>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-teal-600 tracking-tight">Yangon Focus</h1>
+          <Link to="/" className="inline-block hover:opacity-80 transition">
+            <h1 className="text-3xl font-bold text-teal-600 tracking-tight">Yangon Focus</h1>
+          </Link>
           <p className="mt-1 text-sm text-teal-700 font-medium">Hostel Management Platform</p>
         </div>
 
