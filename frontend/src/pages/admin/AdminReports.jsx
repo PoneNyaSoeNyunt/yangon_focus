@@ -3,14 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import reportService from '../../services/reportService';
 
 const STATUS_STYLES = {
-  Open:            'bg-teal-100 text-teal-700',
-  Dismissed:       'bg-gray-100 text-gray-500',
-  'Warning Issued':'bg-blue-100 text-blue-700',
-  'Action Taken':  'bg-red-100 text-red-700',
-  Resolved:        'bg-green-100 text-green-700',
+  Open:          'bg-teal-100 text-teal-700',
+  Investigating: 'bg-blue-100 text-blue-700',
+  'Action Taken':'bg-red-100 text-red-700',
+  Dismissed:     'bg-gray-100 text-gray-500',
 };
 
-const FILTER_TABS = ['All', 'Open', 'Warning Issued', 'Action Taken', 'Dismissed'];
+const FILTER_TABS = ['All', 'Open', 'Investigating', 'Action Taken', 'Dismissed'];
 
 const ACTIONS = [
   { label: 'Dismiss',       style: 'text-gray-600 hover:bg-gray-100 border-gray-200' },
@@ -58,8 +57,8 @@ const EvidenceModal = ({ report, onClose, onAction, isPending }) => {
             <span className="text-xs font-semibold bg-red-100 text-red-600 px-3 py-1 rounded-full">
               {report.category?.name ?? '—'}
             </span>
-            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[report.status] ?? 'bg-gray-100 text-gray-500'}`}>
-              {report.status}
+            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[report.status_code?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+              {report.status_code?.label ?? '—'}
             </span>
           </div>
 
@@ -81,7 +80,7 @@ const EvidenceModal = ({ report, onClose, onAction, isPending }) => {
             </div>
           )}
 
-          {report.status === 'Open' && (
+          {report.status_code?.label === 'Open' && (
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -136,10 +135,10 @@ const AdminReports = () => {
 
   const filtered = activeTab === 'All'
     ? reports
-    : reports.filter((r) => r.status === activeTab);
+    : reports.filter((r) => r.status_code?.label === activeTab);
 
   const counts = FILTER_TABS.reduce((acc, t) => {
-    acc[t] = t === 'All' ? reports.length : reports.filter((r) => r.status === t).length;
+    acc[t] = t === 'All' ? reports.length : reports.filter((r) => r.status_code?.label === t).length;
     return acc;
   }, {});
 
@@ -222,8 +221,8 @@ const AdminReports = () => {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {r.status}
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status_code?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+                        {r.status_code?.label ?? '—'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">

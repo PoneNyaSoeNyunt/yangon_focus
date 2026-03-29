@@ -20,24 +20,24 @@ class ReportService
         ]);
     }
 
-    public function resolveReport(int $reportId, string $status, ?string $adminNote): Report
+    public function resolveReport(int $reportId, int $statusId, ?string $adminNote): Report
     {
         $report = Report::findOrFail($reportId);
 
         $report->update([
-            'status'     => $status,
+            'status_id'  => $statusId,
             'admin_note' => $adminNote,
         ]);
 
-        return $report->fresh(['reporter', 'offender', 'category']);
+        return $report->fresh(['reporter', 'offender', 'category', 'statusCode']);
     }
 
-    public function getAllReports(?string $status = null): \Illuminate\Database\Eloquent\Collection
+    public function getAllReports(?int $statusId = null): \Illuminate\Database\Eloquent\Collection
     {
-        $query = Report::with(['reporter', 'offender', 'category'])->latest();
+        $query = Report::with(['reporter', 'offender', 'category', 'statusCode'])->latest();
 
-        if ($status) {
-            $query->where('status', $status);
+        if ($statusId) {
+            $query->where('status_id', $statusId);
         }
 
         return $query->get();

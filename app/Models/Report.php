@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\StatusCode;
 
 class Report extends Model
 {
@@ -14,7 +15,7 @@ class Report extends Model
         'category_id',
         'description',
         'evidence_url',
-        'status',
+        'status_id',
         'admin_note',
     ];
 
@@ -31,5 +32,10 @@ class Report extends Model
     public function category()
     {
         return $this->belongsTo(ReportCategory::class, 'category_id');
+    }
+
+    public function statusCode()
+    {
+        return $this->belongsTo(StatusCode::class, 'status_id');
     }
 }

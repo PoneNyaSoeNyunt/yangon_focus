@@ -42,7 +42,14 @@ class ReportController extends Controller
 
     public function adminIndex(Request $request)
     {
-        $reports = $this->reportService->getAllReports($request->query('status'));
+        $statusId = null;
+        if ($request->query('status')) {
+            $statusId = StatusCode::where('context', 'Report')
+                ->where('label', $request->query('status'))
+                ->value('id');
+        }
+
+        $reports = $this->reportService->getAllReports($statusId);
 
         return response()->json(['reports' => $reports]);
     }
@@ -55,14 +62,14 @@ class ReportController extends Controller
         ]);
 
         $actionStatusMap = [
-            'Dismiss'       => 'Dismissed',
-            'Issue Warning' => 'Warning Issued',
-            'Suspend User'  => 'Action Taken',
+            'Dismiss'       => 17,
+            'Issue Warning' => 15,
+            'Suspend User'  => 16,
         ];
 
-        $status = $actionStatusMap[$request->action];
+        $statusId = $actionStatusMap[$request->action];
 
-        $report = $this->reportService->resolveReport($id, $status, $request->admin_note);
+        $report = $this->reportService->resolveReport($id, $statusId, $request->admin_note);
 
         if ($request->action === 'Suspend User') {
             $suspendedStatus = StatusCode::where('context', 'User')
