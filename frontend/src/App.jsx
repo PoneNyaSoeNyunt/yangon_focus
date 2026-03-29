@@ -16,6 +16,7 @@ import OwnerDashboard from './pages/owner/OwnerDashboard';
 import CreateHostel from './pages/owner/CreateHostel';
 import HomePage from './pages/HomePage';
 import HostelDetailPage from './pages/HostelDetailPage';
+import AboutUs from './pages/public/AboutUs';
 import MyBookings from './pages/guest/MyBookings';
 import MyProfile from './pages/guest/MyProfile';
 import Support from './pages/guest/Support';
@@ -71,6 +72,7 @@ function App() {
         <ErrorBoundary>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutUs />} />
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
 

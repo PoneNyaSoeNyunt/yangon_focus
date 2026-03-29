@@ -25,6 +25,7 @@ const Footer = () => (
           <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</h4>
           <ul className="space-y-2 text-sm">
             <li><Link to="/" className="hover:text-teal-400 transition">Home</Link></li>
+            <li><Link to="/about" className="hover:text-teal-400 transition">About</Link></li>
             <li><a href="#results" className="hover:text-teal-400 transition">Browse Hostels</a></li>
             <li><Link to="/login" className="hover:text-teal-400 transition">Owner Login</Link></li>
             <li><Link to="/login" className="hover:text-teal-400 transition">Register Property</Link></li>
