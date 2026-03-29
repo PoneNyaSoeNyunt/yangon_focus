@@ -4,12 +4,26 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReportRequest;
+use App\Models\ReportCategory;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
     public function __construct(private ReportService $reportService) {}
+
+    public function categories(Request $request)
+    {
+        $target = $request->query('target'); // 'Guest' or 'Owner'
+
+        $query = ReportCategory::query();
+
+        if ($target) {
+            $query->whereIn('target_role', [$target, 'Both']);
+        }
+
+        return response()->json($query->orderBy('id')->get(['id', 'name', 'target_role']));
+    }
 
     public function store(ReportRequest $request)
     {

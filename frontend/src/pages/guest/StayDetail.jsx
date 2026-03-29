@@ -488,6 +488,7 @@ const StayDetail = () => {
         <ReportModal
           offenderId={stay.hostel?.owner_id}
           offenderName={stay.hostel?.name}
+          offenderRole="Owner"
           onClose={() => setShowReportModal(false)}
           onSuccess={() => {}}
         />

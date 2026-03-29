@@ -11,7 +11,7 @@ class Report extends Model
     protected $fillable = [
         'reporter_id',
         'offender_id',
-        'reason_category',
+        'category_id',
         'description',
         'evidence_url',
         'status',
@@ -26,5 +26,10 @@ class Report extends Model
     public function offender()
     {
         return $this->belongsTo(User::class, 'offender_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ReportCategory::class, 'category_id');
     }
 }

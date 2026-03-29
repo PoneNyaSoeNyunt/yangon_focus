@@ -156,7 +156,7 @@ const ReportManagement = () => {
                   <span className={`self-start px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[report.status] ?? 'bg-gray-100 text-gray-600'}`}>
                     {report.status}
                   </span>
-                  <span className="text-xs font-semibold text-red-500 bg-red-50 px-2.5 py-1 rounded-full self-start">{report.reason_category}</span>
+                  <span className="text-xs font-semibold text-red-500 bg-red-50 px-2.5 py-1 rounded-full self-start">{report.category?.name ?? '—'}</span>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-xs text-gray-400">{new Date(report.created_at).toLocaleDateString()}</p>

@@ -12,11 +12,11 @@ class ReportService
         $path = $data['evidence']->store('report-evidence', 'public');
 
         return Report::create([
-            'reporter_id'     => $reporterId,
-            'offender_id'     => $data['offender_id'],
-            'reason_category' => $data['reason_category'],
-            'description'     => $data['description'] ?? null,
-            'evidence_url'    => Storage::url($path),
+            'reporter_id'  => $reporterId,
+            'offender_id'  => $data['offender_id'],
+            'category_id'  => $data['category_id'],
+            'description'  => $data['description'] ?? null,
+            'evidence_url' => Storage::url($path),
         ]);
     }
 
@@ -29,12 +29,12 @@ class ReportService
             'admin_note' => $adminNote,
         ]);
 
-        return $report->fresh(['reporter', 'offender']);
+        return $report->fresh(['reporter', 'offender', 'category']);
     }
 
     public function getAllReports(?string $status = null): \Illuminate\Database\Eloquent\Collection
     {
-        $query = Report::with(['reporter', 'offender'])->latest();
+        $query = Report::with(['reporter', 'offender', 'category'])->latest();
 
         if ($status) {
             $query->where('status', $status);

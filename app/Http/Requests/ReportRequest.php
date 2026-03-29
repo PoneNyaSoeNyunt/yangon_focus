@@ -14,10 +14,10 @@ class ReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'offender_id'     => ['required', 'integer', 'exists:users,id'],
-            'reason_category' => ['required', 'string', 'in:Unpaid Rent,Property Damage,House Rule Violation,Other'],
-            'description'     => ['nullable', 'string', 'max:1000'],
-            'evidence'        => ['required', 'file', 'image', 'max:5120'],
+            'offender_id'  => ['required', 'integer', 'exists:users,id'],
+            'category_id'  => ['required', 'integer', 'exists:report_categories,id'],
+            'description'  => ['nullable', 'string', 'max:1000'],
+            'evidence'     => ['required', 'file', 'image', 'max:5120'],
         ];
     }
 }

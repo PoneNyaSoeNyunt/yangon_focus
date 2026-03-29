@@ -1,6 +1,12 @@
 import apiClient from '../api/client';
 
 const reportService = {
+  async getCategories(targetRole) {
+    const params = targetRole ? { target: targetRole } : {};
+    const response = await apiClient.get('/report-categories', { params });
+    return response.data;
+  },
+
   async fileReport(formData) {
     const response = await apiClient.post('/reports', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

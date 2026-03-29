@@ -1,20 +1,19 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import reportService from '../../services/reportService';
 
-const CATEGORIES = [
-  'Unpaid Rent',
-  'Property Damage',
-  'House Rule Violation',
-  'Other',
-];
-
-const ReportModal = ({ offenderId, offenderName, onClose, onSuccess }) => {
-  const [category, setCategory]     = useState('');
+const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSuccess }) => {
+  const [categoryId, setCategoryId]   = useState('');
   const [description, setDescription] = useState('');
-  const [file, setFile]             = useState(null);
-  const [preview, setPreview]       = useState(null);
-  const [errors, setErrors]         = useState({});
+  const [file, setFile]               = useState(null);
+  const [preview, setPreview]         = useState(null);
+  const [errors, setErrors]           = useState({});
+
+  const { data: categories = [], isLoading: catLoading } = useQuery({
+    queryKey:  ['report-categories', offenderRole],
+    queryFn:   () => reportService.getCategories(offenderRole),
+    staleTime: 10 * 60 * 1000,
+  });
 
   const mutation = useMutation({
     mutationFn: (formData) => reportService.fileReport(formData),
@@ -37,7 +36,7 @@ const ReportModal = ({ offenderId, offenderName, onClose, onSuccess }) => {
     setErrors({});
     const fd = new FormData();
     fd.append('offender_id', offenderId);
-    fd.append('reason_category', category);
+    fd.append('category_id', categoryId);
     if (description) fd.append('description', description);
     if (file) fd.append('evidence', file);
     mutation.mutate(fd);
@@ -68,16 +67,17 @@ const ReportModal = ({ offenderId, offenderName, onClose, onSuccess }) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white ${
-                errors.reason_category ? 'border-red-400 bg-red-50' : 'border-gray-200'
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              disabled={catLoading}
+              className={`w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-60 ${
+                errors.category_id ? 'border-red-400 bg-red-50' : 'border-gray-200'
               }`}
             >
-              <option value="">Select a category…</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="">{catLoading ? 'Loading…' : 'Select a category…'}</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            {errors.reason_category && <p className="mt-1 text-xs text-red-500">{errors.reason_category[0]}</p>}
+            {errors.category_id && <p className="mt-1 text-xs text-red-500">{errors.category_id[0]}</p>}
           </div>
 
           <div>

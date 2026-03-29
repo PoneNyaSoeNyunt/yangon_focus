@@ -265,6 +265,7 @@ const ManageRenters = () => {
         <ReportModal
           offenderId={reportTarget.id}
           offenderName={reportTarget.name}
+          offenderRole="Guest"
           onClose={() => setReportTarget(null)}
           onSuccess={() => setReportTarget(null)}
         />

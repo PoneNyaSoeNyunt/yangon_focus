@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             TownshipSeeder::class,
             RoomTypeSeeder::class,
             UserSeeder::class,
+            ReportCategorySeeder::class,
         ]);
     }
 }
