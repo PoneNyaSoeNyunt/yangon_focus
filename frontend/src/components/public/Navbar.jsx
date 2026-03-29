@@ -23,15 +23,8 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-16">
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-8">
-            <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 9.5L12 4l9 5.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 21V12h6v9" />
-              </svg>
-            </div>
-            <span className="text-lg font-bold text-gray-900 tracking-tight">Yangon Focus</span>
+          <Link to="/" className="flex items-center flex-shrink-0 mr-8">
+            <span className="text-lg font-bold text-teal-600 tracking-tight">Yangon Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1 flex-1">

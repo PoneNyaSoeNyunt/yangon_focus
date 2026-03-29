@@ -78,24 +78,18 @@ const LoginPage = () => {
   const isLoading = loginMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-100 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-green-100 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500 shadow-lg mb-4">
-            <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Yangon Focus</h1>
-          <p className="mt-1 text-sm text-amber-700 font-medium">Hostel Management Platform</p>
+          <h1 className="text-3xl font-bold text-teal-600 tracking-tight">Yangon Focus</h1>
+          <p className="mt-1 text-sm text-teal-700 font-medium">Hostel Management Platform</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
+        <div className="bg-white rounded-2xl shadow-xl border border-teal-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-4">
             <h2 className="text-lg font-semibold text-white">Sign in to your account</h2>
-            <p className="text-amber-100 text-sm mt-0.5">Enter your phone number and password</p>
+            <p className="text-teal-100 text-sm mt-0.5">Enter your phone number and password</p>
           </div>
 
           <div className="px-6 py-6 space-y-5">
@@ -158,7 +152,7 @@ const LoginPage = () => {
                     onChange={handleChange}
                     disabled={isLocked || isLoading}
                     placeholder="09xxxxxxxxx"
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -184,7 +178,7 @@ const LoginPage = () => {
                     onChange={handleChange}
                     disabled={isLocked || isLoading}
                     placeholder="Enter your password"
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -192,7 +186,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLocked || isLoading}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-md mt-2"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-md mt-2"
               >
                 {isLoading ? (
                   <>
@@ -221,14 +215,14 @@ const LoginPage = () => {
           <div className="px-6 pb-6 text-center">
             <p className="text-sm text-gray-500">
               Don&apos;t have an account?{' '}
-              <Link to="/register" className="text-amber-600 hover:text-amber-700 font-medium transition">
+              <Link to="/register" className="text-teal-600 hover:text-teal-700 font-medium transition">
                 Register here
               </Link>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-amber-700/60 mt-6">
+        <p className="text-center text-xs text-teal-700/60 mt-6">
           © {new Date().getFullYear()} Yangon Focus. All rights reserved.
         </p>
       </div>

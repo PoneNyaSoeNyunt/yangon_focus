@@ -66,15 +66,9 @@ const OwnerSidebar = ({ onClose }) => {
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
-        <Link to="/" className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition">
-          <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </div>
+        <Link to="/" className="flex items-center flex-1 min-w-0 hover:opacity-80 transition">
           <div className="min-w-0">
-            <p className="font-bold text-gray-900 text-sm leading-tight truncate">Yangon Focus</p>
+            <p className="font-bold text-teal-600 text-sm leading-tight truncate">Yangon Focus</p>
             <p className="text-xs text-gray-400 truncate">Owner Portal</p>
           </div>
         </Link>

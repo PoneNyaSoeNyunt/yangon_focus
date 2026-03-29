@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import reportService from '../../services/reportService';
 
 const STATUS_STYLES = {
-  Open:            'bg-amber-100 text-amber-700',
+  Open:            'bg-teal-100 text-teal-700',
   Dismissed:       'bg-gray-100 text-gray-500',
   'Warning Issued':'bg-blue-100 text-blue-700',
   'Action Taken':  'bg-red-100 text-red-700',

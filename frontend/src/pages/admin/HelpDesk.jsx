@@ -5,7 +5,7 @@ import adminService from '../../services/adminService';
 const TABS = ['Open', 'Resolved'];
 
 const TAB_STYLES = {
-  Open:     { active: 'bg-amber-500 text-white shadow-sm', dot: 'bg-amber-400' },
+  Open:     { active: 'bg-teal-500 text-white shadow-sm', dot: 'bg-teal-400' },
   Resolved: { active: 'bg-green-500 text-white shadow-sm',  dot: 'bg-green-400' },
 };
 
