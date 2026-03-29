@@ -141,7 +141,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Evidence Photo</label>
-            <label className={`flex flex-col items-center justify-center w-full h-36 rounded-xl border-2 border-dashed cursor-pointer transition ${
+            <label className={`flex flex-col items-center justify-center w-full h-36 rounded-xl border-2 border-dashed cursor-pointer transition overflow-hidden ${
               errors.evidence ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-teal-400 hover:bg-teal-50'
             }`}>
               {preview ? (
