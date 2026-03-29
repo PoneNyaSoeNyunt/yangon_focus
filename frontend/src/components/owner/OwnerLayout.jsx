@@ -1,8 +1,12 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import OwnerSidebar from './OwnerSidebar';
 
 const OwnerLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuth();
+  const isSuspended = user?.user_status_id === 2;
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -36,6 +40,20 @@ const OwnerLayout = ({ children }) => {
         </header>
 
         <main className="flex-1 overflow-y-auto">
+          {isSuspended && (
+            <div className="flex items-start gap-3 bg-yellow-50 border-b border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+              <span className="text-base leading-tight flex-shrink-0">⚠️</span>
+              <p className="flex-1 leading-snug">
+                Your Owner Account is suspended. You can manage current bookings, but you cannot add new properties or edit existing listings.
+              </p>
+              <Link
+                to="/contact"
+                className="flex-shrink-0 px-3 py-1 rounded-lg bg-yellow-200 hover:bg-yellow-300 text-yellow-900 font-semibold text-xs transition"
+              >
+                Contact Us
+              </Link>
+            </div>
+          )}
           {children}
         </main>
       </div>

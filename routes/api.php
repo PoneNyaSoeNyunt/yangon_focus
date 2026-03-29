@@ -60,10 +60,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
 
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
-        Route::post('/hostels',                         [OwnerHostelController::class, 'store']);
+        Route::post('/hostels',                         [OwnerHostelController::class, 'store'])->middleware('check.status:owner');
         Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);
-        Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update']);
-        Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms']);
+        Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update'])->middleware('check.status:owner');
+        Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms'])->middleware('check.status:owner');
         Route::post('/hostels/{id}/license',            [OwnerHostelController::class, 'uploadLicense']);
         Route::post('/hostels/{id}/images',              [OwnerHostelController::class, 'uploadImages']);
         Route::patch('/hostels/{id}/images/{imageId}/primary', [OwnerHostelController::class, 'makeImagePrimary']);

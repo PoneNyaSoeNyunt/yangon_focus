@@ -30,6 +30,7 @@ const SuccessAlert = ({ message }) => (
 
 const MyProfile = () => {
   const { user, login } = useAuth();
+  const isSuspended = user?.user_status_id === 2;
 
   const [profileForm, setProfileForm] = useState({
     full_name:    user?.full_name    ?? '',
@@ -127,24 +128,27 @@ const MyProfile = () => {
               value={profileForm.full_name}
               onChange={(e) => setProfileForm((f) => ({ ...f, full_name: e.target.value }))}
               error={profileErrors.full_name?.[0]}
+              disabled={isSuspended}
             />
             <InputField
               label="Phone Number" id="phone_number" type="text"
               value={profileForm.phone_number}
               onChange={(e) => setProfileForm((f) => ({ ...f, phone_number: e.target.value }))}
               error={profileErrors.phone_number?.[0]}
+              disabled={isSuspended}
             />
             <InputField
               label="NRC Number" id="nrc_number" type="text"
               value={profileForm.nrc_number}
               onChange={(e) => setProfileForm((f) => ({ ...f, nrc_number: e.target.value }))}
               error={profileErrors.nrc_number?.[0]}
+              disabled={isSuspended}
             />
 
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={profileMutation.isPending}
+                disabled={profileMutation.isPending || isSuspended}
                 className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {profileMutation.isPending && (

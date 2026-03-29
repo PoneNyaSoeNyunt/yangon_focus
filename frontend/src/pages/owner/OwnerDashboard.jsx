@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import ownerService from '../../services/ownerService';
 
 const STATUS_STYLES = {
@@ -14,7 +15,7 @@ const HOSTEL_TYPE_ICON = {
   'Mixed':       '⚥',
 };
 
-const HostelCard = ({ hostel }) => {
+const HostelCard = ({ hostel, isSuspended }) => {
   const navigate = useNavigate();
   const status = hostel.listing_status?.label ?? 'Draft';
   const roomCount = hostel.rooms?.length ?? 0;
@@ -58,26 +59,42 @@ const HostelCard = ({ hostel }) => {
             : '—'}
         </span>
         {status === 'Draft' && (
-          <button
-            onClick={() => navigate(editPath)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Complete Listing
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => !isSuspended && navigate(editPath)}
+              disabled={isSuspended}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Complete Listing
+            </button>
+            {isSuspended && (
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap px-2 py-1 rounded-lg bg-gray-800 text-white text-xs opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                Suspended
+              </span>
+            )}
+          </div>
         )}
         {status === 'Published' && (
-          <button
-            onClick={() => navigate(editPath)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold rounded-lg transition"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Edit
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => !isSuspended && navigate(editPath)}
+              disabled={isSuspended}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+            {isSuspended && (
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap px-2 py-1 rounded-lg bg-gray-800 text-white text-xs opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                Suspended
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -85,6 +102,9 @@ const HostelCard = ({ hostel }) => {
 };
 
 const OwnerDashboard = () => {
+  const { user } = useAuth();
+  const isSuspended = user?.user_status_id === 2;
+
   const { data: hostels = [], isLoading, isError } = useQuery({
     queryKey: ['owner-hostels'],
     queryFn: ownerService.getHostels,
@@ -97,15 +117,32 @@ const OwnerDashboard = () => {
           <h1 className="text-2xl font-extrabold text-gray-900">My Hostels</h1>
           <p className="text-sm text-gray-500 mt-0.5">Manage your hostel listings</p>
         </div>
-        <Link
-          to="/owner/hostels/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add New Hostel
-        </Link>
+        {isSuspended ? (
+          <div className="relative group">
+            <button
+              disabled
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-300 cursor-not-allowed text-white text-sm font-semibold rounded-xl shadow-sm opacity-60"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add New Hostel
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-gray-800 text-white text-xs opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              Suspended
+            </span>
+          </div>
+        ) : (
+          <Link
+            to="/owner/hostels/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Hostel
+          </Link>
+        )}
       </div>
 
       {isLoading ? (
@@ -141,7 +178,7 @@ const OwnerDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {hostels.map((hostel) => (
-            <HostelCard key={hostel.id} hostel={hostel} />
+            <HostelCard key={hostel.id} hostel={hostel} isSuspended={isSuspended} />
           ))}
         </div>
       )}
