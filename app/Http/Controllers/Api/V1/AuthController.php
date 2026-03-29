@@ -56,6 +56,12 @@ class AuthController extends Controller
 
         $this->authRateLimitService->resetAttempts($phoneNumber);
 
+        if ($user->user_status_id === 3) {
+            return response()->json([
+                'message' => 'This account has been permanently blacklisted due to severe violations of our terms.',
+            ], 403);
+        }
+
         $userModel = \App\Models\User::find($user->id);
         $token = $userModel->createToken('auth-token')->plainTextToken;
 

@@ -47,6 +47,10 @@ class SuperAdminService
         $user->user_status_id = $statusCode->id;
         $user->save();
 
+        if ($label === 'Blacklisted') {
+            $user->tokens()->delete();
+        }
+
         return $user->load('statusCode');
     }
 

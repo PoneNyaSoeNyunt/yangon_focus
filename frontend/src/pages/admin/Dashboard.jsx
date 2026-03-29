@@ -12,7 +12,7 @@ const ROLES = {
 const STATUS_STYLES = {
   'Active':      'bg-green-100 text-green-700',
   'Suspended':   'bg-yellow-100 text-yellow-700',
-  'Blacklisted': 'bg-red-100 text-red-700',
+  'Blacklisted': 'bg-red-600 text-white',
 };
 
 const ACTION_BUTTONS = [
