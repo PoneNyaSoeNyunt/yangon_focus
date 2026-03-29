@@ -75,62 +75,51 @@ const ContactUsSection = () => {
           </p>
         </div>
 
-        {!isAuthenticated ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <p className="text-sm font-semibold text-gray-700 mb-1">Sign in to send a message</p>
-            <p className="text-xs text-gray-400">You must be logged in as a guest or owner to contact support.</p>
+        <form onSubmit={handleSubmit} className="bg-gray-50 rounded-2xl border border-gray-200 p-8 space-y-5">
+          {errors.general && (
+            <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
+              {errors.general[0]}
+            </p>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              required
+              maxLength={255}
+              placeholder="e.g. Payment issue, Hostel question…"
+              className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white ${
+                errors.subject ? 'border-red-400 bg-red-50' : 'border-gray-200'
+              }`}
+            />
+            {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject[0]}</p>}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="bg-gray-50 rounded-2xl border border-gray-200 p-8 space-y-5">
-            {errors.general && (
-              <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
-                {errors.general[0]}
-              </p>
-            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                required
-                maxLength={255}
-                placeholder="e.g. Payment issue, Hostel question…"
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white ${
-                  errors.subject ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                }`}
-              />
-              {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject[0]}</p>}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Message</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              rows={5}
+              maxLength={2000}
+              placeholder="Describe your question or issue in detail…"
+              className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white resize-none ${
+                errors.message ? 'border-red-400 bg-red-50' : 'border-gray-200'
+              }`}
+            />
+            <div className="flex items-center justify-between mt-1">
+              {errors.message
+                ? <p className="text-xs text-red-500">{errors.message[0]}</p>
+                : <span />}
+              <span className="text-xs text-gray-400">{message.length}/2000</span>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Message</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                required
-                rows={5}
-                maxLength={2000}
-                placeholder="Describe your question or issue in detail…"
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white resize-none ${
-                  errors.message ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                }`}
-              />
-              <div className="flex items-center justify-between mt-1">
-                {errors.message
-                  ? <p className="text-xs text-red-500">{errors.message[0]}</p>
-                  : <span />}
-                <span className="text-xs text-gray-400">{message.length}/2000</span>
-              </div>
-            </div>
-
+          {isAuthenticated ? (
             <button
               type="submit"
               disabled={mutation.isPending}
@@ -146,8 +135,15 @@ const ContactUsSection = () => {
                 </>
               ) : 'Send Message'}
             </button>
-          </form>
-        )}
+          ) : (
+            <a
+              href="/login"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition"
+            >
+              Log in to give comments
+            </a>
+          )}
+        </form>
       </div>
 
       {showSuccess && (
