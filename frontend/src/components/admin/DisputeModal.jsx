@@ -30,17 +30,14 @@ const BUTTONS_BY_STATUS = {
 
 const DisputeModal = ({ report: initialReport, onClose }) => {
   const queryClient = useQueryClient();
-  const [report, setReport]         = useState(initialReport);
-  const [description, setDescription] = useState(initialReport.description ?? '');
-  const [adminNote, setAdminNote]   = useState('');
+  const [report, setReport]       = useState(initialReport);
+  const [adminNote, setAdminNote] = useState('');
   const [patchError, setPatchError] = useState(null);
 
   const statusId    = report.status_code?.id;
   const statusLabel = report.status_code?.label;
   const isDismissed = statusId === STATUS_ID.DISMISSED;
   const actionButtons = BUTTONS_BY_STATUS[statusId] ?? [];
-
-  const descChanged = description !== (report.description ?? '');
 
   const patch = useMutation({
     mutationFn: (payload) => reportService.resolveReport(report.id, payload),
@@ -60,11 +57,6 @@ const DisputeModal = ({ report: initialReport, onClose }) => {
   const handleStatusChange = (toId) => {
     setPatchError(null);
     patch.mutate({ status_id: toId, ...(adminNote ? { admin_note: adminNote } : {}) });
-  };
-
-  const handleSaveDescription = () => {
-    setPatchError(null);
-    patch.mutate({ description });
   };
 
   return (
@@ -111,26 +103,12 @@ const DisputeModal = ({ report: initialReport, onClose }) => {
             </span>
           </div>
 
-          <div>
-            <label className="block text-xs uppercase font-semibold text-gray-400 mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isDismissed || patch.isPending}
-              rows={3}
-              placeholder="No description provided."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
-            {!isDismissed && (
-              <button
-                onClick={handleSaveDescription}
-                disabled={patch.isPending || !descChanged || description.length < 10}
-                className="mt-2 px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-semibold transition"
-              >
-                Save Description
-              </button>
-            )}
-          </div>
+          {report.description && (
+            <div>
+              <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Description</p>
+              <p className="text-sm text-gray-700 bg-gray-50 rounded-xl px-4 py-3 leading-relaxed italic">"{report.description}"</p>
+            </div>
+          )}
 
           {report.evidence_url && (
             <div>
