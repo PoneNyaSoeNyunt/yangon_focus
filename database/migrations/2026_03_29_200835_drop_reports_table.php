@@ -11,6 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('reports');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
         Schema::create('reports', function (Blueprint $table) {
             $table->id('report_id');
             $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
@@ -21,13 +29,5 @@ return new class extends Migration
             $table->foreignId('report_status_id')->constrained('status_codes')->onDelete('cascade');
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('reports');
     }
 };
