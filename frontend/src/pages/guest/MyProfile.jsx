@@ -30,6 +30,7 @@ const SuccessAlert = ({ message }) => (
 
 const MyProfile = () => {
   const { user, login } = useAuth();
+  const isSuspended = user?.user_status_id === 2;
   const [form, setForm]   = useState({ full_name: '', phone_number: '', nrc_number: '' });
   const [pwForm, setPwForm] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [profileErrors, setProfileErrors]   = useState({});
@@ -97,17 +98,17 @@ const MyProfile = () => {
 
             <InputField label="Full Name"     id="full_name"     type="text"
               value={form.full_name}     onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-              error={profileErrors.full_name?.[0]} />
+              error={profileErrors.full_name?.[0]} disabled={isSuspended} />
             <InputField label="Phone Number"  id="phone_number"  type="text"
               value={form.phone_number}  onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
-              error={profileErrors.phone_number?.[0]} />
+              error={profileErrors.phone_number?.[0]} disabled={isSuspended} />
             <InputField label="NRC Number"    id="nrc_number"    type="text"
               value={form.nrc_number}    onChange={(e) => setForm((f) => ({ ...f, nrc_number: e.target.value }))}
-              error={profileErrors.nrc_number?.[0]} />
+              error={profileErrors.nrc_number?.[0]} disabled={isSuspended} />
 
             <div className="pt-1">
-              <button type="submit" disabled={profileMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition">
+              <button type="submit" disabled={profileMutation.isPending || isSuspended}
+                className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition">
                 {profileMutation.isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

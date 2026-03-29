@@ -18,9 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'check.lockout' => \App\Http\Middleware\CheckLockout::class,
-            'admin.only'    => \App\Http\Middleware\AdminMiddleware::class,
-            'owner.only'    => \App\Http\Middleware\OwnerMiddleware::class,
+            'check.lockout'  => \App\Http\Middleware\CheckLockout::class,
+            'admin.only'     => \App\Http\Middleware\AdminMiddleware::class,
+            'owner.only'     => \App\Http\Middleware\OwnerMiddleware::class,
+            'check.status'   => \App\Http\Middleware\CheckUserStatus::class,
         ]);
 
         //

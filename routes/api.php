@@ -31,9 +31,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/public/hostels/{id}/reviews',            [ReviewController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::patch('/user/profile',                    [UserProfileController::class, 'updateProfile']);
-        Route::patch('/user/password',                   [UserProfileController::class, 'updatePassword']);
-        Route::post('/bookings',                         [BookingController::class, 'store']);
+        Route::patch('/user/profile',                    [UserProfileController::class, 'updateProfile'])->middleware('check.status');
+        Route::patch('/user/password',                   [UserProfileController::class, 'updatePassword'])->middleware('check.status');
+        Route::post('/bookings',                         [BookingController::class, 'store'])->middleware('check.status');
         Route::get('/my-bookings',                       [BookingController::class, 'guestIndex']);
         Route::get('/guest/bookings',                    [BookingController::class, 'guestIndex']);
         Route::delete('/guest/bookings/{id}',            [BookingController::class, 'guestCancel']);

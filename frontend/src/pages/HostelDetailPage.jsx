@@ -249,7 +249,7 @@ const ReviewsSection = ({ hostelId }) => {
 const BookingModal = ({
   bed, roomLabel, roomPrice,
   checkInDate, setCheckInDate, stayDuration, setStayDuration,
-  onBook, onClose, isPending, error, success, isAuthenticated, userRole,
+  onBook, onClose, isPending, error, success, isAuthenticated, userRole, isSuspended,
 }) => {
   const total = Number(roomPrice) * Number(stayDuration);
 
@@ -331,6 +331,19 @@ const BookingModal = ({
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
                   Only guests can place bookings.
                 </p>
+              ) : isSuspended ? (
+                <div className="relative group">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-3 bg-gray-300 cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 opacity-60"
+                  >
+                    Book Now
+                  </button>
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-gray-800 text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                    Account suspended.
+                  </span>
+                </div>
               ) : (
                 <button
                   type="button"
@@ -359,6 +372,7 @@ const BookingModal = ({
 const HostelDetailPage = () => {
   const { id } = useParams();
   const { isAuthenticated, user } = useAuth();
+  const isSuspended = user?.user_status_id === 2;
   const queryClient = useQueryClient();
 
   const [modalOpen, setModalOpen]               = useState(false);
@@ -527,6 +541,7 @@ const HostelDetailPage = () => {
           success={bookingSuccess}
           isAuthenticated={isAuthenticated}
           userRole={user?.role}
+          isSuspended={isSuspended}
         />
       )}
     </div>
