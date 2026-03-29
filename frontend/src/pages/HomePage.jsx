@@ -66,16 +66,9 @@ const ContactUsSection = () => {
   };
 
   return (
-    <section className="bg-white border-t border-gray-100">
+    <section id="contact-us" className="bg-white border-t border-gray-100">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-10">
-          <span className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Support
-          </span>
           <h2 className="text-2xl font-bold text-gray-900">Contact Us</h2>
           <p className="text-sm text-gray-500 mt-2">
             Have a question or issue? Send us a message and we'll get back to you.
