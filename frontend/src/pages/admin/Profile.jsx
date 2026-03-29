@@ -10,7 +10,7 @@ const InputField = ({ label, id, error, ...props }) => (
     </label>
     <input
       id={id}
-      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+      className={`w-full px-4 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-teal-400 ${
         error ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'
       }`}
       {...props}
@@ -94,15 +94,15 @@ const Profile = () => {
       <div className="space-y-6">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100">
-            <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-xl font-bold text-amber-700">
+            <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-xl font-bold text-teal-700">
                 {user?.full_name?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
               <p className="font-semibold text-gray-900">{user?.full_name}</p>
               <span className={`inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                user?.role === 'Super Admin' ? 'bg-amber-100 text-amber-700' :
+                user?.role === 'Super Admin' ? 'bg-teal-100 text-teal-700' :
                 user?.role === 'Owner'       ? 'bg-purple-100 text-purple-700' :
                                                'bg-blue-100 text-blue-700'
               }`}>
@@ -154,7 +154,7 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={profileMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {profileMutation.isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

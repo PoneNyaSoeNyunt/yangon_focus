@@ -92,7 +92,7 @@ const EvidenceModal = ({ report, onClose, onAction, isPending }) => {
                   onChange={(e) => setAdminNote(e.target.value)}
                   rows={2}
                   placeholder="Add a note for this action…"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
                 />
               </div>
               <div className="flex flex-wrap gap-2">
@@ -111,9 +111,9 @@ const EvidenceModal = ({ report, onClose, onAction, isPending }) => {
           )}
 
           {report.admin_note && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-              <p className="text-xs uppercase font-semibold text-amber-600 mb-1">Admin Note</p>
-              <p className="text-sm text-amber-800">{report.admin_note}</p>
+            <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3">
+              <p className="text-xs uppercase font-semibold text-teal-600 mb-1">Admin Note</p>
+              <p className="text-sm text-teal-800">{report.admin_note}</p>
             </div>
           )}
         </div>
@@ -163,7 +163,7 @@ const AdminReports = () => {
         {FILTER_TABS.map((t) => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition ${
-              activeTab === t ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+              activeTab === t ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
             }`}>
             {t}
             {counts[t] > 0 && (
@@ -178,7 +178,7 @@ const AdminReports = () => {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <svg className="w-8 h-8 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
@@ -204,7 +204,7 @@ const AdminReports = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtered.map((r, idx) => (
-                  <tr key={r.id} className="hover:bg-amber-50/40 transition-colors">
+                  <tr key={r.id} className="hover:bg-teal-50/40 transition-colors">
                     <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">{idx + 1}</td>
                     <td className="px-5 py-3.5">
                       <p className="font-medium text-gray-900 text-xs">{r.reporter?.full_name}</p>
@@ -232,7 +232,7 @@ const AdminReports = () => {
                     <td className="px-5 py-3.5 text-right">
                       <button
                         onClick={() => setSelected(r)}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition"
+                        className="text-xs font-semibold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition"
                       >
                         View
                       </button>

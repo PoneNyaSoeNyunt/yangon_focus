@@ -23,7 +23,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3">
       <p className="text-xs font-semibold text-gray-500 mb-1">{label}</p>
-      <p className="text-base font-bold text-amber-600">{payload[0].value} registrations</p>
+      <p className="text-base font-bold text-teal-600">{payload[0].value} registrations</p>
     </div>
   );
 };
@@ -44,7 +44,7 @@ const Analytics = () => {
 
       {isLoading ? (
         <div className="flex justify-center py-24">
-          <svg className="w-8 h-8 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
@@ -59,9 +59,9 @@ const Analytics = () => {
             <StatCard
               label="Total Users"
               value={data?.total_users}
-              color="bg-amber-50"
+              color="bg-teal-50"
               icon={
-                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -100,8 +100,8 @@ const Analytics = () => {
               <AreaChart data={data?.monthly_registrations ?? []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#00A389" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#00A389" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -121,11 +121,11 @@ const Analytics = () => {
                 <Area
                   type="monotone"
                   dataKey="count"
-                  stroke="#f59e0b"
+                  stroke="#00A389"
                   strokeWidth={2.5}
                   fill="url(#colorCount)"
-                  dot={{ fill: '#f59e0b', r: 3, strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: '#d97706' }}
+                  dot={{ fill: '#00A389', r: 3, strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#008f78' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

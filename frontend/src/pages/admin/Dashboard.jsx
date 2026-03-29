@@ -6,7 +6,7 @@ import UseDebounce from '../../hooks/UseDebounce';
 const ROLES = {
   Guest: { label: 'Guest', color: 'bg-blue-100 text-blue-700' },
   Owner: { label: 'Owner', color: 'bg-purple-100 text-purple-700' },
-  'Super Admin': { label: 'Super Admin', color: 'bg-amber-100 text-amber-700' },
+  'Super Admin': { label: 'Super Admin', color: 'bg-teal-100 text-teal-700' },
 };
 
 const STATUS_STYLES = {
@@ -118,7 +118,7 @@ const Dashboard = () => {
           </div>
           {!isLoading && !isError && (
             <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
-              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -137,13 +137,13 @@ const Dashboard = () => {
               placeholder="Search by name, phone, or NRC..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 hover:border-gray-300 transition"
             />
           </div>
           <select
             value={roleFilter}
             onChange={handleFilterChange(setRoleFilter)}
-            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 hover:border-gray-300 transition"
           >
             <option value="">All Roles</option>
             <option value="Guest">Guest</option>
@@ -152,7 +152,7 @@ const Dashboard = () => {
           <select
             value={statusFilter}
             onChange={handleFilterChange(setStatusFilter)}
-            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-400 hover:border-gray-300 transition"
+            className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 hover:border-gray-300 transition"
           >
             <option value="">All Statuses</option>
             <option value="Active">Active</option>
@@ -165,7 +165,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <svg className="w-8 h-8 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -206,14 +206,14 @@ const Dashboard = () => {
                       </tr>
                     ) : (
                       users.map((u, idx) => (
-                        <tr key={u.id} className="hover:bg-amber-50/40 transition-colors">
+                        <tr key={u.id} className="hover:bg-teal-50/40 transition-colors">
                           <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">
                             {(page - 1) * perPage + idx + 1}
                           </td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-amber-100 flex-shrink-0 flex items-center justify-center">
-                                <span className="text-xs font-bold text-amber-700">
+                              <div className="w-7 h-7 rounded-full bg-teal-100 flex-shrink-0 flex items-center justify-center">
+                                <span className="text-xs font-bold text-teal-700">
                                   {u.full_name?.charAt(0).toUpperCase()}
                                 </span>
                               </div>

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminService from '../../services/adminService';
 
 const STATUS_STYLES = {
-  'Pending Review': 'bg-yellow-100 text-yellow-700',
+  'Pending Review': 'bg-teal-100 text-teal-700',
   'Verified':       'bg-green-100 text-green-700',
   'Rejected':       'bg-red-100 text-red-700',
 };
@@ -75,7 +75,7 @@ const LicenseCard = ({ license, onView }) => {
         <div className="mt-auto pt-1">
           <button
             onClick={() => onView(license)}
-            className="w-full text-center text-xs font-semibold text-amber-600 hover:text-amber-700 py-1.5 rounded-lg hover:bg-amber-50 transition"
+            className="w-full text-center text-xs font-semibold text-teal-600 hover:text-teal-700 py-1.5 rounded-lg hover:bg-teal-50 transition"
           >
             View & Take Action
           </button>
@@ -284,7 +284,7 @@ const LicenseVerification = () => {
         </div>
         {!isLoading && (
           <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
-            <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -300,7 +300,7 @@ const LicenseVerification = () => {
             onClick={() => { setStatusFilter(s); setPage(1); }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
               statusFilter === s
-                ? 'bg-amber-500 text-white shadow-sm'
+                ? 'bg-teal-600 text-white shadow-sm'
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -311,7 +311,7 @@ const LicenseVerification = () => {
 
       {isLoading ? (
         <div className="flex justify-center py-24">
-          <svg className="w-8 h-8 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
