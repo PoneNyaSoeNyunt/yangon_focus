@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
+import ReportModal from '../../components/shared/ReportModal';
 
 const TYPE_COLORS = {
   KBZPay:   'bg-blue-50 text-blue-700 border-blue-100',
@@ -223,6 +224,7 @@ export default function ManageRenters() {
   const [search, setSearch] = useState('');
   const [drawerRenter, setDrawerRenter]   = useState(null);
   const [historyRenter, setHistoryRenter] = useState(null);
+  const [reportRenter, setReportRenter]   = useState(null);
 
   const { data: renters = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['owner-renters'],
@@ -340,6 +342,12 @@ export default function ManageRenters() {
                     >
                       Payment History
                     </button>
+                    <button
+                      onClick={() => setReportRenter(renter)}
+                      className="flex-1 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition border border-red-200"
+                    >
+                      Report
+                    </button>
                   </div>
                 </div>
               );
@@ -412,6 +420,12 @@ export default function ManageRenters() {
                           >
                             Payment History
                           </button>
+                          <button
+                            onClick={() => setReportRenter(renter)}
+                            className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition border border-red-200"
+                          >
+                            Report
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -435,6 +449,16 @@ export default function ManageRenters() {
         <PaymentHistoryModal
           renter={historyRenter}
           onClose={() => setHistoryRenter(null)}
+        />
+      )}
+
+      {reportRenter && (
+        <ReportModal
+          offenderId={reportRenter.guest_id}
+          offenderName={reportRenter.full_name}
+          offenderRole="Guest"
+          onClose={() => setReportRenter(null)}
+          onSuccess={() => setReportRenter(null)}
         />
       )}
     </div>
