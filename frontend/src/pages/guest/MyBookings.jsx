@@ -22,9 +22,11 @@ const useCountdown = (expiresAt, onExpired) => {
     return () => clearInterval(t);
   }, [expiresAt]);
 
-  const m = String(Math.floor(remaining / 60_000)).padStart(2, '0');
-  const s = String(Math.floor((remaining % 60_000) / 1_000)).padStart(2, '0');
-  return { expired: remaining === 0, display: `${m}:${s}` };
+  const totalSeconds = Math.floor(remaining / 1_000);
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  return { expired: remaining === 0, display: `${h}:${m}:${s}` };
 };
 
 /* ── Status styles ── */
