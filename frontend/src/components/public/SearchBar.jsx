@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const FACILITY_OPTIONS = ['WiFi', 'Aircon', 'CCTV', 'Laundry', 'Water Cooler', 'Parking', 'Hot Water', 'Kitchen', 'Generator', 'Elevator'];
+const FACILITY_OPTIONS = ['WiFi', 'Aircon', 'CCTV', 'Kitchen', 'Generator'];
 
 const PRICE_MIN = 50000;
 const PRICE_MAX = 160000;
