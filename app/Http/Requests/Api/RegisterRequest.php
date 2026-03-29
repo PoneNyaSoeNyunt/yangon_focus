@@ -38,7 +38,7 @@ class RegisterRequest extends FormRequest
         return [
             'phone_number' => ['required', 'string', 'unique:users,phone_number'],
             'full_name' => ['required', 'string', 'max:255'],
-            'nrc_number' => ['nullable', 'string', 'max:255'],
+            'nrc_number' => ['required', 'string', 'max:255'],
             'role' => ['required', 'string', 'in:guest,owner'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];

@@ -148,6 +148,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
     const errs = {};
     if (!form.full_name.trim()) errs.full_name = ['Full name is required.'];
     if (!form.phone_number.trim()) errs.phone_number = ['Phone number is required.'];
+    if (!form.nrc_number.trim()) errs.nrc_number = ['NRC number is required.'];
     if (!form.password) errs.password = ['Password is required.'];
     else if (form.password.length < 8) errs.password = ['Password must be at least 8 characters.'];
     if (form.password !== form.password_confirmation) errs.password_confirmation = ['Passwords do not match.'];
@@ -181,7 +182,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
         <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09xxxxxxxxx"
           value={form.phone_number} onChange={set('phone_number')} error={errors.phone_number?.[0]}
           iconPath="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-        <Field label="NRC Number (Optional)" id="nrc_number" name="nrc_number" type="text" placeholder="12/ABCDE(N)000000"
+        <Field label="NRC Number" id="nrc_number" name="nrc_number" type="text" placeholder="12/ABCDE(N)000000"
           value={form.nrc_number} onChange={set('nrc_number')} error={errors.nrc_number?.[0]}
           iconPath="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
         <PwField label="Password" id="password" name="password" placeholder="Min. 8 characters"

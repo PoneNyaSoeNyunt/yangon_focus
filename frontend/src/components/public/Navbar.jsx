@@ -64,7 +64,7 @@ const Navbar = () => {
                   Login
                 </Link>
                 <Link
-                  to="/login"
+                  to="/register"
                   className="px-4 py-2 text-sm font-semibold text-white bg-teal-500 hover:bg-teal-600 rounded-xl transition"
                 >
                   Register
@@ -105,7 +105,7 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg text-center">Login</Link>
-                <Link to="/login" className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg text-center">Register</Link>
+                <Link to="/register" className="block px-3 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg text-center">Register</Link>
               </>
             )}
           </div>
