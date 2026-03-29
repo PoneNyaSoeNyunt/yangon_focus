@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReportRequest;
+use App\Models\Report;
 use App\Models\ReportCategory;
 use App\Models\StatusCode;
 use App\Models\User;
@@ -56,33 +57,29 @@ class ReportController extends Controller
 
     public function resolve(Request $request, int $id)
     {
-        $request->validate([
-            'action'     => ['required', 'in:Dismiss,Issue Warning,Suspend User'],
-            'admin_note' => ['nullable', 'string', 'max:1000'],
+        $report = Report::findOrFail($id);
+
+        if ($report->status_id === 17) {
+            return response()->json(['message' => 'Cannot modify a dismissed report.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status_id'   => ['sometimes', 'integer', 'in:14,15,16,17'],
+            'description' => ['sometimes', 'nullable', 'string', 'min:10'],
+            'admin_note'  => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
-        $actionStatusMap = [
-            'Dismiss'       => 17,
-            'Issue Warning' => 15,
-            'Suspend User'  => 16,
-        ];
+        $data = array_filter($validated, fn($v) => !is_null($v));
 
-        $statusId = $actionStatusMap[$request->action];
-
-        $report = $this->reportService->resolveReport($id, $statusId, $request->admin_note);
-
-        if ($request->action === 'Suspend User') {
-            $suspendedStatus = StatusCode::where('context', 'User')
-                ->where('label', 'Suspended')
-                ->firstOrFail();
-
-            User::findOrFail($report->offender_id)
-                ->update(['user_status_id' => $suspendedStatus->id]);
+        if (empty($data)) {
+            return response()->json(['message' => 'Nothing to update.'], 422);
         }
+
+        $updatedReport = $this->reportService->resolveReport($id, $data);
 
         return response()->json([
             'message' => 'Report updated.',
-            'report'  => $report->load(['reporter', 'offender', 'category']),
+            'report'  => $updatedReport,
         ]);
     }
 }

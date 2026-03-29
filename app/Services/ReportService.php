@@ -20,14 +20,11 @@ class ReportService
         ]);
     }
 
-    public function resolveReport(int $reportId, int $statusId, ?string $adminNote): Report
+    public function resolveReport(int $reportId, array $data): Report
     {
         $report = Report::findOrFail($reportId);
 
-        $report->update([
-            'status_id'  => $statusId,
-            'admin_note' => $adminNote,
-        ]);
+        $report->update($data);
 
         return $report->fresh(['reporter', 'offender', 'category', 'statusCode']);
     }
