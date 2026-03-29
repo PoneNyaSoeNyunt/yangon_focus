@@ -9,6 +9,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
   const [file, setFile]               = useState(null);
   const [preview, setPreview]         = useState(null);
   const [errors, setErrors]           = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const { data: categories = [], isLoading: catLoading } = useQuery({
     queryKey:  ['report-categories', offenderRole],
@@ -22,8 +23,7 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
   const mutation = useMutation({
     mutationFn: (formData) => reportService.fileReport(formData),
     onSuccess: () => {
-      onSuccess?.();
-      onClose();
+      setIsSubmitted(true);
     },
     onError: (err) => setErrors(err?.response?.data?.errors ?? { general: ['Submission failed. Please try again.'] }),
   });
@@ -58,22 +58,48 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
     mutation.mutate(fd);
   };
 
+  const handleSuccessClose = () => {
+    setIsSubmitted(false);
+    onSuccess?.();
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h2 className="font-bold text-gray-900">Report Issue</h2>
-            {offenderName && <p className="text-xs text-gray-400 mt-0.5">Against: {offenderName}</p>}
+        {isSubmitted ? (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Report Submitted Successfully</h2>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+              Thank you for helping keep Yangon Focus safe. Our team will review your report and take action shortly.
+            </p>
+            <button
+              onClick={handleSuccessClose}
+              className="w-full px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold transition"
+            >
+              Close
+            </button>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 className="font-bold text-gray-900">Report Issue</h2>
+                {offenderName && <p className="text-xs text-gray-400 mt-0.5">Against: {offenderName}</p>}
+              </div>
+              <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {errors.general && (
             <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
               {errors.general[0]}
@@ -153,6 +179,8 @@ const ReportModal = ({ offenderId, offenderName, offenderRole, onClose, onSucces
             </button>
           </div>
         </form>
+          </>
+        )}
       </div>
     </div>
   );
