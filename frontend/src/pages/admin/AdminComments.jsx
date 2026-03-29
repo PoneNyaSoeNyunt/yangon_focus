@@ -20,12 +20,14 @@ const AdminComments = () => {
 
   const comments = data?.comments ?? [];
 
+  const statusLabel = (c) => c.status_code?.label ?? '';
+
   const filtered = activeTab === 'All'
     ? comments
-    : comments.filter((c) => c.status === activeTab);
+    : comments.filter((c) => statusLabel(c) === activeTab);
 
   const counts = FILTER_TABS.reduce((acc, t) => {
-    acc[t] = t === 'All' ? comments.length : comments.filter((c) => c.status === t).length;
+    acc[t] = t === 'All' ? comments.length : comments.filter((c) => statusLabel(c) === t).length;
     return acc;
   }, {});
 
@@ -76,8 +78,8 @@ const AdminComments = () => {
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-500'}`}>
-                      {c.status}
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_STYLES[statusLabel(c)] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {statusLabel(c)}
                     </span>
                     <span className="text-xs text-gray-400">
                       {new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -86,7 +88,7 @@ const AdminComments = () => {
                   <h3 className="font-semibold text-gray-900 text-sm truncate">{c.subject}</h3>
                 </div>
 
-                {c.status === 'Open' && (
+                {statusLabel(c) === 'Open' && (
                   <button
                     onClick={() => resolveMutation.mutate(c.id)}
                     disabled={resolveMutation.isPending && resolveMutation.variables === c.id}

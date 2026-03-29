@@ -39,6 +39,9 @@ class StatusCodeSeeder extends Seeder
             ['label' => 'Pending Review', 'context' => 'License'],
             ['label' => 'Verified', 'context' => 'License'],
             ['label' => 'Rejected', 'context' => 'License'],
+
+            ['label' => 'Open', 'context' => 'Comment'],
+            ['label' => 'Resolved', 'context' => 'Comment'],
         ];
 
         DB::table('status_codes')->insert($statusCodes);
