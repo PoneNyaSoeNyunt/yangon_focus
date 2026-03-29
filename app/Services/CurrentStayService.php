@@ -23,6 +23,7 @@ class CurrentStayService
             'bed.room.hostel.owner',
             'payments' => fn($q) => $q->latest()->limit(1),
             'payments.status',
+            'payments.paymentMethod',
         ];
     }
 
@@ -82,9 +83,10 @@ class CurrentStayService
             ],
             'latest_payment' => $booking->payments->first()
                 ? [
-                    'id'     => $booking->payments->first()->id,
-                    'type'   => $booking->payments->first()->type,
-                    'status' => $booking->payments->first()->status?->label,
+                    'id'          => $booking->payments->first()->id,
+                    'method_name' => $booking->payments->first()->paymentMethod?->method_name ?? $booking->payments->first()->payment_method,
+                    'is_advance'  => $booking->payments->first()->is_advance,
+                    'status'      => $booking->payments->first()->status?->label,
                 ]
                 : null,
         ];

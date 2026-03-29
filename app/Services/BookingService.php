@@ -84,7 +84,7 @@ class BookingService
             ->where('label', 'Pending Review')->firstOrFail()->id;
 
         return \App\Models\Payment::create([
-            'type'              => 'Cash',
+            'payment_method'    => 'Cash',
             'booking_id'        => $bookingId,
             'hostel_id'         => $booking->bed->room->hostel_id,
             'payment_status_id' => $pendingReviewId,

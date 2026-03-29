@@ -46,4 +46,9 @@ class Hostel extends Model
     {
         return $this->hasOne(HostelImage::class, 'hostel_id')->where('is_primary', true);
     }
+
+    public function paymentMethods()
+    {
+        return $this->hasMany(HostelPaymentMethod::class, 'hostel_id');
+    }
 }

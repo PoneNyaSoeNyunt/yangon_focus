@@ -44,6 +44,11 @@ const bookingService = {
     const response = await apiClient.patch(`/owner/bookings/${bookingId}/cancel`, { reason });
     return response.data;
   },
+
+  async getHostelPaymentMethods(hostelId) {
+    const response = await apiClient.get(`/public/hostels/${hostelId}/payment-methods`);
+    return response.data;
+  },
 };
 
 export default bookingService;

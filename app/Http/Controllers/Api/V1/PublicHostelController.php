@@ -19,6 +19,12 @@ class PublicHostelController extends Controller
         return response()->json($hostels);
     }
 
+    public function paymentMethods(int $id)
+    {
+        $hostel = \App\Models\Hostel::findOrFail($id);
+        return response()->json($hostel->paymentMethods()->get(['id', 'method_name', 'account_number', 'account_name']));
+    }
+
     public function show(int $id)
     {
         $publishedId = StatusCode::where('context', 'Hostel')

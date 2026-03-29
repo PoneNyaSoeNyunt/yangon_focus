@@ -13,9 +13,8 @@ class PaymentController extends Controller
     public function guestUpload(Request $request, int $bookingId)
     {
         $data = $request->validate([
-            'type'           => ['required', 'in:KBZPay,WaveMoney,Bank Transfer'],
-            'screenshot'     => ['required', 'image', 'max:5120'],
-            'transaction_id' => ['nullable', 'string', 'max:100'],
+            'hostel_payment_method_id' => ['required', 'integer', 'exists:hostel_payment_methods,id'],
+            'screenshot'               => ['required', 'image', 'max:5120'],
         ]);
         $data['screenshot'] = $request->file('screenshot');
 
@@ -30,9 +29,8 @@ class PaymentController extends Controller
     public function guestUploadAdvance(Request $request, int $bookingId)
     {
         $data = $request->validate([
-            'type'           => ['required', 'in:KBZPay,WaveMoney,Bank Transfer,Cash'],
-            'screenshot'     => ['nullable', 'image', 'max:5120'],
-            'transaction_id' => ['nullable', 'string', 'max:100'],
+            'hostel_payment_method_id' => ['nullable', 'integer', 'exists:hostel_payment_methods,id'],
+            'screenshot'               => ['nullable', 'image', 'max:5120'],
         ]);
         if ($request->hasFile('screenshot')) {
             $data['screenshot'] = $request->file('screenshot');

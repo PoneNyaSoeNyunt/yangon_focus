@@ -23,9 +23,10 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/townships',           [LookupController::class, 'townships']);
     Route::get('/room-types',          [LookupController::class, 'roomTypes']);
-    Route::get('/public/hostels',               [PublicHostelController::class, 'index']);
-    Route::get('/public/hostels/{id}',           [PublicHostelController::class, 'show']);
-    Route::get('/public/hostels/{id}/reviews',   [ReviewController::class, 'index']);
+    Route::get('/public/hostels',                          [PublicHostelController::class, 'index']);
+    Route::get('/public/hostels/{id}',                    [PublicHostelController::class, 'show']);
+    Route::get('/public/hostels/{id}/payment-methods',    [PublicHostelController::class, 'paymentMethods']);
+    Route::get('/public/hostels/{id}/reviews',            [ReviewController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/user/profile',                    [UserProfileController::class, 'updateProfile']);

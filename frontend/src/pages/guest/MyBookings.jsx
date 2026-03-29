@@ -137,19 +137,28 @@ const ReviewModal = ({ booking, onClose, onSuccess }) => {
 /* ── Pay Now Modal ── */
 const PayNowModal = ({ booking, onClose, onSuccess }) => {
   const queryClient = useQueryClient();
-  const [step, setStep]          = useState('choose');
-  const [payType, setPayType]    = useState('KBZPay');
-  const [txId, setTxId]          = useState('');
-  const [file, setFile]          = useState(null);
-  const [error, setError]        = useState('');
-  const fileRef                  = useRef();
+  const hostelId = booking.bed?.room?.hostel?.id;
+
+  const [selectedMethodId, setSelectedMethodId] = useState(null);
+  const [file, setFile]                         = useState(null);
+  const [error, setError]                       = useState('');
+  const fileRef                                 = useRef(null);
+
+  const { data: paymentMethods = [], isLoading: methodsLoading } = useQuery({
+    queryKey: ['hostel-payment-methods', hostelId],
+    queryFn:  () => bookingService.getHostelPaymentMethods(hostelId),
+    enabled:  !!hostelId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const selectedMethod = paymentMethods.find((m) => m.id === selectedMethodId);
+  const isCash         = selectedMethodId === 'cash';
 
   const uploadMutation = useMutation({
     mutationFn: () => {
       const fd = new FormData();
-      fd.append('type', payType);
+      fd.append('hostel_payment_method_id', selectedMethodId);
       fd.append('screenshot', file);
-      if (txId) fd.append('transaction_id', txId);
       return bookingService.uploadPayment(booking.id, fd);
     },
     onSuccess: () => {
@@ -163,15 +172,26 @@ const PayNowModal = ({ booking, onClose, onSuccess }) => {
     mutationFn: () => bookingService.payCash(booking.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
-      onSuccess('The owner has been notified. Please pay Daw Hla upon arrival.');
+      onSuccess('The owner has been notified. Please pay upon arrival.');
     },
     onError: (err) => setError(err?.response?.data?.message ?? 'Action failed.'),
   });
 
+  const isPending  = uploadMutation.isPending || cashMutation.isPending;
+  const canSubmit  = isCash ? true : !!(selectedMethodId && file);
+
+  const handleSubmit = () => {
+    setError('');
+    if (isCash) cashMutation.mutate();
+    else        uploadMutation.mutate();
+  };
+
+  const selectMethod = (id) => { setSelectedMethodId(id); setFile(null); setError(''); };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900 text-lg">Pay Now</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,88 +200,79 @@ const PayNowModal = ({ booking, onClose, onSuccess }) => {
           </button>
         </div>
 
-        {step === 'choose' && (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500 mb-4">
-              Booking: <span className="font-semibold text-gray-700">
-                {booking.bed?.room?.hostel?.name} — Bed {booking.bed?.bed_number}
-              </span>
-            </p>
-            <button onClick={() => setStep('upload')}
-              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-teal-400 hover:bg-teal-50 transition text-left">
-              <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-800 text-sm">Upload Screenshot</p>
-                <p className="text-xs text-gray-400">KBZPay, WaveMoney, or Bank Transfer</p>
-              </div>
-            </button>
-            <button onClick={() => setStep('property')}
-              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition text-left">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <p className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-3">
+          {booking.bed?.room?.hostel?.name} — Bed {booking.bed?.bed_number}
+        </p>
+
+        {methodsLoading ? (
+          <div className="space-y-2 mb-4">
+            {[1, 2].map((i) => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="space-y-2 mb-4">
+            {paymentMethods.map((m) => (
+              <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
+                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
+                  selectedMethodId === m.id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
+                }`}>
+                <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">{m.method_name}</p>
+                  <p className="text-xs text-gray-500">{m.account_number} · {m.account_name}</p>
+                </div>
+              </button>
+            ))}
+            <button type="button" onClick={() => selectMethod('cash')}
+              className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
+                isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
+              }`}>
+              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Pay at Property</p>
-                <p className="text-xs text-gray-400">Notify owner — pay Daw Hla upon arrival</p>
+                <p className="text-xs text-gray-500">Notify owner — pay in cash upon arrival</p>
               </div>
             </button>
           </div>
         )}
 
-        {step === 'upload' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Payment Method</label>
-              <select value={payType} onChange={(e) => setPayType(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
-                <option value="KBZPay">KBZPay</option>
-                <option value="WaveMoney">WaveMoney</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Screenshot <span className="text-red-400">*</span></label>
-              <input type="file" accept="image/*" ref={fileRef} onChange={(e) => setFile(e.target.files[0])}
-                className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-teal-50 file:text-teal-700 file:font-medium hover:file:bg-teal-100" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Transaction ID <span className="text-gray-400">(optional)</span></label>
-              <input type="text" value={txId} onChange={(e) => setTxId(e.target.value)} placeholder="e.g. TXN123456"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
-            </div>
-            {error && <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
-            <div className="flex gap-2 pt-1">
-              <button onClick={() => setStep('choose')} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">Back</button>
-              <button disabled={!file || uploadMutation.isPending} onClick={() => uploadMutation.mutate()}
-                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white text-sm font-semibold transition">
-                {uploadMutation.isPending ? 'Uploading…' : 'Submit'}
-              </button>
-            </div>
+        {selectedMethod && (
+          <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-xl space-y-2">
+            <p className="text-xs font-semibold text-teal-700">Send payment to:</p>
+            <p className="text-sm font-bold text-teal-800">{selectedMethod.account_name}</p>
+            <p className="text-sm text-teal-700 font-mono">{selectedMethod.account_number}</p>
+            <p className="text-xs text-teal-600">Then upload your screenshot:</p>
+            <input type="file" accept="image/*" ref={fileRef} onChange={(e) => setFile(e.target.files[0])}
+              className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-teal-100 file:text-teal-700 file:font-medium hover:file:bg-teal-200" />
           </div>
         )}
 
-        {step === 'property' && (
-          <div className="space-y-4">
-            <div className="p-4 bg-amber-50 rounded-xl text-sm text-amber-800 border border-amber-200">
-              <p className="font-semibold mb-1">Pay in person at the property</p>
-              <p>Clicking Confirm will notify the owner. Please pay <strong>Daw Hla</strong> directly upon arrival. Your booking remains Pending until cash is recorded by the owner.</p>
-            </div>
-            {error && <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
-            <div className="flex gap-2">
-              <button onClick={() => setStep('choose')} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">Back</button>
-              <button disabled={cashMutation.isPending} onClick={() => cashMutation.mutate()}
-                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-sm font-semibold transition">
-                {cashMutation.isPending ? 'Sending…' : 'Confirm'}
-              </button>
-            </div>
+        {isCash && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+            Clicking Confirm will notify the owner. Please pay in cash upon arrival.
           </div>
         )}
+
+        {error && <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2 mb-3">{error}</p>}
+
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button disabled={!canSubmit || isPending} onClick={handleSubmit}
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed ${
+              isCash ? 'bg-amber-500 hover:bg-amber-600' : 'bg-teal-500 hover:bg-teal-600'
+            }`}>
+            {isPending ? 'Processing…' : isCash ? 'Confirm' : 'Submit Payment'}
+          </button>
+        </div>
       </div>
     </div>
   );

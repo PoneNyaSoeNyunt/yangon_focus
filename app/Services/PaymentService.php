@@ -33,12 +33,11 @@ class PaymentService
         }
 
         return Payment::create([
-            'type'              => $data['type'],
-            'booking_id'        => $bookingId,
-            'hostel_id'         => $booking->bed->room->hostel_id,
-            'screenshot_url'    => $screenshotUrl,
-            'transaction_id'    => $data['transaction_id'] ?? null,
-            'payment_status_id' => $pendingReviewId,
+            'hostel_payment_method_id' => $data['hostel_payment_method_id'],
+            'booking_id'               => $bookingId,
+            'hostel_id'                => $booking->bed->room->hostel_id,
+            'screenshot_url'           => $screenshotUrl,
+            'payment_status_id'        => $pendingReviewId,
         ]);
     }
 
@@ -68,7 +67,8 @@ class PaymentService
                 ->where('label', 'Pending Review')->value('id');
 
             $pending = Payment::where('booking_id', $bookingId)
-                ->where('type', 'Cash')
+                ->where('payment_method', 'Cash')
+                ->where('is_advance', false)
                 ->where('payment_status_id', $pendingReviewId)
                 ->first();
 
@@ -76,7 +76,7 @@ class PaymentService
                 $pending->update(['payment_status_id' => $verifiedId]);
             } else {
                 Payment::create([
-                    'type'              => 'Cash',
+                    'payment_method'    => 'Cash',
                     'booking_id'        => $bookingId,
                     'hostel_id'         => $booking->bed->room->hostel_id,
                     'payment_status_id' => $verifiedId,
@@ -113,15 +113,17 @@ class PaymentService
             $screenshotUrl = Storage::url($path);
         }
 
+        $isCash = empty($data['hostel_payment_method_id']);
+
         return Payment::create([
-            'type'              => 'Advance',
-            'payment_method'    => $data['type'] ?? null,
-            'total_amount'      => $booking->bed->room->price_per_month,
-            'booking_id'        => $bookingId,
-            'hostel_id'         => $booking->bed->room->hostel_id,
-            'screenshot_url'    => $screenshotUrl,
-            'transaction_id'    => $data['transaction_id'] ?? null,
-            'payment_status_id' => $pendingReviewId,
+            'hostel_payment_method_id' => $isCash ? null : $data['hostel_payment_method_id'],
+            'payment_method'           => $isCash ? 'Cash' : null,
+            'total_amount'             => $booking->bed->room->price_per_month,
+            'is_advance'               => true,
+            'booking_id'               => $bookingId,
+            'hostel_id'                => $booking->bed->room->hostel_id,
+            'screenshot_url'           => $screenshotUrl,
+            'payment_status_id'        => $pendingReviewId,
         ]);
     }
 
@@ -141,7 +143,7 @@ class PaymentService
 
             $payment->update(['payment_status_id' => $verifiedId]);
 
-            if ($payment->type === 'Advance') {
+            if ($payment->is_advance) {
                 $payment->booking->increment('stay_duration');
             } else {
                 $confirmedId = StatusCode::where('context', 'Booking')
@@ -163,10 +165,14 @@ class PaymentService
             'booking.guest',
             'booking.status',
             'booking.bed.room.hostel',
+            'paymentMethod',
             'status',
         ])
         ->where('payment_status_id', $pendingReviewId)
-        ->where('type', '!=', 'Cash')
+        ->where(function ($q) {
+            $q->whereNotNull('hostel_payment_method_id')
+              ->orWhere(fn($q2) => $q2->where('is_advance', true)->where('payment_method', 'Cash'));
+        })
         ->whereHas('booking.bed.room.hostel', fn($q) => $q->where('owner_id', $ownerId))
         ->orderBy('created_at', 'desc')
         ->get();

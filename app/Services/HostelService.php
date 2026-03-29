@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BusinessLicense;
 use App\Models\Hostel;
 use App\Models\HostelImage;
+use App\Models\HostelPaymentMethod;
 use App\Models\Room;
 use App\Models\Bed;
 use App\Models\StatusCode;
@@ -20,7 +21,7 @@ class HostelService
             ->where('label', 'Draft')
             ->firstOrFail();
 
-        return Hostel::create([
+        $hostel = Hostel::create([
             'name'              => $data['name'],
             'description'       => $data['description'] ?? null,
             'address'           => $data['address'],
@@ -31,6 +32,26 @@ class HostelService
             'township_id'       => $data['township_id'],
             'listing_status_id' => $draftStatus->id,
         ]);
+
+        $this->syncPaymentMethods($hostel, $data['payment_methods'] ?? []);
+
+        return $hostel;
+    }
+
+    private function syncPaymentMethods(Hostel $hostel, array $methods): void
+    {
+        $hostel->paymentMethods()->delete();
+        foreach ($methods as $m) {
+            if (empty($m['method_name']) || empty($m['account_number']) || empty($m['account_name'])) {
+                continue;
+            }
+            HostelPaymentMethod::create([
+                'hostel_id'      => $hostel->id,
+                'method_name'    => $m['method_name'],
+                'account_number' => $m['account_number'],
+                'account_name'   => $m['account_name'],
+            ]);
+        }
     }
 
     public function addRooms(int $hostelId, array $rooms): array
@@ -154,7 +175,7 @@ class HostelService
 
     public function getHostel(int $ownerId, int $hostelId): Hostel
     {
-        return Hostel::with(['township', 'listingStatus', 'rooms.beds', 'rooms.type', 'businessLicenses.status', 'images'])
+        return Hostel::with(['township', 'listingStatus', 'rooms.beds', 'rooms.type', 'businessLicenses.status', 'images', 'paymentMethods'])
             ->where('owner_id', $ownerId)
             ->findOrFail($hostelId);
     }
@@ -226,6 +247,8 @@ class HostelService
             'type'        => $data['type'],
             'township_id' => $data['township_id'],
         ]);
+
+        $this->syncPaymentMethods($hostel, $data['payment_methods'] ?? []);
 
         return $hostel->load(['township', 'listingStatus']);
     }

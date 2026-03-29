@@ -76,6 +76,7 @@ const CreateHostel = () => {
   const [basicForm, setBasicForm] = useState({
     name: '', description: '', address: '',
     house_rules: '', type: '', township_id: '', facilities: [],
+    payment_methods: [],
   });
   const [rooms, setRooms] = useState([emptyRoom()]);
   const [licenseForm, setLicenseForm] = useState({ license_number: '', image: null });
@@ -119,13 +120,18 @@ const CreateHostel = () => {
   useEffect(() => {
     if (!existingHostel) return;
     setBasicForm({
-      name:        existingHostel.name ?? '',
-      description: existingHostel.description ?? '',
-      address:     existingHostel.address ?? '',
-      house_rules: existingHostel.house_rules ?? '',
-      type:        existingHostel.type ?? '',
-      township_id: String(existingHostel.township_id ?? ''),
-      facilities:  existingHostel.facilities ?? [],
+      name:            existingHostel.name ?? '',
+      description:     existingHostel.description ?? '',
+      address:         existingHostel.address ?? '',
+      house_rules:     existingHostel.house_rules ?? '',
+      type:            existingHostel.type ?? '',
+      township_id:     String(existingHostel.township_id ?? ''),
+      facilities:      existingHostel.facilities ?? [],
+      payment_methods: (existingHostel.payment_methods ?? []).map((pm) => ({
+        method_name:    pm.method_name,
+        account_number: pm.account_number,
+        account_name:   pm.account_name,
+      })),
     });
     setExistingRooms(existingHostel.rooms ?? []);
     setExistingImages(existingHostel.images ?? []);
@@ -181,6 +187,30 @@ const CreateHostel = () => {
       const has = f.facilities.includes(key);
       return { ...f, facilities: has ? f.facilities.filter((k) => k !== key) : [...f.facilities, key] };
     });
+    markDirty();
+  };
+
+  const addPaymentMethod = () => {
+    setBasicForm((f) => ({
+      ...f,
+      payment_methods: [...f.payment_methods, { method_name: '', account_number: '', account_name: '' }],
+    }));
+    markDirty();
+  };
+
+  const updatePaymentMethod = (index, field, value) => {
+    setBasicForm((f) => {
+      const updated = f.payment_methods.map((pm, i) => i === index ? { ...pm, [field]: value } : pm);
+      return { ...f, payment_methods: updated };
+    });
+    markDirty();
+  };
+
+  const removePaymentMethod = (index) => {
+    setBasicForm((f) => ({
+      ...f,
+      payment_methods: f.payment_methods.filter((_, i) => i !== index),
+    }));
     markDirty();
   };
 
@@ -434,6 +464,61 @@ const CreateHostel = () => {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-5">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">Online Payment Setup</label>
+                <button
+                  type="button"
+                  onClick={addPaymentMethod}
+                  className="flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 transition"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Method
+                </button>
+              </div>
+              {basicForm.payment_methods.length === 0 && (
+                <p className="text-xs text-gray-400 italic mb-2">No payment methods added yet. Guests will only see "Pay at Property" (Cash).</p>
+              )}
+              <div className="space-y-2">
+                {basicForm.payment_methods.map((pm, i) => (
+                  <div key={i} className="grid grid-cols-7 gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder="Method (e.g. KBZPay)"
+                      value={pm.method_name}
+                      onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
+                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Phone / Account No."
+                      value={pm.account_number}
+                      onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
+                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Account Name"
+                      value={pm.account_name}
+                      onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
+                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePaymentMethod(i)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 
