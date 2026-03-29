@@ -39,10 +39,10 @@ const Navbar = () => {
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition">
               About
             </Link>
-            <a href="#contact-us"
+            <Link to="/contact"
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition">
               Contact
-            </a>
+            </Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3 ml-auto">
@@ -96,7 +96,7 @@ const Navbar = () => {
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
           <Link to="/about" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">About</Link>
-          <a href="#contact-us" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">Contact</a>
+          <Link to="/contact" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">Contact</Link>
           <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
             {isAuthenticated ? (
               <>

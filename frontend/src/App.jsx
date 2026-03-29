@@ -17,6 +17,8 @@ import CreateHostel from './pages/owner/CreateHostel';
 import HomePage from './pages/HomePage';
 import HostelDetailPage from './pages/HostelDetailPage';
 import AboutUs from './pages/public/AboutUs';
+import ContactUs from './pages/public/ContactUs';
+import HelpDesk from './pages/admin/HelpDesk';
 import MyBookings from './pages/guest/MyBookings';
 import MyProfile from './pages/guest/MyProfile';
 import Support from './pages/guest/Support';
@@ -73,6 +75,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
           <Route path="/hostels/:id" element={<HostelDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
 
@@ -89,7 +92,7 @@ function App() {
           <Route path="/admin/licenses"   element={<AdminRoute><LicenseVerification /></AdminRoute>} />
           <Route path="/admin/reports"    element={<AdminRoute><ReportManagement /></AdminRoute>} />
           <Route path="/admin/dispute"   element={<AdminRoute><AdminReports /></AdminRoute>} />
-          <Route path="/admin/helpdesk"  element={<AdminRoute><AdminComments /></AdminRoute>} />
+          <Route path="/admin/helpdesk"  element={<AdminRoute><HelpDesk /></AdminRoute>} />
 
           <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
