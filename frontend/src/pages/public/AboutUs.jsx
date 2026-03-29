@@ -52,7 +52,7 @@ const AboutUs = () => {
                     </h3>
                     <p className="text-gray-700 leading-relaxed">
                       We provide a safe harbor. With real-time bed availability in "Hall" type dorms, 
-                      precise payment countdowns, and verified residency details, guests like Aung Ko can 
+                      precise payment countdowns, and verified residency details, guests can 
                       focus on their studies and careers, not their housing stress.
                     </p>
                   </div>
@@ -72,7 +72,7 @@ const AboutUs = () => {
                       For the Owners (The Providers)
                     </h3>
                     <p className="text-gray-700 leading-relaxed">
-                      We empower local entrepreneurs. Owners like Daw Hla get a professional suite of tools 
+                      We empower local entrepreneurs. Property owners get a professional suite of tools 
                       to manage high-capacity rooms, track multi-month advance payments, and maintain the 
                       security of their properties through verified tenant records.
                     </p>
@@ -93,7 +93,7 @@ const AboutUs = () => {
                       For the Platform (The Governance)
                     </h3>
                     <p className="text-gray-700 leading-relaxed">
-                      Integrity is non-negotiable. Led by Pone Nya (Super Admin), our governance layer ensures 
+                      Integrity is non-negotiable. Managed by our Super Admin team, our governance layer ensures 
                       that every hostel license is legitimate and every dispute is resolved fairly through our 
                       evidence-based Misconduct Reporting system.
                     </p>
