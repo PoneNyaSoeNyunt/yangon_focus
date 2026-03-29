@@ -55,4 +55,23 @@ class User extends Authenticatable
     {
         return $this->belongsTo(StatusCode::class, 'user_status_id');
     }
+
+    /**
+     * Normalize a phone number to the 09XXXXXXXX Myanmar format.
+     * Handles +959, 959, and 09 prefixes, and strips spaces/dashes.
+     */
+    public static function normalizePhoneNumber(string $phone): string
+    {
+        $phone = preg_replace('/[\s\-]/', '', $phone);
+
+        if (str_starts_with($phone, '+959')) {
+            return '09' . substr($phone, 4);
+        }
+
+        if (str_starts_with($phone, '959')) {
+            return '09' . substr($phone, 3);
+        }
+
+        return $phone;
+    }
 }

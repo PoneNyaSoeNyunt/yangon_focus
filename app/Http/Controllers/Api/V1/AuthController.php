@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Services\UserService;
 use App\Services\AuthRateLimitService;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $phoneNumber = $request->input('phone_number');
+        $phoneNumber = User::normalizePhoneNumber($request->input('phone_number'));
         $password = $request->input('password');
 
         $user = DB::table('users')

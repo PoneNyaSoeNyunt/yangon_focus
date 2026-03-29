@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -9,6 +10,8 @@ class UserService
 {
     public function createUser(array $data): object
     {
+        $data['phone_number'] = User::normalizePhoneNumber($data['phone_number']);
+
         $activeStatusId = DB::table('status_codes')
             ->where('context', 'User')
             ->where('label', 'Active')
