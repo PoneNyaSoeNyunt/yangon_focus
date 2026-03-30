@@ -23,4 +23,17 @@ class OwnerManagementController extends Controller
     {
         return response()->json($this->subscriptionService->getOwnerSubscriptionHistory($id));
     }
+
+    public function verifySubscription(int $id)
+    {
+        try {
+            $subscription = $this->subscriptionService->verifyOwnerSubscription($id);
+            return response()->json([
+                'message'      => 'Subscription verified and activated.',
+                'subscription' => $subscription,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }

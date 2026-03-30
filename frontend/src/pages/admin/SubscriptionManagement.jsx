@@ -76,6 +76,11 @@ const SubscriptionManagement = () => {
     enabled:  !!paymentModal,
   });
 
+  const verifyMutation = useMutation({
+    mutationFn: (ownerId) => apiClient.patch(`/admin/owners/${ownerId}/subscription/verify`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-owners'] }),
+  });
+
   const updateFeeMutation = useMutation({
     mutationFn: (value) => apiClient.patch('/admin/subscription-config', { value }),
     onSuccess: () => {
@@ -176,7 +181,20 @@ const SubscriptionManagement = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {owner.subscription_status === 'Pending Verification' && (
+                          <button
+                            onClick={() => verifyMutation.mutate(owner.id)}
+                            disabled={verifyMutation.isPending && verifyMutation.variables === owner.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
+                          >
+                            {verifyMutation.isPending && verifyMutation.variables === owner.id
+                              ? <Spinner sm />
+                              : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            }
+                            Verify
+                          </button>
+                        )}
                         <button
                           onClick={() => setHostelModal({ id: owner.id, name: owner.full_name })}
                           className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"

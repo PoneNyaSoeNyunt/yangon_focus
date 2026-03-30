@@ -23,6 +23,35 @@ class SubscriptionService
         PlatformConfig::set('monthly_subscription_fee', $value);
     }
 
+    public function verifyOwnerSubscription(int $ownerId): Subscription
+    {
+        $pendingId = StatusCode::where('context', 'Subscription')
+            ->where('label', 'Pending Verification')->value('id');
+
+        $activeId = StatusCode::where('context', 'Subscription')
+            ->where('label', 'Active')->value('id');
+
+        $verifiedPaymentId = StatusCode::where('context', 'Payment')
+            ->where('label', 'Verified')->value('id');
+
+        $subscription = Subscription::where('owner_id', $ownerId)
+            ->where('status_id', $pendingId)
+            ->latest()
+            ->firstOrFail();
+
+        $subscription->update([
+            'status_id'  => $activeId,
+            'start_date' => now(),
+            'end_date'   => now()->addDays(30),
+        ]);
+
+        Payment::where('subscription_id', $subscription->id)
+            ->where('payment_status_id', 8)
+            ->update(['payment_status_id' => $verifiedPaymentId]);
+
+        return $subscription->fresh('status');
+    }
+
     public function getAllOwners(): \Illuminate\Support\Collection
     {
         return User::where('role', 'Owner')
