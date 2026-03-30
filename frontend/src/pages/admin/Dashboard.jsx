@@ -38,7 +38,7 @@ const ActionMenu = ({ userId, currentStatus, onAction, isPending }) => {
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={isPending}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         {isPending ? (
           <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -46,11 +46,11 @@ const ActionMenu = ({ userId, currentStatus, onAction, isPending }) => {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         ) : (
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         )}
-        Actions
+        Manage
       </button>
       {open && (
         <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl border border-gray-200 shadow-lg z-20 py-1 overflow-hidden">
