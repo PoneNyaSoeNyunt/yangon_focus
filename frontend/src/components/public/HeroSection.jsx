@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
+import apiClient from '../../api/client';
 
 const GuestModal = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -34,16 +36,59 @@ const GuestModal = ({ onClose }) => (
   </div>
 );
 
+const SubscriptionModal = ({ onClose, onSubscribe }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+      <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+        <svg className="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-2">Subscription Required</h3>
+      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+        You need to make a subscription to the platform to list your property!
+      </p>
+      <div className="flex flex-col gap-2.5">
+        <button
+          onClick={onSubscribe}
+          className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition text-sm"
+        >
+          Subscribe Now
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const HeroSection = ({ onFindHostels }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal]   = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+
+  const isOwner = user?.role === 'Owner';
+
+  const { data: subData } = useQuery({
+    queryKey: ['owner-subscription'],
+    queryFn: () => apiClient.get('/owner/subscription').then((r) => r.data),
+    enabled: isOwner,
+  });
+
+  const hasActiveSub = subData?.subscription?.status?.label === 'Active';
 
   const handleListProperty = () => {
     if (!isAuthenticated) {
       navigate('/register');
-    } else if (user?.role === 'Owner') {
-      navigate('/owner/hostels/new');
+    } else if (isOwner) {
+      if (hasActiveSub) navigate('/owner/hostels/new');
+      else setShowSubModal(true);
     } else {
       setShowModal(true);
     }
@@ -51,7 +96,8 @@ const HeroSection = ({ onFindHostels }) => {
 
   return (
     <>
-      {showModal && <GuestModal onClose={() => setShowModal(false)} />}
+      {showModal    && <GuestModal onClose={() => setShowModal(false)} />}
+      {showSubModal && <SubscriptionModal onClose={() => setShowSubModal(false)} onSubscribe={() => navigate('/owner/subscription')} />}
 
       <section className="relative bg-gradient-to-br from-teal-900 via-teal-800 to-cyan-900 overflow-hidden">
         <div className="absolute inset-0 opacity-10"
