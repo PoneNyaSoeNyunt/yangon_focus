@@ -15,6 +15,9 @@ use App\Http\Controllers\Api\V1\CurrentStayController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\RenterController;
+use App\Http\Controllers\Api\V1\SubscriptionConfigController;
+use App\Http\Controllers\Api\V1\OwnerManagementController;
+use App\Http\Controllers\Api\V1\OwnerSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -61,6 +64,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
 
         Route::get('/reviews',                          [ReviewController::class, 'ownerIndex']);
+        Route::post('/subscription/pay',                [OwnerSubscriptionController::class, 'store']);
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store'])->middleware('check.status:owner');
         Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);
@@ -82,5 +86,12 @@ Route::prefix('v1')->group(function () {
         Route::patch('/reports/{id}/resolve',[ReportController::class, 'resolve']);
         Route::get('/comments',                          [CommentController::class, 'adminIndex']);
         Route::patch('/comments/{id}/resolve',           [CommentController::class, 'adminResolve']);
+
+        Route::get('/subscription-config',               [SubscriptionConfigController::class, 'index']);
+        Route::patch('/subscription-config',             [SubscriptionConfigController::class, 'update']);
+
+        Route::get('/owners',                            [OwnerManagementController::class, 'index']);
+        Route::get('/owners/{id}/hostels',               [OwnerManagementController::class, 'hostelDetails']);
+        Route::get('/owners/{id}/subscription-history',  [OwnerManagementController::class, 'subscriptionHistory']);
     });
 });

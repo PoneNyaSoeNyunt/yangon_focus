@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->belongsTo(StatusCode::class, 'user_status_id');
     }
 
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class, 'owner_id');
+    }
+
     /**
      * Normalize a phone number to the 09XXXXXXXX Myanmar format.
      * Handles +959, 959, and 09 prefixes, and strips spaces/dashes.
