@@ -130,7 +130,7 @@ const OwnerDashboard = () => {
     queryFn: ownerService.getHostels,
   });
 
-  const { data: subData } = useQuery({
+  const { data: subData, isLoading: subLoading } = useQuery({
     queryKey: ['owner-subscription'],
     queryFn: () => apiClient.get('/owner/subscription').then((r) => r.data),
   });
@@ -156,7 +156,7 @@ const OwnerDashboard = () => {
               Suspended
             </span>
           </div>
-        ) : hasActiveSub ? (
+        ) : subLoading || hasActiveSub ? (
           <Link
             to="/owner/hostels/new"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition shadow-sm"
@@ -176,7 +176,7 @@ const OwnerDashboard = () => {
         )}
       </div>
 
-      {!isSuspended && !hasActiveSub && (
+      {!isSuspended && !subLoading && !hasActiveSub && (
         <div className="mb-6"><SubscriptionAlert /></div>
       )}
 
