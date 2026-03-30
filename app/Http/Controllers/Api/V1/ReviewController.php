@@ -16,6 +16,36 @@ class ReviewController extends Controller
         return response()->json($this->reviewService->getHostelReviews($hostelId));
     }
 
+    public function ownerIndex(Request $request)
+    {
+        $reviews = \App\Models\Review::with(['guest:id,full_name', 'hostel:id,name'])
+            ->whereHas('hostel', fn ($q) => $q->where('owner_id', $request->user()->id))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($r) => [
+                'id'              => $r->id,
+                'guest_name'      => $r->guest?->full_name,
+                'hostel_name'     => $r->hostel?->name,
+                'rating'          => $r->rating,
+                'hygiene_score'   => $r->hygiene_score,
+                'service_quality' => $r->service_quality,
+                'comment'         => $r->comment,
+                'created_at'      => $r->created_at,
+            ]);
+
+        $avg = fn ($field) => $reviews->whereNotNull($field)->avg($field);
+
+        return response()->json([
+            'summary' => [
+                'avg_rating'          => round((float) $avg('rating'), 1),
+                'avg_hygiene'         => round((float) $avg('hygiene_score'), 1),
+                'avg_service_quality' => round((float) $avg('service_quality'), 1),
+                'total'               => $reviews->count(),
+            ],
+            'reviews' => $reviews->values(),
+        ]);
+    }
+
     public function store(ReviewRequest $request, int $bookingId)
     {
         $review = $this->reviewService->submitReview(

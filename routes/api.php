@@ -60,6 +60,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/renters',                           [RenterController::class, 'index']);
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
 
+        Route::get('/reviews',                          [ReviewController::class, 'ownerIndex']);
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store'])->middleware('check.status:owner');
         Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);
