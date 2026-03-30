@@ -12,6 +12,7 @@ import LicenseVerification from './pages/admin/LicenseVerification';
 import ReportManagement from './pages/admin/ReportManagement';
 import AdminReports from './pages/admin/AdminReports';
 import AdminComments from './pages/admin/AdminComments';
+import SubscriptionManagement from './pages/admin/SubscriptionManagement';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import CreateHostel from './pages/owner/CreateHostel';
 import HomePage from './pages/HomePage';
@@ -96,7 +97,8 @@ function App() {
           <Route path="/admin/licenses"   element={<AdminRoute><LicenseVerification /></AdminRoute>} />
           <Route path="/admin/reports"    element={<AdminRoute><ReportManagement /></AdminRoute>} />
           <Route path="/admin/dispute"   element={<AdminRoute><AdminReports /></AdminRoute>} />
-          <Route path="/admin/helpdesk"  element={<AdminRoute><HelpDesk /></AdminRoute>} />
+          <Route path="/admin/helpdesk"       element={<AdminRoute><HelpDesk /></AdminRoute>} />
+          <Route path="/admin/subscriptions" element={<AdminRoute><SubscriptionManagement /></AdminRoute>} />
 
           <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
