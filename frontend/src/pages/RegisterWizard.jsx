@@ -205,13 +205,19 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
 /* ── Step 3: Owner Onboarding ── */
 const StepOwnerOnboarding = () => {
   const navigate = useNavigate();
+  const [subModal, setSubModal] = useState(false);
 
-  const { data: subData, isLoading: subLoading } = useQuery({
+  const { data: subData } = useQuery({
     queryKey: ['owner-subscription'],
     queryFn: () => apiClient.get('/owner/subscription').then((r) => r.data),
   });
 
   const hasActiveSub = subData?.subscription?.status?.label === 'Active';
+
+  const handleListProperty = () => {
+    if (hasActiveSub) navigate('/owner/hostels/new');
+    else setSubModal(true);
+  };
 
   return (
     <div className="text-center py-4">
@@ -221,34 +227,14 @@ const StepOwnerOnboarding = () => {
         </svg>
       </div>
       <h2 className="text-xl font-bold text-gray-900 mb-2">Account Created!</h2>
-      <p className="text-sm text-gray-500 mb-5 leading-relaxed max-w-xs mx-auto">
+      <p className="text-sm text-gray-500 mb-8 leading-relaxed max-w-xs mx-auto">
         Welcome to Yangon Focus. Would you like to list your property now?
       </p>
 
-      {!subLoading && !hasActiveSub && (
-        <div className="mb-5 flex flex-col items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
-          <div className="flex items-start gap-2 text-left">
-            <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
-            <p className="text-sm text-amber-700 font-medium">
-              You need to make a subscription to the platform to list your property!
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/owner/subscription')}
-            className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition"
-          >
-            Subscribe Now
-          </button>
-        </div>
-      )}
-
       <div className="flex flex-col sm:flex-row gap-3">
         <button
-          onClick={() => hasActiveSub && navigate('/owner/hostels/new')}
-          disabled={!hasActiveSub || subLoading}
-          className="flex-1 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition shadow-md"
+          onClick={handleListProperty}
+          className="flex-1 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold rounded-xl transition shadow-md"
         >
           Yes, List Property
         </button>
@@ -259,6 +245,38 @@ const StepOwnerOnboarding = () => {
           Skip for Now
         </button>
       </div>
+
+      {/* Subscription required modal */}
+      {subModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSubModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+            <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-gray-900 text-base mb-2">Subscription Required</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              You need to make a subscription to the platform to list your property!
+            </p>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => navigate('/owner/subscription')}
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition"
+              >
+                Subscribe Now
+              </button>
+              <button
+                onClick={() => setSubModal(false)}
+                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
