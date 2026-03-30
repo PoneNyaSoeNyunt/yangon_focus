@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use App\Services\AuthRateLimitService;
 use Closure;
 use Illuminate\Http\Request;
@@ -23,11 +24,13 @@ class CheckLockout
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $phoneNumber = $request->input('phone_number');
+        $rawPhone = $request->input('phone_number');
 
-        if (!$phoneNumber) {
+        if (!$rawPhone) {
             return $next($request);
         }
+
+        $phoneNumber = User::normalizePhoneNumber($rawPhone);
 
         $lockoutStatus = $this->authRateLimitService->isLockedOut($phoneNumber);
 
