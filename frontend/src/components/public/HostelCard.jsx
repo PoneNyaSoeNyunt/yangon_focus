@@ -11,6 +11,8 @@ const PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/
 const HostelCard = ({ hostel }) => {
   const imageUrl = hostel.primary_image?.image_url ?? PLACEHOLDER;
   const minPrice = hostel.rooms_min_price_per_month;
+  const maxPrice = hostel.rooms_max_price_per_month;
+  const hasRange = maxPrice != null && minPrice != null && Number(maxPrice) !== Number(minPrice);
 
   return (
     <Link to={`/hostels/${hostel.id}`} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
@@ -49,7 +51,9 @@ const HostelCard = ({ hostel }) => {
               <>
                 <span className="text-xs text-gray-400">price</span>
                 <p className="text-base font-bold text-teal-600 leading-tight">
-                  {Number(minPrice).toLocaleString()}
+                  {hasRange
+                    ? `${Number(minPrice).toLocaleString()} – ${Number(maxPrice).toLocaleString()}`
+                    : Number(minPrice).toLocaleString()}
                   <span className="text-xs font-medium text-gray-400 ml-1">MMK/mo</span>
                 </p>
               </>

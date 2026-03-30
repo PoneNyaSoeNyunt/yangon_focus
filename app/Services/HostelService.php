@@ -131,6 +131,7 @@ class HostelService
 
         $query = Hostel::with(['township:id,name', 'primaryImage:id,hostel_id,image_url,is_primary'])
             ->withMin('rooms', 'price_per_month')
+            ->withMax('rooms', 'price_per_month')
             ->where('listing_status_id', $publishedId);
 
         if (!empty($filters['name'])) {
