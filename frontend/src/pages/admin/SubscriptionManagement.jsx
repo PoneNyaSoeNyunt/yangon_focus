@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../api/client';
 
@@ -7,6 +7,12 @@ const STATUS_STYLES = {
   'Overdue':              'bg-red-100 text-red-700',
   'Pending Verification': 'bg-amber-100 text-amber-700',
   'No Subscription':      'bg-gray-100 text-gray-500',
+};
+
+const ACCOUNT_STATUS_STYLES = {
+  'Active':      'bg-teal-100 text-teal-700',
+  'Suspended':   'bg-amber-100 text-amber-700',
+  'Blacklisted': 'bg-red-100 text-red-700',
 };
 
 const PAYMENT_STATUS_STYLES = {
@@ -51,8 +57,16 @@ const SubscriptionManagement = () => {
   const [feeModal, setFeeModal]       = useState(false);
   const [feeInput, setFeeInput]       = useState('');
   const [feeError, setFeeError]       = useState('');
-  const [hostelModal, setHostelModal] = useState(null);
+  const [hostelModal, setHostelModal]   = useState(null);
   const [paymentModal, setPaymentModal] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  useEffect(() => {
+    if (!openDropdown) return;
+    const close = () => setOpenDropdown(null);
+    document.addEventListener('click', close, true);
+    return () => document.removeEventListener('click', close, true);
+  }, [openDropdown]);
 
   const { data: configData } = useQuery({
     queryKey: ['admin-sub-config'],
@@ -74,6 +88,14 @@ const SubscriptionManagement = () => {
     queryKey: ['admin-owner-sub-history', paymentModal?.id],
     queryFn:  () => apiClient.get(`/admin/owners/${paymentModal.id}/subscription-history`).then((r) => r.data),
     enabled:  !!paymentModal,
+  });
+
+  const manageMutation = useMutation({
+    mutationFn: ({ id, label }) => apiClient.patch(`/admin/users/${id}/status`, { label }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-owners'] });
+      setOpenDropdown(null);
+    },
   });
 
   const verifyMutation = useMutation({
@@ -164,6 +186,7 @@ const SubscriptionManagement = () => {
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Full Name</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Subscription</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Actions</th>
                 </tr>
@@ -175,6 +198,11 @@ const SubscriptionManagement = () => {
                     <td className="px-6 py-4 font-semibold text-gray-900">{owner.full_name}</td>
                     <td className="px-6 py-4 font-mono text-gray-600">{owner.phone_number}</td>
                     <td className="px-6 py-4 text-gray-600">{owner.nrc_number ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                        {owner.account_status ?? 'Active'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {owner.subscription_status}
@@ -207,6 +235,59 @@ const SubscriptionManagement = () => {
                         >
                           Payments
                         </button>
+
+                        {/* Manage dropdown */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenDropdown(openDropdown === owner.id ? null : owner.id)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold rounded-lg transition"
+                          >
+                            Manage
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {openDropdown === owner.id && (
+                            <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+                              {owner.account_status !== 'Suspended' && (
+                                <button
+                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Suspended' })}
+                                  disabled={manageMutation.isPending}
+                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                  Suspend
+                                </button>
+                              )}
+                              {owner.account_status !== 'Blacklisted' && (
+                                <button
+                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Blacklisted' })}
+                                  disabled={manageMutation.isPending}
+                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                  </svg>
+                                  Blacklist
+                                </button>
+                              )}
+                              {owner.account_status !== 'Active' && (
+                                <button
+                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Active' })}
+                                  disabled={manageMutation.isPending}
+                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Activate
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

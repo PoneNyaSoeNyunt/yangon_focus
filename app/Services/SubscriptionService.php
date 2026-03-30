@@ -55,13 +55,17 @@ class SubscriptionService
     public function getAllOwners(): \Illuminate\Support\Collection
     {
         return User::where('role', 'Owner')
-            ->with(['subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1)])
+            ->with([
+                'subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1),
+                'statusCode:id,label',
+            ])
             ->get()
             ->map(fn ($u) => [
                 'id'                  => $u->id,
                 'full_name'           => $u->full_name,
                 'phone_number'        => $u->phone_number,
                 'nrc_number'          => $u->nrc_number,
+                'account_status'      => $u->statusCode?->label ?? 'Active',
                 'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
             ]);
     }
