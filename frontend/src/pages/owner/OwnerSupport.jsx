@@ -4,32 +4,20 @@ import apiClient from '../../api/client';
 
 const FAQ = [
   {
-    q: 'How long do I have to pay after booking?',
-    a: 'You have 24 hours from the time of booking to complete your payment. If no payment is received, the booking is automatically cancelled and the bed is released.',
+    q: 'How do I verify a business license?',
+    a: 'Go to "Business Licenses" in your dashboard and upload a clear photo of your permit. Our team usually verifies submissions within 24 hours.',
   },
   {
-    q: 'What payment methods are accepted?',
-    a: 'We accept KBZPay, WaveMoney and other online payment methods via screenshot upload. You can also choose to pay in cash directly at the property.',
+    q: 'What if a guest damages my property?',
+    a: 'Use the "Report Renter" button in your "Manage Renters" list to file a misconduct report with photo evidence.',
   },
   {
-    q: 'How do I cancel a booking?',
-    a: 'Go to "My Bookings" and click the "Cancel Booking" button on any Pending booking. Cancellation is only possible while the booking is still in Pending status.',
-  },
-  {
-    q: 'When will my booking be confirmed?',
-    a: 'For digital payments, the owner will review your screenshot and approve it. For cash payments, the owner records it after you pay in person. You will see the status change to Confirmed.',
-  },
-  {
-    q: 'Can I change my check-in date after booking?',
-    a: 'Not directly — you will need to cancel the existing booking and create a new one with your preferred date.',
-  },
-  {
-    q: 'What if my screenshot is rejected?',
-    a: 'Contact the hostel owner directly. You can find the hostel address and name in your booking details.',
+    q: 'When do I receive payments?',
+    a: 'For digital payments, you will see a "Verified" status once the guest uploads a valid screenshot. For cash, you must record the payment yourself in the "Bookings" section.',
   },
 ];
 
-const Support = () => {
+const OwnerSupport = () => {
   const [form, setForm] = useState({ subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -73,7 +61,7 @@ const Support = () => {
     <div className="p-6 sm:p-8 max-w-2xl mx-auto w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-gray-900">Support</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Help & frequently asked questions</p>
+        <p className="text-sm text-gray-400 mt-0.5">Help & frequently asked questions for hostel owners</p>
       </div>
 
       {/* FAQ */}
@@ -114,7 +102,7 @@ const Support = () => {
         </div>
       </div>
 
-      {/* Contact Us Form */}
+      {/* Contact Form */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="text-sm font-bold text-gray-700 mb-1">Send Us a Message</h2>
         <p className="text-xs text-gray-400 mb-5">Our team will get back to you as soon as possible.</p>
@@ -144,7 +132,7 @@ const Support = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
               <input
                 type="text"
-                placeholder="e.g. Problem with my booking"
+                placeholder="e.g. Issue with license verification"
                 value={form.subject}
                 onChange={set('subject')}
                 className={`w-full px-4 py-2.5 border rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition ${errors.subject ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
@@ -184,4 +172,4 @@ const Support = () => {
   );
 };
 
-export default Support;
+export default OwnerSupport;

@@ -29,6 +29,7 @@ import ManageBookings from './pages/owner/ManageBookings';
 import ManageRenters from './pages/owner/ManageRenters';
 import OwnerMyProfile from './pages/owner/MyProfile';
 import VerifyPayments from './pages/owner/VerifyPayments';
+import OwnerSupport from './pages/owner/OwnerSupport';
 import RegisterWizard from './pages/RegisterWizard';
 
 const AdminRoute = ({ children }) => (
@@ -103,6 +104,7 @@ function App() {
           <Route path="/owner/renters"   element={<OwnerRoute><ManageRenters /></OwnerRoute>} />
           <Route path="/owner/payments"  element={<OwnerRoute><VerifyPayments /></OwnerRoute>} />
           <Route path="/owner/profile"    element={<OwnerRoute><OwnerMyProfile /></OwnerRoute>} />
+          <Route path="/owner/support"    element={<OwnerRoute><OwnerSupport /></OwnerRoute>} />
           <Route path="/owner"            element={<Navigate to="/owner/hostels" replace />} />
 
           <Route path="/admin/dashboard"  element={<Navigate to="/admin/analytics" replace />} />
