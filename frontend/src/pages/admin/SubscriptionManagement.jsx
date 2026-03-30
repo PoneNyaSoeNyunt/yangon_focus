@@ -64,8 +64,8 @@ const SubscriptionManagement = () => {
   useEffect(() => {
     if (!openDropdown) return;
     const close = () => setOpenDropdown(null);
-    document.addEventListener('click', close, true);
-    return () => document.removeEventListener('click', close, true);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
   }, [openDropdown]);
 
   const { data: configData } = useQuery({
@@ -237,7 +237,7 @@ const SubscriptionManagement = () => {
                         </button>
 
                         {/* Manage dropdown */}
-                        <div className="relative">
+                        <div className="relative" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setOpenDropdown(openDropdown === owner.id ? null : owner.id)}
                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold rounded-lg transition"
@@ -251,37 +251,28 @@ const SubscriptionManagement = () => {
                             <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
                               {owner.account_status !== 'Suspended' && (
                                 <button
-                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Suspended' })}
+                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Suspended' }); }}
                                   disabled={manageMutation.isPending}
-                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition"
+                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                  </svg>
                                   Suspend
                                 </button>
                               )}
                               {owner.account_status !== 'Blacklisted' && (
                                 <button
-                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Blacklisted' })}
+                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Blacklisted' }); }}
                                   disabled={manageMutation.isPending}
-                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition"
+                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                                  </svg>
                                   Blacklist
                                 </button>
                               )}
                               {owner.account_status !== 'Active' && (
                                 <button
-                                  onClick={() => manageMutation.mutate({ id: owner.id, label: 'Active' })}
+                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Active' }); }}
                                   disabled={manageMutation.isPending}
-                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition"
+                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
                                   Activate
                                 </button>
                               )}
