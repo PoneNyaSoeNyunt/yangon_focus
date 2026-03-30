@@ -125,14 +125,19 @@ class HostelService
 
     public function searchHostels(array $filters): \Illuminate\Database\Eloquent\Collection
     {
-        $publishedId = StatusCode::where('context', 'Hostel')
+        $publishedId     = StatusCode::where('context', 'Hostel')
             ->where('label', 'Published')
+            ->value('id');
+
+        $activeOwnerId   = StatusCode::where('context', 'User')
+            ->where('label', 'Active')
             ->value('id');
 
         $query = Hostel::with(['township:id,name', 'primaryImage:id,hostel_id,image_url,is_primary'])
             ->withMin('rooms', 'price_per_month')
             ->withMax('rooms', 'price_per_month')
-            ->where('listing_status_id', $publishedId);
+            ->where('listing_status_id', $publishedId)
+            ->whereHas('owner', fn ($q) => $q->where('user_status_id', $activeOwnerId));
 
         if (!empty($filters['name'])) {
             $query->where('name', 'like', '%' . $filters['name'] . '%');
