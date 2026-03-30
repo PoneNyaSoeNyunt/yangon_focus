@@ -153,7 +153,7 @@ const OwnerSubscription = () => {
                 </div>
               )}
 
-              {days !== null && (
+              {days !== null && statusLabel === 'Active' && (
                 <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
                   days <= 3 ? 'bg-red-50 text-red-700' : days <= 7 ? 'bg-amber-50 text-amber-700' : 'bg-teal-50 text-teal-700'
                 }`}>
