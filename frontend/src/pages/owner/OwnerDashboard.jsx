@@ -202,9 +202,6 @@ const OwnerDashboard = () => {
             </div>
             <p className="text-gray-400 text-sm font-medium text-center">No hostels yet</p>
           </div>
-          {!isSuspended && !hasActiveSub && (
-            <div className="w-full max-w-md"><SubscriptionAlert /></div>
-          )}
           {hasActiveSub && (
             <Link
               to="/owner/hostels/new"
