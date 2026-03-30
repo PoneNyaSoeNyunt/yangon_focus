@@ -8,7 +8,7 @@ class Payment extends Model
 {
     protected $fillable = [
         'payment_method', 'total_amount', 'hostel_payment_method_id', 'is_advance',
-        'booking_id', 'hostel_id', 'screenshot_url', 'payment_status_id',
+        'booking_id', 'hostel_id', 'screenshot_url', 'payment_status_id', 'subscription_id',
     ];
 
     protected $casts = ['is_advance' => 'boolean'];
@@ -26,5 +26,10 @@ class Payment extends Model
     public function status()
     {
         return $this->belongsTo(StatusCode::class, 'payment_status_id');
+    }
+
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_id');
     }
 }

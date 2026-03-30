@@ -39,8 +39,12 @@ class StatusCodeSeeder extends Seeder
             ['id' => 19, 'context' => 'License', 'label' => 'Verified'],
             ['id' => 20, 'context' => 'License', 'label' => 'Rejected'],
 
-            ['id' => 21, 'context' => 'Comment', 'label' => 'Open'],
-            ['id' => 22, 'context' => 'Comment', 'label' => 'Resolved'],
+            ['id' => 21, 'context' => 'Comment',      'label' => 'Open'],
+            ['id' => 22, 'context' => 'Comment',      'label' => 'Resolved'],
+
+            ['id' => 23, 'context' => 'Subscription', 'label' => 'Active'],
+            ['id' => 24, 'context' => 'Subscription', 'label' => 'Overdue'],
+            ['id' => 25, 'context' => 'Subscription', 'label' => 'Pending Verification'],
         ];
 
         foreach ($statuses as $status) {
