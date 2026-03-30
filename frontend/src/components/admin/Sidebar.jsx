@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
@@ -87,7 +87,7 @@ const Sidebar = ({ onClose }) => {
     <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-teal-600 text-sm leading-tight truncate">Yangon Focus</p>
+          <Link to="/" className="font-bold text-teal-600 text-sm leading-tight truncate hover:text-teal-700 transition">Yangon Focus</Link>
           <p className="text-xs text-gray-400 truncate">Super Admin Panel</p>
         </div>
         {onClose && (
