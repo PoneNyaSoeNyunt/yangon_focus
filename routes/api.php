@@ -64,7 +64,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
 
         Route::get('/reviews',                          [ReviewController::class, 'ownerIndex']);
-        Route::post('/subscription/pay',                [OwnerSubscriptionController::class, 'store']);
+        Route::get('/subscription',                     [OwnerSubscriptionController::class, 'show']);
+        Route::get('/subscription/history',            [OwnerSubscriptionController::class, 'history']);
+        Route::post('/subscription/pay',               [OwnerSubscriptionController::class, 'store']);
         Route::get('/hostels',                          [OwnerHostelController::class, 'index']);
         Route::post('/hostels',                         [OwnerHostelController::class, 'store'])->middleware('check.status:owner');
         Route::get('/hostels/{id}',                     [OwnerHostelController::class, 'show']);

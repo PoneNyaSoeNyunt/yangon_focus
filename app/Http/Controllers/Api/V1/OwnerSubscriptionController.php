@@ -10,6 +10,20 @@ class OwnerSubscriptionController extends Controller
 {
     public function __construct(private SubscriptionService $subscriptionService) {}
 
+    public function show(Request $request)
+    {
+        return response()->json(
+            $this->subscriptionService->getOwnerCurrentSubscription($request->user()->id)
+        );
+    }
+
+    public function history(Request $request)
+    {
+        return response()->json(
+            $this->subscriptionService->getOwnerPaymentHistory($request->user()->id)
+        );
+    }
+
     public function store(Request $request)
     {
         $request->validate([

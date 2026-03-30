@@ -54,6 +54,29 @@ class SubscriptionService
             ->get();
     }
 
+    public function getOwnerCurrentSubscription(int $ownerId): array
+    {
+        $subscription = Subscription::with('status')
+            ->where('owner_id', $ownerId)
+            ->latest()
+            ->first();
+
+        return [
+            'subscription' => $subscription,
+            'fee'          => $this->getSubscriptionFee(),
+        ];
+    }
+
+    public function getOwnerPaymentHistory(int $ownerId): \Illuminate\Support\Collection
+    {
+        $subscriptionIds = Subscription::where('owner_id', $ownerId)->pluck('id');
+
+        return Payment::with('status:id,label')
+            ->whereIn('subscription_id', $subscriptionIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
     public function submitSubscriptionPayment(int $ownerId, ?int $hostelPaymentMethodId, ?UploadedFile $screenshot): Payment
     {
         $pendingVerificationId = StatusCode::where('context', 'Subscription')
