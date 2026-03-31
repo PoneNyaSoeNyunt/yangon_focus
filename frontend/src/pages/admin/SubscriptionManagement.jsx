@@ -176,8 +176,8 @@ const SubscriptionManagement = () => {
       </div>
 
       {/* Owners Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <div className="px-4 py-4 border-b border-gray-100 space-y-3">
+      <div className="lg:bg-white lg:rounded-2xl lg:border lg:border-gray-100 lg:shadow-sm">
+        <div className="px-4 py-4 lg:border-b border-gray-100 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
               <h2 className="font-bold text-gray-800 text-sm">Owner Overview</h2>
