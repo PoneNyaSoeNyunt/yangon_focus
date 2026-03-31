@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             StatusCodeSeeder::class,
             TownshipSeeder::class,
             RoomTypeSeeder::class,
+            PlatformConfigSeeder::class,
             UserSeeder::class,
             ReportCategorySeeder::class,
         ]);
