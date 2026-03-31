@@ -61,6 +61,11 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class, 'owner_id');
     }
 
+    public function hostels()
+    {
+        return $this->hasMany(Hostel::class, 'owner_id');
+    }
+
     /**
      * Normalize a phone number to the 09XXXXXXXX Myanmar format.
      * Handles +959, 959, and 09 prefixes, and strips spaces/dashes.
