@@ -188,6 +188,7 @@ const SubscriptionManagement = () => {
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Subscription</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Details</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Actions</th>
                 </tr>
               </thead>
@@ -209,6 +210,35 @@ const SubscriptionManagement = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
+                      <div className="relative" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setOpenDropdown(openDropdown === `view-${owner.id}` ? null : `view-${owner.id}`)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
+                        >
+                          View
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {openDropdown === `view-${owner.id}` && (
+                          <div className="absolute left-0 mt-1 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+                            <button
+                              onClick={() => { setOpenDropdown(null); setHostelModal({ id: owner.id, name: owner.full_name }); }}
+                              className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition"
+                            >
+                              Hostels
+                            </button>
+                            <button
+                              onClick={() => { setOpenDropdown(null); setPaymentModal({ id: owner.id, name: owner.full_name }); }}
+                              className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition"
+                            >
+                              Payments
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2 flex-wrap">
                         {owner.subscription_status === 'Pending Verification' && (
                           <button
@@ -223,18 +253,6 @@ const SubscriptionManagement = () => {
                             Verify
                           </button>
                         )}
-                        <button
-                          onClick={() => setHostelModal({ id: owner.id, name: owner.full_name })}
-                          className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
-                        >
-                          Hostels
-                        </button>
-                        <button
-                          onClick={() => setPaymentModal({ id: owner.id, name: owner.full_name })}
-                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition"
-                        >
-                          Payments
-                        </button>
 
                         {/* Manage dropdown */}
                         <div className="relative" onClick={(e) => e.stopPropagation()}>
