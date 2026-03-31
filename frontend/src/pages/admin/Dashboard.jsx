@@ -162,7 +162,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -181,9 +181,72 @@ const Dashboard = () => {
                 {error?.response?.data?.message ?? 'Failed to load users.'}
               </p>
             </div>
+          ) : users.length === 0 ? (
+            <div className="py-16 text-center text-sm text-gray-400">No users found.</div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* ── Mobile card list ── */}
+              <div className="lg:hidden p-3 space-y-3">
+                {users.map((u, idx) => (
+                  <div key={u.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                    {/* Header: avatar + name + badges */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-teal-100 flex-shrink-0 flex items-center justify-center">
+                          <span className="text-xs font-bold text-teal-700">
+                            {u.full_name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-400 font-mono mr-1">#{(page - 1) * perPage + idx + 1}</span>
+                          <span className="font-bold text-gray-900 text-sm">{u.full_name}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ROLES[u.role]?.color ?? 'bg-gray-100 text-gray-600'}`}>
+                          {ROLES[u.role]?.label ?? u.role}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[u.status_label] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {u.status_label ?? '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info grid */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <div>
+                        <span className="text-gray-400 font-medium">Phone</span>
+                        <p className="font-mono text-gray-700 mt-0.5">{u.phone_number}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 font-medium">NRC</span>
+                        <p className="font-mono text-gray-600 mt-0.5">{u.nrc_number ?? '—'}</p>
+                      </div>
+                      <div className="col-span-2 mt-1">
+                        <span className="text-gray-400 font-medium">Registered</span>
+                        <p className="text-gray-600 mt-0.5">
+                          {u.created_at
+                            ? new Date(u.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="flex justify-end pt-1">
+                      <ActionMenu
+                        userId={u.id}
+                        currentStatus={u.status_label}
+                        onAction={(userId, label) => statusMutation.mutate({ userId, label })}
+                        isPending={statusMutation.isPending && statusMutation.variables?.userId === u.id}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Desktop table ── */}
+              <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
@@ -198,60 +261,52 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="text-center py-16 text-gray-400 text-sm">
-                          No users found.
+                    {users.map((u, idx) => (
+                      <tr key={u.id} className="hover:bg-teal-50/40 transition-colors">
+                        <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">
+                          {(page - 1) * perPage + idx + 1}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-teal-100 flex-shrink-0 flex items-center justify-center">
+                              <span className="text-xs font-bold text-teal-700">
+                                {u.full_name?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-900">{u.full_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-gray-600">{u.phone_number}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-500 text-xs">{u.nrc_number}</td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLES[u.role]?.color ?? 'bg-gray-100 text-gray-600'}`}>
+                            {ROLES[u.role]?.label ?? u.role}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            STATUS_STYLES[u.status_label] ?? 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {u.status_label ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-gray-400 text-xs whitespace-nowrap">
+                          {u.created_at
+                            ? new Date(u.created_at).toLocaleDateString('en-GB', {
+                                day: '2-digit', month: 'short', year: 'numeric',
+                              })
+                            : '—'}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <ActionMenu
+                            userId={u.id}
+                            currentStatus={u.status_label}
+                            onAction={(userId, label) => statusMutation.mutate({ userId, label })}
+                            isPending={statusMutation.isPending && statusMutation.variables?.userId === u.id}
+                          />
                         </td>
                       </tr>
-                    ) : (
-                      users.map((u, idx) => (
-                        <tr key={u.id} className="hover:bg-teal-50/40 transition-colors">
-                          <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">
-                            {(page - 1) * perPage + idx + 1}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-teal-100 flex-shrink-0 flex items-center justify-center">
-                                <span className="text-xs font-bold text-teal-700">
-                                  {u.full_name?.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                              <span className="font-medium text-gray-900">{u.full_name}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5 font-mono text-gray-600">{u.phone_number}</td>
-                          <td className="px-5 py-3.5 font-mono text-gray-500 text-xs">{u.nrc_number}</td>
-                          <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLES[u.role]?.color ?? 'bg-gray-100 text-gray-600'}`}>
-                              {ROLES[u.role]?.label ?? u.role}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              STATUS_STYLES[u.status_label] ?? 'bg-gray-100 text-gray-500'
-                            }`}>
-                              {u.status_label ?? '—'}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5 text-gray-400 text-xs whitespace-nowrap">
-                            {u.created_at
-                              ? new Date(u.created_at).toLocaleDateString('en-GB', {
-                                  day: '2-digit', month: 'short', year: 'numeric',
-                                })
-                              : '—'}
-                          </td>
-                          <td className="px-5 py-3.5 text-right">
-                            <ActionMenu
-                              userId={u.id}
-                              currentStatus={u.status_label}
-                              onAction={(userId, label) => statusMutation.mutate({ userId, label })}
-                              isPending={statusMutation.isPending && statusMutation.variables?.userId === u.id}
-                            />
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
