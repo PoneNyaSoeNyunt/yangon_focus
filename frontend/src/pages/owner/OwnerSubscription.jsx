@@ -120,7 +120,7 @@ const OwnerSubscription = () => {
   return (
     <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900">My Subscription</h1>
+        <h1 className="text-2xl font-bold text-gray-900">My Subscription</h1>
         <p className="text-sm text-gray-400 mt-0.5">View and manage your monthly platform subscription</p>
       </div>
 
@@ -190,7 +190,7 @@ const OwnerSubscription = () => {
       )}
 
       {/* Payment History Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-800 text-sm">Payment History</h2>
           <p className="text-xs text-gray-400 mt-0.5">Your past subscription payments</p>
@@ -209,36 +209,70 @@ const OwnerSubscription = () => {
             <p className="text-sm text-gray-400">No payment history yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Date</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Amount</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Months Covered</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {history.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50/60 transition">
-                    <td className="px-6 py-4 text-gray-600">{fmtDate(p.created_at)}</td>
-                    <td className="px-6 py-4 font-semibold text-gray-800">
-                      {p.total_amount != null ? Number(p.total_amount).toLocaleString() + ' MMK' : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {monthsCovered(p.total_amount, fee)} month{monthsCovered(p.total_amount, fee) !== 1 ? 's' : ''}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {p.status?.label ?? '—'}
-                      </span>
-                    </td>
+          <>
+            {/* ── Mobile card list ── */}
+            <div className="lg:hidden p-3 space-y-3">
+              {history.map((p) => (
+                <div key={p.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Date</p>
+                      <p className="text-sm font-semibold text-gray-800 mt-0.5">{fmtDate(p.created_at)}</p>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {p.status?.label ?? '—'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                      <p className="text-gray-400 font-medium">Amount</p>
+                      <p className="font-semibold text-gray-800 mt-0.5">
+                        {p.total_amount != null ? Number(p.total_amount).toLocaleString() + ' MMK' : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 font-medium">Months Covered</p>
+                      <p className="text-gray-700 mt-0.5">
+                        {monthsCovered(p.total_amount, fee)} month{monthsCovered(p.total_amount, fee) !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop table ── */}
+            <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Date</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Amount</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Months Covered</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {history.map((p) => (
+                    <tr key={p.id} className="hover:bg-gray-50/60 transition">
+                      <td className="px-6 py-4 text-gray-600">{fmtDate(p.created_at)}</td>
+                      <td className="px-6 py-4 font-semibold text-gray-800">
+                        {p.total_amount != null ? Number(p.total_amount).toLocaleString() + ' MMK' : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {monthsCovered(p.total_amount, fee)} month{monthsCovered(p.total_amount, fee) !== 1 ? 's' : ''}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {p.status?.label ?? '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
