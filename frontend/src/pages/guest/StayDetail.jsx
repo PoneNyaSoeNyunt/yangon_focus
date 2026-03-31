@@ -228,7 +228,7 @@ const StayDetail = () => {
           </svg>
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 truncate">Stay Detail</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Stay Detail</h1>
           <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Booking #{stay.id}</p>
         </div>
         <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-green-100 text-green-700">

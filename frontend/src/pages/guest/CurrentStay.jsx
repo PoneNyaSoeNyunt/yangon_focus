@@ -28,7 +28,7 @@ const CurrentStay = () => {
     return (
       <div className="p-6 sm:p-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-gray-900">My Current Stay</h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Current Stay</h1>
           <p className="text-sm text-gray-400 mt-0.5">Your active residency details</p>
         </div>
         <div className="text-center py-20">
@@ -51,7 +51,7 @@ const CurrentStay = () => {
   return (
     <div className="p-6 sm:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900">My Current Stay</h1>
+        <h1 className="text-2xl font-bold text-gray-900">My Current Stay</h1>
         <p className="text-sm text-gray-400 mt-0.5">
           {stays.length} active {stays.length === 1 ? 'residency' : 'residencies'}
         </p>
