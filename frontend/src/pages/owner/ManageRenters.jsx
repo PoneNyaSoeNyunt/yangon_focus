@@ -292,7 +292,7 @@ export default function ManageRenters() {
         <>
           {/* ── Mobile cards (hidden on md+) ── */}
           <div className="md:hidden space-y-3">
-            {filtered.map(renter => {
+            {filtered.map((renter, idx) => {
               const overdue = isOverdue(renter.next_payment_due);
               const soon    = isDueSoon(renter.next_payment_due);
               return (
@@ -303,7 +303,10 @@ export default function ManageRenters() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{renter.full_name}</p>
+                        <p className="font-semibold text-gray-900 text-sm truncate">
+                          <span className="text-xs text-gray-400 font-mono mr-1">#{idx + 1}</span>
+                          {renter.full_name}
+                        </p>
                         <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                           renter.booking_status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                         }`}>
@@ -380,6 +383,7 @@ export default function ManageRenters() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tenant</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room / Bed</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -389,11 +393,12 @@ export default function ManageRenters() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map(renter => {
+                {filtered.map((renter, idx) => {
                   const overdue = isOverdue(renter.next_payment_due);
                   const soon    = isDueSoon(renter.next_payment_due);
                   return (
                     <tr key={renter.booking_id} className="hover:bg-gray-50/60 transition">
+                      <td className="px-5 py-4 text-xs text-gray-400 font-mono">{idx + 1}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
