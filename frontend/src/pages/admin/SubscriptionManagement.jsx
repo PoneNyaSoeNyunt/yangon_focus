@@ -189,13 +189,19 @@ const SubscriptionManagement = () => {
                     <span className="text-xs text-gray-400 mr-1">#{idx + 1}</span>
                     <span className="font-bold text-gray-900 text-sm">{owner.full_name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                      {owner.account_status ?? 'Active'}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                      {owner.subscription_status}
-                    </span>
+                  <div className="flex items-start gap-2 flex-shrink-0">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[10px] text-gray-400 font-medium">Status</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                        {owner.account_status ?? 'Active'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[10px] text-gray-400 font-medium">Subscription</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                        {owner.subscription_status}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
