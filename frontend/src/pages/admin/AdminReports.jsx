@@ -136,7 +136,7 @@ const AdminReports = () => {
             </div>
 
             {/* ── Desktop table ── */}
-            <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
+            <div className="hidden lg:block rounded-b-2xl">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
