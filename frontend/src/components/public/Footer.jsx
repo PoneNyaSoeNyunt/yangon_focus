@@ -118,8 +118,8 @@ const Footer = () => {
       <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <p>&copy; {new Date().getFullYear()} Yangon Focus. All rights reserved.</p>
         <div className="flex gap-4">
-          <a href="#" className="hover:text-teal-400 transition">Privacy Policy</a>
-          <a href="#" className="hover:text-teal-400 transition">Terms of Service</a>
+          <Link to="/privacy" className="hover:text-teal-400 transition">Privacy Policy</Link>
+          <Link to="/terms" className="hover:text-teal-400 transition">Terms of Service</Link>
         </div>
       </div>
     </div>
