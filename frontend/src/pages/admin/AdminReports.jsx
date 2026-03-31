@@ -71,7 +71,7 @@ const AdminReports = () => {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+      <div className="lg:bg-white lg:rounded-2xl lg:border lg:border-gray-200 lg:shadow-sm">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
