@@ -163,7 +163,7 @@ const SubscriptionManagement = () => {
       </div>
 
       {/* Owners Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-800 text-sm">Owner Overview</h2>
           <p className="text-xs text-gray-400 mt-0.5">
@@ -299,7 +299,7 @@ const SubscriptionManagement = () => {
           </div>
 
           {/* ── Desktop table ── */}
-          <div className="hidden lg:block overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left">
