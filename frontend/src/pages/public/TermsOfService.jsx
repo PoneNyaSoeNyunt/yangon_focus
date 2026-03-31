@@ -54,14 +54,29 @@ const TermsOfService = () => (
             </span>
           </Sub>
 
-          <Sub letter="C" title="Payments & Financial Transactions">
+          <Sub letter="C" title="Payment Verification Process">
             <span>
-              <span className="font-semibold text-gray-800">Processors:</span> Payments are
-              facilitated through certified financial institutions (e.g., KBZ, AYA).
+              <span className="font-semibold text-gray-800">Owner-Specific Transfers:</span> Digital
+              payments must be executed externally using the specific mobile wallet service(s)
+              pre-determined and designated by the individual Hostel Owner (e.g., KBZPay or
+              WaveMoney).
               <br /><br />
-              <span className="font-semibold text-gray-800">Data Limits:</span> Yangon Focus
-              does not store sensitive data such as PINs or card numbers. We only retain
-              transaction references for billing records.
+              <span className="font-semibold text-gray-800">Guest Responsibility:</span> It is the
+              guest's responsibility to verify which mobile wallet(s) the owner accepts before
+              initiating a transfer. Yangon Focus is not liable for transfers made to incorrect
+              accounts or through unsupported services.
+              <br /><br />
+              <span className="font-semibold text-gray-800">Cash Alternative:</span> If a guest does
+              not have access to the specific digital payment method(s) accepted by the Hostel Owner,
+              they must select the "Pay at Property" option to settle the balance in cash upon arrival.
+              <br /><br />
+              <span className="font-semibold text-gray-800">Screenshot Proof:</span> For all digital
+              transactions, guests must upload a clear screenshot of the transaction success screen as
+              proof of payment to the owner's specific account.
+              <br /><br />
+              <span className="font-semibold text-gray-800">Final Confirmation:</span> A booking
+              remains in "Pending" status until the Hostel Owner manually verifies the received funds
+              and the uploaded screenshot.
             </span>
           </Sub>
 
