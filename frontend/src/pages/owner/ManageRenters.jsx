@@ -225,6 +225,7 @@ export default function ManageRenters() {
   const [drawerRenter, setDrawerRenter]   = useState(null);
   const [historyRenter, setHistoryRenter] = useState(null);
   const [reportRenter, setReportRenter]   = useState(null);
+  const [openDropdown, setOpenDropdown]   = useState(null);
 
   const { data: renters = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['owner-renters'],
@@ -330,18 +331,38 @@ export default function ManageRenters() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setDrawerRenter(renter)}
-                      className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
-                    >
-                      Details
-                    </button>
-                    <button
-                      onClick={() => setHistoryRenter(renter)}
-                      className="flex-1 py-2 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition border border-teal-100"
-                    >
-                      Payment History
-                    </button>
+                    {/* View dropdown */}
+                    <div className="relative flex-1">
+                      <button
+                        onClick={() => setOpenDropdown(openDropdown === renter.booking_id ? null : renter.booking_id)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                      >
+                        View
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {openDropdown === renter.booking_id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenDropdown(null)} />
+                          <div className="absolute left-0 bottom-full mb-1 z-20 bg-white rounded-xl border border-gray-200 shadow-lg py-1 min-w-[150px]">
+                            <button
+                              onClick={() => { setOpenDropdown(null); setDrawerRenter(renter); }}
+                              className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                            >
+                              Infos
+                            </button>
+                            <button
+                              onClick={() => { setOpenDropdown(null); setHistoryRenter(renter); }}
+                              className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                            >
+                              Payment History
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {/* Report */}
                     <button
                       onClick={() => setReportRenter(renter)}
                       className="flex-1 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition border border-red-200"
@@ -355,7 +376,7 @@ export default function ManageRenters() {
           </div>
 
           {/* ── Desktop table (hidden below md) ── */}
-          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
@@ -363,7 +384,8 @@ export default function ManageRenters() {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room / Bed</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Due</th>
-                  <th className="px-5 py-3" />
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -406,27 +428,47 @@ export default function ManageRenters() {
                         {overdue && <p className="text-xs text-red-500 font-semibold mt-0.5">Overdue</p>}
                         {soon && !overdue && <p className="text-xs text-yellow-600 font-semibold mt-0.5">Due soon</p>}
                       </td>
+                      {/* DETAILS column: View dropdown */}
                       <td className="px-5 py-4">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="relative inline-block">
                           <button
-                            onClick={() => setDrawerRenter(renter)}
-                            className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                            onClick={() => setOpenDropdown(openDropdown === renter.booking_id ? null : renter.booking_id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                           >
-                            Details
+                            View
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                           </button>
-                          <button
-                            onClick={() => setHistoryRenter(renter)}
-                            className="px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg transition border border-teal-100"
-                          >
-                            Payment History
-                          </button>
-                          <button
-                            onClick={() => setReportRenter(renter)}
-                            className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition border border-red-200"
-                          >
-                            Report
-                          </button>
+                          {openDropdown === renter.booking_id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setOpenDropdown(null)} />
+                              <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl border border-gray-200 shadow-lg py-1 min-w-[140px]">
+                                <button
+                                  onClick={() => { setOpenDropdown(null); setDrawerRenter(renter); }}
+                                  className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                                >
+                                  Infos
+                                </button>
+                                <button
+                                  onClick={() => { setOpenDropdown(null); setHistoryRenter(renter); }}
+                                  className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                                >
+                                  Payment History
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
+                      </td>
+                      {/* ACTIONS column: Report */}
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={() => setReportRenter(renter)}
+                          className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition border border-red-200"
+                        >
+                          Report
+                        </button>
                       </td>
                     </tr>
                   );
