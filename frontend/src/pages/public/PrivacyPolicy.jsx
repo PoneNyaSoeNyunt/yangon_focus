@@ -88,8 +88,7 @@ const PrivacyPolicy = () => (
 
           <Sub letter="C" title="Accessibility & Inclusion">
             This policy and the entire platform are designed to meet WCAG standards, ensuring
-            usability for individuals with disabilities. Assistance is provided in both English
-            and Burmese for maximum inclusivity.
+            usability for individuals with disabilities.
           </Sub>
         </Section>
 
