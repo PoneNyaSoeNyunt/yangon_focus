@@ -124,7 +124,23 @@ const ManageRenters = () => {
         <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{actionErr}</div>
       )}
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      {/* Mobile: select dropdown */}
+      <div className="sm:hidden mb-6">
+        <select
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+        >
+          {TABS.map((t) => (
+            <option key={t} value={t}>
+              {t}{counts[t] > 0 ? ` (${counts[t]})` : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Desktop: pill tabs */}
+      <div className="hidden sm:flex gap-2 mb-6 overflow-x-auto pb-1">
         {TABS.map((t) => (
           <button
             key={t}
