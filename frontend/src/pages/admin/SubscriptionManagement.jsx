@@ -178,7 +178,128 @@ const SubscriptionManagement = () => {
         ) : owners.length === 0 ? (
           <div className="py-16 text-center text-sm text-gray-400">No owners registered yet.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* ── Mobile card list ── */}
+          <div className="lg:hidden divide-y divide-gray-100">
+            {owners.map((owner, idx) => (
+              <div key={owner.id} className="p-4 space-y-3">
+                {/* Header row */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs text-gray-400 mr-1">#{idx + 1}</span>
+                    <span className="font-bold text-gray-900 text-sm">{owner.full_name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {owner.account_status ?? 'Active'}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {owner.subscription_status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Info rows */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <div>
+                    <span className="text-gray-400 font-medium">Phone</span>
+                    <p className="font-mono text-gray-700 mt-0.5">{owner.phone_number}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 font-medium">NRC</span>
+                    <p className="text-gray-700 mt-0.5">{owner.nrc_number ?? '—'}</p>
+                  </div>
+                  <div className="col-span-2 mt-1">
+                    <span className="text-gray-400 font-medium">Hostels</span>
+                    <div className="mt-0.5">
+                      {owner.hostels && owner.hostels.length > 0
+                        ? owner.hostels.map((h, i) => <p key={i} className="text-gray-700">{h}</p>)
+                        : <p className="text-gray-400">No hostels</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions row */}
+                <div className="flex items-center gap-2 flex-wrap pt-1" onClick={(e) => e.stopPropagation()}>
+                  {/* View dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenDropdown(openDropdown === `view-${owner.id}` ? null : `view-${owner.id}`)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
+                    >
+                      View
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {openDropdown === `view-${owner.id}` && (
+                      <div className="absolute left-0 mt-1 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+                        <button onClick={() => { setOpenDropdown(null); setHostelModal({ id: owner.id, name: owner.full_name }); }}
+                          className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition">Hostels</button>
+                        <button onClick={() => { setOpenDropdown(null); setPaymentModal({ id: owner.id, name: owner.full_name }); }}
+                          className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition">Payments</button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Verify */}
+                  {owner.subscription_status === 'Pending Verification' && (
+                    <button
+                      onClick={() => verifyMutation.mutate(owner.id)}
+                      disabled={verifyMutation.isPending && verifyMutation.variables === owner.id}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
+                    >
+                      {verifyMutation.isPending && verifyMutation.variables === owner.id ? <Spinner sm /> : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                      Verify
+                    </button>
+                  )}
+
+                  {/* Manage dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenDropdown(openDropdown === owner.id ? null : owner.id)}
+                      disabled={manageMutation.isPending && manageMutation.variables?.id === owner.id}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {manageMutation.isPending && manageMutation.variables?.id === owner.id ? (
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                      Manage
+                    </button>
+                    {openDropdown === owner.id && (
+                      <div className="absolute left-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+                        {owner.account_status !== 'Suspended' && (
+                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Suspended' }); }}
+                            disabled={manageMutation.isPending}
+                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition">Suspend</button>
+                        )}
+                        {owner.account_status !== 'Blacklisted' && (
+                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Blacklisted' }); }}
+                            disabled={manageMutation.isPending}
+                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition">Blacklist</button>
+                        )}
+                        {owner.account_status !== 'Active' && (
+                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Active' }); }}
+                            disabled={manageMutation.isPending}
+                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition">Activate</button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Desktop table ── */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left">
@@ -324,6 +445,7 @@ const SubscriptionManagement = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
