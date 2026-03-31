@@ -31,6 +31,11 @@ const ownerService = {
     return response.data;
   },
 
+  async deleteRoom(roomId) {
+    const response = await apiClient.delete(`/owner/rooms/${roomId}`);
+    return response.data;
+  },
+
   async uploadLicense(hostelId, licenseNumber, imageFile) {
     const form = new FormData();
     form.append('license_number', licenseNumber);

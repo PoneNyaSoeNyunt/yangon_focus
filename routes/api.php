@@ -57,6 +57,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/bookings/{id}/cancel',            [BookingController::class, 'ownerCancel']);
         Route::post('/bookings/{id}/cash',               [PaymentController::class, 'recordCash']);
         Route::patch('/rooms/{id}',                      [OwnerHostelController::class, 'updateRoom']);
+        Route::delete('/rooms/{id}',                     [OwnerHostelController::class, 'destroyRoom']);
         Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
         Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
 

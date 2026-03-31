@@ -241,6 +241,24 @@ class HostelService
         return $room->load(['beds', 'type']);
     }
 
+    public function deleteRoom(int $ownerId, int $roomId): void
+    {
+        $room = Room::with('beds')->findOrFail($roomId);
+
+        Hostel::where('id', $room->hostel_id)
+            ->where('owner_id', $ownerId)
+            ->firstOrFail();
+
+        $occupiedCount = $room->beds->where('is_occupied', true)->count();
+
+        if ($occupiedCount > 0) {
+            throw new \Exception("Cannot remove this room: {$occupiedCount} bed(s) are currently occupied.");
+        }
+
+        $room->beds()->delete();
+        $room->delete();
+    }
+
     public function updateHostel(int $hostelId, array $data): Hostel
     {
         $hostel = Hostel::findOrFail($hostelId);

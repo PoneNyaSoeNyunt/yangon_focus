@@ -232,8 +232,23 @@ const CreateHostel = () => {
 
   const addRoomsMutation = useMutation({
     mutationFn: (data) => ownerService.addRooms(hostelId, data),
-    onSuccess: () => { setErrors({}); setIsDirty(false); setStep(2); },
+    onSuccess: (res) => {
+      setErrors({});
+      setIsDirty(false);
+      setExistingRooms((prev) => [...prev, ...(res.rooms ?? [])]);
+      setRooms([emptyRoom()]);
+      setStep(2);
+    },
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
+  });
+
+  const deleteRoomMutation = useMutation({
+    mutationFn: (roomId) => ownerService.deleteRoom(roomId),
+    onSuccess: (_, roomId) => {
+      setExistingRooms((prev) => prev.filter((r) => r.id !== roomId));
+      setRoomEdits((prev) => { const next = { ...prev }; delete next[roomId]; return next; });
+      setRoomSaveState((prev) => { const next = { ...prev }; delete next[roomId]; return next; });
+    },
   });
 
   const licenseMutation = useMutation({
@@ -612,25 +627,45 @@ const CreateHostel = () => {
                         <div className="flex-1 min-w-0 text-xs">
                           {saveState.error && <p className="text-red-500">{saveState.error}</p>}
                           {saveState.success && <p className="text-teal-600 font-medium">✓ Saved successfully</p>}
-                        </div>
-                        <button
-                          type="button"
-                          disabled={saveState.loading}
-                          onClick={() => saveRoom(r.id)}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-xs font-semibold rounded-xl transition"
-                        >
-                          {saveState.loading ? (
-                            <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                          ) : (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                          {deleteRoomMutation.isPending && deleteRoomMutation.variables === r.id && (
+                            <p className="text-red-400">Removing…</p>
                           )}
-                          Save
-                        </button>
+                          {occupiedCount > 0 && (
+                            <p className="text-amber-500">Room has occupied beds — cannot remove.</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={occupiedCount > 0 || (deleteRoomMutation.isPending && deleteRoomMutation.variables === r.id)}
+                            onClick={() => deleteRoomMutation.mutate(r.id)}
+                            className="flex items-center gap-1 px-3 py-2 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed text-red-500 text-xs font-semibold rounded-xl border border-red-200 transition"
+                            title={occupiedCount > 0 ? 'Cannot remove: beds are occupied' : 'Remove this room'}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            disabled={saveState.loading}
+                            onClick={() => saveRoom(r.id)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-xs font-semibold rounded-xl transition"
+                          >
+                            {saveState.loading ? (
+                              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                            Save
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );

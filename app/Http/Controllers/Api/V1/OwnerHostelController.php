@@ -111,4 +111,14 @@ class OwnerHostelController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
     }
+
+    public function destroyRoom(Request $request, int $roomId)
+    {
+        try {
+            $this->hostelService->deleteRoom($request->user()->id, $roomId);
+            return response()->json(['message' => 'Room removed successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }
