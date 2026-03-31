@@ -135,7 +135,7 @@ const SubscriptionManagement = () => {
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
 
   return (
-    <div className="p-6 sm:p-8 max-w-5xl mx-auto w-full">
+    <div className="p-4 sm:p-6 w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-gray-900">Subscription Management</h1>
         <p className="text-sm text-gray-400 mt-0.5">Manage owner subscriptions and platform fee settings</p>
@@ -182,25 +182,25 @@ const SubscriptionManagement = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 w-10">#</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Full Name</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Hostel</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Subscription</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Details</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Actions</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500 w-8">#</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Full Name</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Hostel</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Status</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Subscription</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Details</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {owners.map((owner, idx) => (
                   <tr key={owner.id} className="hover:bg-gray-50/70 transition">
-                    <td className="px-6 py-4 text-gray-400 text-xs">{idx + 1}</td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">{owner.full_name}</td>
-                    <td className="px-6 py-4 font-mono text-gray-600">{owner.phone_number}</td>
-                    <td className="px-6 py-4 text-gray-600">{owner.nrc_number ?? '—'}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
+                    <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">{owner.full_name}</td>
+                    <td className="px-3 py-4 font-mono text-gray-600 whitespace-nowrap">{owner.phone_number}</td>
+                    <td className="px-3 py-4 text-gray-600 whitespace-nowrap">{owner.nrc_number ?? '—'}</td>
+                    <td className="px-3 py-4">
                       {owner.hostels && owner.hostels.length > 0 ? (
                         <div className="flex flex-col gap-1">
                           {owner.hostels.map((hostelName, i) => (
@@ -211,17 +211,17 @@ const SubscriptionManagement = () => {
                         <span className="text-xs text-gray-400">No hostels</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {owner.account_status ?? 'Active'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {owner.subscription_status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4">
                       <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setOpenDropdown(openDropdown === `view-${owner.id}` ? null : `view-${owner.id}`)}
@@ -250,7 +250,7 @@ const SubscriptionManagement = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4">
                       <div className="flex items-center gap-2 flex-wrap">
                         {owner.subscription_status === 'Pending Verification' && (
                           <button
