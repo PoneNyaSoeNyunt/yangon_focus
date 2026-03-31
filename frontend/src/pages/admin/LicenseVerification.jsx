@@ -293,7 +293,22 @@ const LicenseVerification = () => {
         )}
       </div>
 
-      <div className="flex gap-2 mb-6">
+      {/* Mobile: combo box */}
+      <div className="lg:hidden mb-6">
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          className="w-full px-4 py-2.5 text-sm font-medium border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+        >
+          <option value="">All</option>
+          <option value="Pending Review">Pending Review</option>
+          <option value="Verified">Verified</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      {/* Desktop: pill tabs */}
+      <div className="hidden lg:flex gap-2 mb-6">
         {['', 'Pending Review', 'Verified', 'Rejected'].map((s) => (
           <button
             key={s}
