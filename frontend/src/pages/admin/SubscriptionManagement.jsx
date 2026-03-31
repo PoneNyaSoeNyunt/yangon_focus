@@ -186,6 +186,7 @@ const SubscriptionManagement = () => {
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Full Name</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500">Hostel</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Subscription</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500">Details</th>
@@ -199,6 +200,17 @@ const SubscriptionManagement = () => {
                     <td className="px-6 py-4 font-semibold text-gray-900">{owner.full_name}</td>
                     <td className="px-6 py-4 font-mono text-gray-600">{owner.phone_number}</td>
                     <td className="px-6 py-4 text-gray-600">{owner.nrc_number ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      {owner.hostels && owner.hostels.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {owner.hostels.map((hostelName, i) => (
+                            <span key={i} className="text-xs text-gray-700">{hostelName}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No hostels</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {owner.account_status ?? 'Active'}

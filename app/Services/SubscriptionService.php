@@ -58,6 +58,7 @@ class SubscriptionService
             ->with([
                 'subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1),
                 'statusCode:id,label',
+                'hostels:id,owner_id,name',
             ])
             ->get()
             ->map(fn ($u) => [
@@ -67,6 +68,7 @@ class SubscriptionService
                 'nrc_number'          => $u->nrc_number,
                 'account_status'      => $u->statusCode?->label ?? 'Active',
                 'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
+                'hostels'             => $u->hostels->pluck('name')->toArray(),
             ]);
     }
 
