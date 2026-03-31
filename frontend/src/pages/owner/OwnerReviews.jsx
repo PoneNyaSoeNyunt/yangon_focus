@@ -67,7 +67,7 @@ const OwnerReviews = () => {
   return (
     <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900">Reviews</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
         <p className="text-sm text-gray-400 mt-0.5">Guest feedback across all your hostels</p>
       </div>
 

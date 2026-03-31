@@ -141,7 +141,7 @@ const OwnerDashboard = () => {
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">My Hostels</h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Hostels</h1>
           <p className="text-sm text-gray-500 mt-0.5">Manage your hostel listings</p>
         </div>
         {isSuspended ? (
