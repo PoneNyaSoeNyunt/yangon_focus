@@ -39,7 +39,23 @@ const AdminReports = () => {
         <p className="text-sm text-gray-500 mt-0.5">Review and act on misconduct reports</p>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      {/* Mobile: combo box */}
+      <div className="lg:hidden mb-6">
+        <select
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+          className="w-full px-4 py-2.5 text-sm font-medium border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+        >
+          {FILTER_TABS.map((t) => (
+            <option key={t} value={t}>
+              {t}{counts[t] > 0 ? ` (${counts[t]})` : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Desktop: pill tabs */}
+      <div className="hidden lg:flex gap-2 mb-6 overflow-x-auto pb-1">
         {FILTER_TABS.map((t) => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition ${
