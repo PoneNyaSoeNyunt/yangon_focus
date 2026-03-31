@@ -1,6 +1,60 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const Footer = () => (
+const GuestModal = ({ onClose }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+      <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+        <svg className="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-2">Owner Account Required</h3>
+      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+        You need to create an owner account to proceed!<br />
+        Please register a new account with the <span className="font-semibold text-teal-600">Hostel Owner</span> role.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Link
+          to="/register"
+          className="flex-1 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold rounded-xl transition text-sm"
+        >
+          Create Owner Account
+        </Link>
+        <button
+          onClick={onClose}
+          className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const Footer = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const [showGuestModal, setShowGuestModal] = useState(false);
+
+  const isOwner = user?.role === 'Owner';
+
+  const handleOwnerLogin = () => {
+    if (isAuthenticated && isOwner) navigate('/owner/hostels');
+    else navigate('/login');
+  };
+
+  const handleRegisterProperty = () => {
+    if (!isAuthenticated) { navigate('/login'); return; }
+    if (isOwner) { navigate('/owner/hostels/new'); return; }
+    setShowGuestModal(true);
+  };
+
+  return (
+  <>
+    {showGuestModal && <GuestModal onClose={() => setShowGuestModal(false)} />}
   <footer id="contact" className="bg-gray-900 text-gray-400">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
@@ -20,8 +74,16 @@ const Footer = () => (
             <li><Link to="/" className="hover:text-teal-400 transition">Home</Link></li>
             <li><Link to="/about" className="hover:text-teal-400 transition">About</Link></li>
             <li><a href="#results" className="hover:text-teal-400 transition">Browse Hostels</a></li>
-            <li><Link to="/login" className="hover:text-teal-400 transition">Owner Login</Link></li>
-            <li><Link to="/login" className="hover:text-teal-400 transition">Register Property</Link></li>
+            <li>
+              <button onClick={handleOwnerLogin} className="hover:text-teal-400 transition text-left">
+                Owner Login
+              </button>
+            </li>
+            <li>
+              <button onClick={handleRegisterProperty} className="hover:text-teal-400 transition text-left">
+                Register Property
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -62,6 +124,8 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+  </>
+  );
+};
 
 export default Footer;
