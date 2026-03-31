@@ -347,7 +347,16 @@ const CreateHostel = () => {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate('/owner/hostels')}
+          className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition flex-shrink-0"
+          aria-label="Back"
+        >
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {editMode ? 'Edit Hostel Listing' : 'New Hostel Listing'}
@@ -356,15 +365,6 @@ const CreateHostel = () => {
             {editMode ? 'Update your listing details' : 'Complete all 3 steps to submit your hostel'}
           </p>
         </div>
-        <button
-          onClick={() => navigate('/owner/hostels')}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 rounded-xl transition"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Leave
-        </button>
       </div>
 
       <StepIndicator current={step} />
