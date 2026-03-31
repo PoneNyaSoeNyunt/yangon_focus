@@ -55,7 +55,7 @@ const AdminReports = () => {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <svg className="w-8 h-8 text-teal-400 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -69,59 +69,111 @@ const AdminReports = () => {
             No {activeTab !== 'All' ? activeTab.toLowerCase() : ''} reports found.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reporter</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Offender</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((r, idx) => (
-                  <tr key={r.id} className="hover:bg-teal-50/40 transition-colors">
-                    <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">{idx + 1}</td>
-                    <td className="px-5 py-3.5">
-                      <p className="font-medium text-gray-900 text-xs">{r.reporter?.full_name}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">{r.reporter?.phone_number}</p>
-                      <span className="text-[10px] text-blue-600 font-semibold">{r.reporter?.role}</span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <p className="font-medium text-gray-900 text-xs">{r.offender?.full_name}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">{r.offender?.phone_number}</p>
-                      <span className="text-[10px] text-purple-600 font-semibold">{r.offender?.role}</span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-xs font-semibold bg-red-50 text-red-600 px-2.5 py-1 rounded-full">
+          <>
+            {/* ── Mobile card list ── */}
+            <div className="lg:hidden divide-y divide-gray-100">
+              {filtered.map((r, idx) => (
+                <div key={r.id} className="p-4 space-y-3">
+                  {/* Header: index + status + category */}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs text-gray-400 font-mono">#{idx + 1}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      <span className="text-xs font-semibold bg-red-50 text-red-600 px-2.5 py-0.5 rounded-full">
                         {r.category?.name ?? '—'}
                       </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status_code?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_STYLES[r.status_code?.label] ?? 'bg-gray-100 text-gray-500'}`}>
                         {r.status_code?.label ?? '—'}
                       </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">
+                    </div>
+                  </div>
+
+                  {/* Reporter + Offender */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                      <span className="text-[10px] text-gray-400 uppercase font-semibold">Reporter</span>
+                      <p className="font-semibold text-gray-800 mt-0.5">{r.reporter?.full_name}</p>
+                      <p className="font-mono text-gray-400">{r.reporter?.phone_number}</p>
+                      <span className="text-blue-600 font-semibold">{r.reporter?.role}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-400 uppercase font-semibold">Offender</span>
+                      <p className="font-semibold text-gray-800 mt-0.5">{r.offender?.full_name}</p>
+                      <p className="font-mono text-gray-400">{r.offender?.phone_number}</p>
+                      <span className="text-purple-600 font-semibold">{r.offender?.role}</span>
+                    </div>
+                  </div>
+
+                  {/* Date + View button */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-gray-400">
                       {new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button
-                        onClick={() => setSelected(r)}
-                        className="text-xs font-semibold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition"
-                      >
-                        View
-                      </button>
-                    </td>
+                    </span>
+                    <button
+                      onClick={() => setSelected(r)}
+                      className="text-xs font-semibold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition"
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop table ── */}
+            <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reporter</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Offender</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map((r, idx) => (
+                    <tr key={r.id} className="hover:bg-teal-50/40 transition-colors">
+                      <td className="px-5 py-3.5 text-gray-400 font-mono text-xs">{idx + 1}</td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-medium text-gray-900 text-xs">{r.reporter?.full_name}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{r.reporter?.phone_number}</p>
+                        <span className="text-[10px] text-blue-600 font-semibold">{r.reporter?.role}</span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-medium text-gray-900 text-xs">{r.offender?.full_name}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{r.offender?.phone_number}</p>
+                        <span className="text-[10px] text-purple-600 font-semibold">{r.offender?.role}</span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs font-semibold bg-red-50 text-red-600 px-2.5 py-1 rounded-full">
+                          {r.category?.name ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[r.status_code?.label] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {r.status_code?.label ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">
+                        {new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <button
+                          onClick={() => setSelected(r)}
+                          className="text-xs font-semibold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
