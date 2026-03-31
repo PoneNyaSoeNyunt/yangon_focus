@@ -60,6 +60,9 @@ const SubscriptionManagement = () => {
   const [hostelModal, setHostelModal]   = useState(null);
   const [paymentModal, setPaymentModal] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [search, setSearch]                   = useState('');
+  const [statusFilter, setStatusFilter]       = useState('');
+  const [subFilter, setSubFilter]             = useState('');
 
   useEffect(() => {
     if (!openDropdown) return;
@@ -134,6 +137,16 @@ const SubscriptionManagement = () => {
   const hostels = Array.isArray(hostelsData)  ? hostelsData  : [];
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
 
+  const filteredOwners = owners.filter((o) => {
+    const q = search.toLowerCase();
+    const matchSearch = !q ||
+      o.full_name?.toLowerCase().includes(q) ||
+      o.phone_number?.toLowerCase().includes(q);
+    const matchStatus = !statusFilter || o.account_status === statusFilter;
+    const matchSub    = !subFilter    || o.subscription_status === subFilter;
+    return matchSearch && matchStatus && matchSub;
+  });
+
   return (
     <div className="p-4 sm:p-6 w-full">
       <div className="mb-6">
@@ -164,11 +177,53 @@ const SubscriptionManagement = () => {
 
       {/* Owners Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-bold text-gray-800 text-sm">Owner Overview</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {owners.length} registered owner{owners.length !== 1 ? 's' : ''}
-          </p>
+        <div className="px-4 py-4 border-b border-gray-100 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="font-bold text-gray-800 text-sm">Owner Overview</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {filteredOwners.length} of {owners.length} owner{owners.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            {/* Search */}
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by name or phone…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+              />
+            </div>
+            {/* Status filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white transition"
+            >
+              <option value="">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Blacklisted">Blacklisted</option>
+            </select>
+            {/* Subscription filter */}
+            <select
+              value={subFilter}
+              onChange={(e) => setSubFilter(e.target.value)}
+              className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white transition"
+            >
+              <option value="">All Subscriptions</option>
+              <option value="Active">Active</option>
+              <option value="Overdue">Overdue</option>
+              <option value="Pending Verification">Pending Verification</option>
+              <option value="No Subscription">No Subscription</option>
+            </select>
+          </div>
         </div>
 
         {ownersLoading ? (
@@ -177,11 +232,13 @@ const SubscriptionManagement = () => {
           </div>
         ) : owners.length === 0 ? (
           <div className="py-16 text-center text-sm text-gray-400">No owners registered yet.</div>
+        ) : filteredOwners.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">No owners match your search or filters.</div>
         ) : (
           <>
           {/* ── Mobile card list ── */}
           <div className="lg:hidden divide-y divide-gray-100">
-            {owners.map((owner, idx) => (
+            {filteredOwners.map((owner, idx) => (
               <div key={owner.id} className="p-4 space-y-3">
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-2">
@@ -321,7 +378,7 @@ const SubscriptionManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {owners.map((owner, idx) => (
+                {filteredOwners.map((owner, idx) => (
                   <tr key={owner.id} className="hover:bg-gray-50/70 transition">
                     <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
                     <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">{owner.full_name}</td>
