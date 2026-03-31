@@ -87,9 +87,9 @@ const AdminReports = () => {
         ) : (
           <>
             {/* ── Mobile card list ── */}
-            <div className="lg:hidden divide-y divide-gray-100">
+            <div className="lg:hidden p-3 space-y-3">
               {filtered.map((r, idx) => (
-                <div key={r.id} className="p-4 space-y-3">
+                <div key={r.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                   {/* Header: index + status + category */}
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-xs text-gray-400 font-mono">#{idx + 1}</span>

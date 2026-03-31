@@ -237,9 +237,9 @@ const SubscriptionManagement = () => {
         ) : (
           <>
           {/* ── Mobile card list ── */}
-          <div className="lg:hidden divide-y divide-gray-100">
+          <div className="lg:hidden p-3 space-y-3">
             {filteredOwners.map((owner, idx) => (
-              <div key={owner.id} className="p-4 space-y-3">
+              <div key={owner.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
