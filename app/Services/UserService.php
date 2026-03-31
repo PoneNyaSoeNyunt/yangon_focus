@@ -28,15 +28,17 @@ class UserService
             'updated_at'     => now(),
         ]);
 
-        DB::table('auth_rate_limits')->insert([
-            'phone_number' => $data['phone_number'],
-            'failed_attempts' => 0,
-            'lockout_level' => 0,
-            'unlock_at' => null,
-            'last_attempt_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('auth_rate_limits')->updateOrInsert(
+            ['phone_number' => $data['phone_number']],
+            [
+                'failed_attempts' => 0,
+                'lockout_level'   => 0,
+                'unlock_at'       => null,
+                'last_attempt_at' => null,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]
+        );
 
         return DB::table('users')->where('id', $userId)->first();
     }
