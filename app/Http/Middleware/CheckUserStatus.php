@@ -12,10 +12,11 @@ class CheckUserStatus
     {
         $user = $request->user();
 
-        if ($user && $user->user_status_id === 2) {
+        if ($user && in_array($user->user_status_id, [2, 3])) {
+            $statusWord = $user->user_status_id === 3 ? 'blacklisted' : 'suspended';
             $message = $context === 'owner'
-                ? 'Your account is currently suspended. Listing management is disabled.'
-                : 'Your account is currently suspended.';
+                ? "Your account has been {$statusWord}. Listing management is disabled."
+                : "Your account has been {$statusWord}.";
 
             return response()->json(['message' => $message], 403);
         }

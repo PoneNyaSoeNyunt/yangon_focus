@@ -36,6 +36,31 @@ const GuestModal = ({ onClose }) => (
   </div>
 );
 
+const AccountRestrictedModal = ({ status, onClose }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+      <div className="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
+        <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-2">Account Restricted</h3>
+      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+        {status === 'Blacklisted'
+          ? 'Your account has been permanently blacklisted. You are not permitted to list properties.'
+          : 'Your account is currently suspended. Property listing is disabled. Please contact support.'}
+      </p>
+      <button
+        onClick={onClose}
+        className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition text-sm"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+);
+
 const SubscriptionModal = ({ onClose, onSubscribe }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
@@ -70,10 +95,12 @@ const SubscriptionModal = ({ onClose, onSubscribe }) => (
 const HeroSection = ({ onFindHostels }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const [showModal, setShowModal]   = useState(false);
-  const [showSubModal, setShowSubModal] = useState(false);
+  const [showModal, setShowModal]         = useState(false);
+  const [showSubModal, setShowSubModal]   = useState(false);
+  const [showRestrictedModal, setShowRestrictedModal] = useState(false);
 
-  const isOwner = user?.role === 'Owner';
+  const isOwner      = user?.role === 'Owner';
+  const ownerStatus  = user?.status_label;
 
   const { data: subData } = useQuery({
     queryKey: ['owner-subscription'],
@@ -87,8 +114,13 @@ const HeroSection = ({ onFindHostels }) => {
     if (!isAuthenticated) {
       navigate('/register');
     } else if (isOwner) {
-      if (hasActiveSub) navigate('/owner/hostels/new');
-      else setShowSubModal(true);
+      if (ownerStatus === 'Suspended' || ownerStatus === 'Blacklisted') {
+        setShowRestrictedModal(true);
+      } else if (hasActiveSub) {
+        navigate('/owner/hostels/new');
+      } else {
+        setShowSubModal(true);
+      }
     } else {
       setShowModal(true);
     }
@@ -96,8 +128,9 @@ const HeroSection = ({ onFindHostels }) => {
 
   return (
     <>
-      {showModal    && <GuestModal onClose={() => setShowModal(false)} />}
-      {showSubModal && <SubscriptionModal onClose={() => setShowSubModal(false)} onSubscribe={() => navigate('/owner/subscription')} />}
+      {showModal          && <GuestModal onClose={() => setShowModal(false)} />}
+      {showSubModal       && <SubscriptionModal onClose={() => setShowSubModal(false)} onSubscribe={() => navigate('/owner/subscription')} />}
+      {showRestrictedModal && <AccountRestrictedModal status={ownerStatus} onClose={() => setShowRestrictedModal(false)} />}
 
       <section className="relative bg-gradient-to-br from-teal-900 via-teal-800 to-cyan-900 overflow-hidden">
         <div className="absolute inset-0 opacity-10"
