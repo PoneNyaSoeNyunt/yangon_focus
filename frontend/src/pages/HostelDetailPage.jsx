@@ -269,7 +269,7 @@ const BookingModal = ({
                 </svg>
               </div>
               <p className="font-semibold text-gray-800">Booking submitted!</p>
-              <p className="text-sm text-gray-400">The owner will confirm your reservation shortly.</p>
+              <p className="text-sm text-gray-400">Please make your payment to the owner within <span className="font-semibold text-amber-500">24 hours</span> to secure your bed. Unpaid bookings may be cancelled.</p>
               <button onClick={onClose} className="mt-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition">
                 Done
               </button>
