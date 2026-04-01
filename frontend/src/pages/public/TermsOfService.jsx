@@ -4,7 +4,7 @@ import Footer from '../../components/public/Footer';
 const Section = ({ number, title, children }) => (
   <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 md:p-9">
     <h2 className="text-lg font-bold text-teal-600 mb-5">
-      {number}. {title}
+      {title}
     </h2>
     <div className="space-y-5">{children}</div>
   </section>
