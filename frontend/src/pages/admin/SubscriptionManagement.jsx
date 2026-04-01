@@ -64,6 +64,11 @@ const SubscriptionManagement = () => {
   const [statusFilter, setStatusFilter]       = useState('');
   const [subFilter, setSubFilter]             = useState('');
 
+  const [walletModal, setWalletModal]   = useState(null);
+  const [walletForm, setWalletForm]     = useState({ method_name: '', account_number: '', account_name: '' });
+  const [walletError, setWalletError]   = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
   useEffect(() => {
     if (!openDropdown) return;
     const close = () => setOpenDropdown(null);
@@ -74,6 +79,11 @@ const SubscriptionManagement = () => {
   const { data: configData } = useQuery({
     queryKey: ['admin-sub-config'],
     queryFn:  () => apiClient.get('/admin/subscription-config').then((r) => r.data),
+  });
+
+  const { data: walletsData, isLoading: walletsLoading } = useQuery({
+    queryKey: ['admin-platform-wallets'],
+    queryFn:  () => apiClient.get('/admin/payment-methods').then((r) => r.data),
   });
 
   const { data: ownersData, isLoading: ownersLoading } = useQuery({
@@ -119,10 +129,68 @@ const SubscriptionManagement = () => {
     },
   });
 
+  const createWalletMutation = useMutation({
+    mutationFn: (data) => apiClient.post('/admin/payment-methods', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-platform-wallets'] });
+      setWalletModal(null);
+      setWalletForm({ method_name: '', account_number: '', account_name: '' });
+      setWalletError('');
+    },
+    onError: (err) => setWalletError(err?.response?.data?.message ?? 'Failed to add wallet.'),
+  });
+
+  const updateWalletMutation = useMutation({
+    mutationFn: ({ id, ...data }) => apiClient.patch(`/admin/payment-methods/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-platform-wallets'] });
+      setWalletModal(null);
+      setWalletForm({ method_name: '', account_number: '', account_name: '' });
+      setWalletError('');
+    },
+    onError: (err) => setWalletError(err?.response?.data?.message ?? 'Failed to update wallet.'),
+  });
+
+  const toggleWalletMutation = useMutation({
+    mutationFn: ({ id, is_active }) => apiClient.patch(`/admin/payment-methods/${id}`, { is_active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-platform-wallets'] }),
+  });
+
+  const deleteWalletMutation = useMutation({
+    mutationFn: (id) => apiClient.delete(`/admin/payment-methods/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-platform-wallets'] });
+      setDeleteConfirm(null);
+    },
+  });
+
   const openFeeModal = () => {
     setFeeInput(configData?.value ?? '');
     setFeeError('');
     setFeeModal(true);
+  };
+
+  const openAddWallet = () => {
+    setWalletForm({ method_name: '', account_number: '', account_name: '' });
+    setWalletError('');
+    setWalletModal('add');
+  };
+
+  const openEditWallet = (w) => {
+    setWalletForm({ method_name: w.method_name, account_number: w.account_number, account_name: w.account_name });
+    setWalletError('');
+    setWalletModal(w);
+  };
+
+  const handleWalletSubmit = () => {
+    if (!walletForm.method_name.trim()) { setWalletError('Method name is required.'); return; }
+    if (!walletForm.account_number.trim()) { setWalletError('Account number is required.'); return; }
+    if (!walletForm.account_name.trim()) { setWalletError('Account name is required.'); return; }
+    if (walletModal === 'add') {
+      createWalletMutation.mutate(walletForm);
+    } else {
+      updateWalletMutation.mutate({ id: walletModal.id, ...walletForm });
+    }
   };
 
   const handleFeeUpdate = () => {
@@ -136,6 +204,7 @@ const SubscriptionManagement = () => {
   const owners  = Array.isArray(ownersData)   ? ownersData   : [];
   const hostels = Array.isArray(hostelsData)  ? hostelsData  : [];
   const payments = Array.isArray(paymentsData) ? paymentsData : [];
+  const wallets  = Array.isArray(walletsData)  ? walletsData  : [];
 
   const filteredOwners = owners.filter((o) => {
     const q = search.toLowerCase();
@@ -173,6 +242,83 @@ const SubscriptionManagement = () => {
           </svg>
           Update Fee
         </button>
+      </div>
+
+      {/* Platform Wallet Settings */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <div>
+            <h2 className="font-bold text-gray-900 text-sm">Platform Wallet Settings</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Payment accounts shown to owners when paying subscription</p>
+          </div>
+          <button
+            onClick={openAddWallet}
+            className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Wallet
+          </button>
+        </div>
+
+        {walletsLoading ? (
+          <div className="flex items-center justify-center py-8 gap-3 text-teal-500">
+            <Spinner sm /> <span className="text-xs text-gray-400">Loading wallets…</span>
+          </div>
+        ) : wallets.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">No platform wallets configured yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {wallets.map((w) => (
+              <div key={w.id} className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50/60">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-gray-800 text-sm">{w.method_name}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        w.is_active ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        {w.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">{w.account_number} · {w.account_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => toggleWalletMutation.mutate({ id: w.id, is_active: !w.is_active })}
+                    disabled={toggleWalletMutation.isPending}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                      w.is_active
+                        ? 'border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                        : 'border-teal-200 bg-teal-50 text-teal-600 hover:bg-teal-100'
+                    } disabled:opacity-50`}
+                  >
+                    {w.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button
+                    onClick={() => openEditWallet(w)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(w)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Owners Table */}
@@ -609,6 +755,97 @@ const SubscriptionManagement = () => {
               ))}
             </div>
           )}
+        </Modal>
+      )}
+
+      {/* --- Wallet Add/Edit Modal --- */}
+      {walletModal && (
+        <Modal
+          title={walletModal === 'add' ? 'Add Platform Wallet' : `Edit — ${walletModal.method_name}`}
+          onClose={() => { setWalletModal(null); setWalletError(''); }}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Method Name *</label>
+              <input
+                type="text"
+                placeholder="e.g. KBZPay, WaveMoney, AYA Pay"
+                value={walletForm.method_name}
+                onChange={(e) => setWalletForm((f) => ({ ...f, method_name: e.target.value }))}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Account Number *</label>
+              <input
+                type="text"
+                placeholder="e.g. 09123456789"
+                value={walletForm.account_number}
+                onChange={(e) => setWalletForm((f) => ({ ...f, account_number: e.target.value }))}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Account Name *</label>
+              <input
+                type="text"
+                placeholder="e.g. Yangon Focus"
+                value={walletForm.account_name}
+                onChange={(e) => setWalletForm((f) => ({ ...f, account_name: e.target.value }))}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+              />
+            </div>
+            {walletError && <p className="text-xs text-red-500">{walletError}</p>}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleWalletSubmit}
+                disabled={createWalletMutation.isPending || updateWalletMutation.isPending}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition"
+              >
+                {(createWalletMutation.isPending || updateWalletMutation.isPending) && <Spinner sm />}
+                {walletModal === 'add' ? 'Add Wallet' : 'Save Changes'}
+              </button>
+              <button
+                onClick={() => { setWalletModal(null); setWalletError(''); }}
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* --- Delete Confirm Modal --- */}
+      {deleteConfirm && (
+        <Modal title="Remove Wallet" onClose={() => setDeleteConfirm(null)}>
+          <div className="space-y-4 text-center">
+            <div className="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+              <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-800 mb-1">Delete <span className="text-red-500">{deleteConfirm.method_name}</span>?</p>
+              <p className="text-sm text-gray-400">This wallet will be permanently removed and can no longer be used for subscription payments.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => deleteWalletMutation.mutate(deleteConfirm.id)}
+                disabled={deleteWalletMutation.isPending}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition"
+              >
+                {deleteWalletMutation.isPending && <Spinner sm />}
+                Delete
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

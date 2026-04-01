@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\RenterController;
 use App\Http\Controllers\Api\V1\SubscriptionConfigController;
 use App\Http\Controllers\Api\V1\OwnerManagementController;
+use App\Http\Controllers\Api\V1\PlatformPaymentMethodController;
 use App\Http\Controllers\Api\V1\OwnerSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,5 +98,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/owners/{id}/hostels',               [OwnerManagementController::class, 'hostelDetails']);
         Route::get('/owners/{id}/subscription-history',      [OwnerManagementController::class, 'subscriptionHistory']);
         Route::patch('/owners/{id}/subscription/verify',     [OwnerManagementController::class, 'verifySubscription']);
+
+        Route::get('/payment-methods',           [PlatformPaymentMethodController::class, 'index']);
+        Route::post('/payment-methods',          [PlatformPaymentMethodController::class, 'store']);
+        Route::patch('/payment-methods/{id}',    [PlatformPaymentMethodController::class, 'update']);
+        Route::delete('/payment-methods/{id}',   [PlatformPaymentMethodController::class, 'destroy']);
     });
 });
