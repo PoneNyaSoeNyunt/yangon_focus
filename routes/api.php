@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('check.lockout');
 
+    Route::get('/platform-payment-methods', [PlatformPaymentMethodController::class, 'activeIndex']);
     Route::get('/townships',           [LookupController::class, 'townships']);
     Route::get('/room-types',          [LookupController::class, 'roomTypes']);
     Route::get('/contact-info',        [LookupController::class, 'contactInfo']);

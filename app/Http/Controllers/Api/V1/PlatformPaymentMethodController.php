@@ -13,6 +13,11 @@ class PlatformPaymentMethodController extends Controller
         return response()->json(PlatformPaymentMethod::orderBy('id')->get());
     }
 
+    public function activeIndex()
+    {
+        return response()->json(PlatformPaymentMethod::where('is_active', true)->orderBy('id')->get());
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([

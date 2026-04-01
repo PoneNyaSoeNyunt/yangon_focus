@@ -38,11 +38,12 @@ const monthsCovered = (amount, fee) => {
 
 const OwnerSubscription = () => {
   const queryClient = useQueryClient();
-  const [payModal, setPayModal]         = useState(false);
-  const [screenshot, setScreenshot]     = useState(null);
-  const [previewUrl, setPreviewUrl]     = useState(null);
-  const [submitError, setSubmitError]   = useState('');
+  const [payModal, setPayModal]           = useState(false);
+  const [screenshot, setScreenshot]       = useState(null);
+  const [previewUrl, setPreviewUrl]       = useState(null);
+  const [submitError, setSubmitError]     = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [selectedMethodId, setSelectedMethodId] = useState(null);
   const fileRef = useRef(null);
 
   const { data: subData, isLoading: subLoading } = useQuery({
@@ -59,6 +60,13 @@ const OwnerSubscription = () => {
     queryKey: ['contact-info'],
     queryFn:  () => apiClient.get('/contact-info').then((r) => r.data),
     staleTime: 1000 * 60 * 10,
+  });
+
+  const { data: methodsData, isLoading: methodsLoading } = useQuery({
+    queryKey: ['platform-payment-methods'],
+    queryFn:  () => apiClient.get('/platform-payment-methods').then((r) => r.data),
+    enabled:  payModal,
+    staleTime: 1000 * 60 * 5,
   });
 
   const payMutation = useMutation({
@@ -92,9 +100,11 @@ const OwnerSubscription = () => {
   };
 
   const handleSubmit = () => {
+    if (!selectedMethodId) { setSubmitError('Please select a payment method.'); return; }
     if (!screenshot) { setSubmitError('Please attach a payment screenshot.'); return; }
     const fd = new FormData();
     fd.append('screenshot', screenshot);
+    fd.append('platform_payment_method_id', selectedMethodId);
     payMutation.mutate(fd);
   };
 
@@ -104,18 +114,21 @@ const OwnerSubscription = () => {
     setPreviewUrl(null);
     setSubmitError('');
     setSubmitSuccess(false);
+    setSelectedMethodId(null);
   };
 
   const closeModal = () => {
     setPayModal(false);
     setSubmitSuccess(false);
+    setSelectedMethodId(null);
   };
 
-  const subscription = subData?.subscription;
-  const fee          = subData?.fee ?? '5000';
-  const days         = daysRemaining(subscription?.end_date);
-  const statusLabel  = subscription?.status?.label;
-  const history      = Array.isArray(historyData) ? historyData : [];
+  const subscription   = subData?.subscription;
+  const fee            = subData?.fee ?? '5000';
+  const days           = daysRemaining(subscription?.end_date);
+  const statusLabel    = subscription?.status?.label;
+  const history        = Array.isArray(historyData) ? historyData : [];
+  const activeMethods  = Array.isArray(methodsData) ? methodsData : [];
 
   return (
     <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full">
@@ -242,7 +255,7 @@ const OwnerSubscription = () => {
             </div>
 
             {/* ── Desktop table ── */}
-            <div className="hidden lg:block overflow-x-auto overflow-hidden rounded-b-2xl">
+            <div className="hidden lg:block rounded-b-2xl">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 text-left">
@@ -314,23 +327,51 @@ const OwnerSubscription = () => {
                     </p>
                   </div>
 
-                  {/* Payment Details */}
+                  {/* Payment Method Selection */}
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Transfer To</p>
-                    <div className="space-y-2">
-                      {[
-                        { label: 'KBZPay', color: 'bg-blue-50 border-blue-100', text: 'text-blue-700' },
-                        { label: 'WaveMoney', color: 'bg-orange-50 border-orange-100', text: 'text-orange-700' },
-                      ].map(({ label, color, text }) => (
-                        <div key={label} className={`border rounded-xl px-4 py-3 ${color}`}>
-                          <p className={`text-xs font-bold mb-1 ${text}`}>{label}</p>
-                          <p className="text-sm font-semibold text-gray-800">
-                            {contactInfo?.phone_number ?? '—'}
-                          </p>
-                          <p className="text-xs text-gray-500">{contactInfo?.full_name ?? 'Yangon Focus Admin'}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Select Payment Method</p>
+                    {methodsLoading ? (
+                      <div className="flex items-center justify-center py-6 gap-2 text-teal-500">
+                        <Spinner sm /> <span className="text-xs text-gray-400">Loading methods…</span>
+                      </div>
+                    ) : activeMethods.length === 0 ? (
+                      <p className="text-sm text-gray-400 text-center py-4 border border-dashed border-gray-200 rounded-xl">No active payment methods configured.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {activeMethods.map((m) => {
+                          const isSelected = selectedMethodId === m.id;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => { setSelectedMethodId(m.id); setSubmitError(''); }}
+                              className={`w-full text-left border-2 rounded-xl px-4 py-3 transition ${
+                                isSelected
+                                  ? 'border-teal-500 bg-teal-50'
+                                  : 'border-gray-100 bg-gray-50 hover:border-teal-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className={`text-xs font-bold mb-0.5 ${
+                                    isSelected ? 'text-teal-700' : 'text-gray-700'
+                                  }`}>{m.method_name}</p>
+                                  <p className="text-sm font-semibold text-gray-800">{m.account_number}</p>
+                                  <p className="text-xs text-gray-500">{m.account_name}</p>
+                                </div>
+                                {isSelected && (
+                                  <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Screenshot Upload */}
