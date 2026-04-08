@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\SubscriptionConfigController;
 use App\Http\Controllers\Api\V1\OwnerManagementController;
 use App\Http\Controllers\Api\V1\PlatformPaymentMethodController;
 use App\Http\Controllers\Api\V1\OwnerSubscriptionController;
+use App\Http\Controllers\Api\V1\OwnerAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -55,6 +56,8 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('owner')->middleware(['auth:sanctum', 'owner.only'])->group(function () {
+        Route::get('/analytics/revenue',                 [OwnerAnalyticsController::class, 'revenue']);
+
         Route::get('/bookings',                          [BookingController::class, 'ownerIndex']);
         Route::patch('/bookings/{id}/cancel',            [BookingController::class, 'ownerCancel']);
         Route::post('/bookings/{id}/cash',               [PaymentController::class, 'recordCash']);
