@@ -13,4 +13,9 @@ class AdminAnalyticsController extends Controller
     {
         return response()->json($this->analyticsService->getAnalytics());
     }
+
+    public function finance()
+    {
+        return response()->json($this->analyticsService->getFinanceAnalytics());
+    }
 }

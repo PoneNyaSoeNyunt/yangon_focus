@@ -86,6 +86,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'admin.only'])->group(function () {
         Route::get('/analytics',             [AdminAnalyticsController::class, 'index']);
+        Route::get('/analytics/finance',     [AdminAnalyticsController::class, 'finance']);
         Route::get('/users',                 [SuperAdminController::class, 'users']);
         Route::patch('/users/{id}/status',   [SuperAdminController::class, 'updateStatus']);
         Route::get('/licenses',              [AdminLicenseController::class, 'index']);
