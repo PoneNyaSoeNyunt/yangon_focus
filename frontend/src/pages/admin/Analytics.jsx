@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import adminService from '../../services/adminService';
+import apiClient from '../../api/client';
 
 const StatCard = ({ label, value, color, icon }) => (
   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex items-center gap-5">
@@ -28,10 +29,28 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
+const RevenueTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3">
+      <p className="text-xs font-semibold text-gray-500 mb-1">{label}</p>
+      <p className="text-base font-bold text-teal-600">
+        {Number(payload[0].value).toLocaleString()} MMK
+      </p>
+    </div>
+  );
+};
+
 const Analytics = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-analytics'],
     queryFn: () => adminService.getAnalytics(),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: finance, isLoading: financeLoading } = useQuery({
+    queryKey: ['admin-analytics-finance'],
+    queryFn: () => apiClient.get('/admin/analytics/finance').then((r) => r.data),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -55,7 +74,8 @@ const Analytics = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {/* User Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <StatCard
               label="Total Users"
               value={data?.total_users}
@@ -91,7 +111,42 @@ const Analytics = () => {
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          {/* Financial Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <StatCard
+              label="Total Platform Revenue"
+              value={
+                financeLoading ? null : (
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {Number(finance?.total_revenue ?? 0).toLocaleString()}
+                    </span>
+                    <span className="text-sm font-medium text-gray-400">MMK</span>
+                  </span>
+                )
+              }
+              color="bg-green-50"
+              icon={
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Active Subscriptions"
+              value={financeLoading ? null : finance?.active_subscriptions}
+              color="bg-teal-50"
+              icon={
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+            />
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
             <div className="mb-6">
               <h2 className="text-base font-semibold text-gray-900">Monthly Registrations</h2>
               <p className="text-sm text-gray-400 mt-0.5">New Guests & Owners over the last 12 months</p>
@@ -128,6 +183,39 @@ const Analytics = () => {
                   activeDot={{ r: 5, fill: '#008f78' }}
                 />
               </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Monthly Revenue Chart */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="mb-6">
+              <h2 className="text-base font-semibold text-gray-900">Monthly Platform Revenue</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Subscription fee income over the last 12 months</p>
+            </div>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={finance?.monthly_trend ?? []}
+                barSize={28}
+                margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => v.split(' ')[0]}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}
+                  width={44}
+                />
+                <Tooltip content={<RevenueTooltip />} cursor={{ fill: '#f0fdf9' }} />
+                <Bar dataKey="total" fill="#00A389" radius={[5, 5, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </>
