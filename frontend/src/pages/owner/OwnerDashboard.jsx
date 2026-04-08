@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import ownerService from '../../services/ownerService';
 import apiClient from '../../api/client';
@@ -122,20 +121,6 @@ const SubscriptionAlert = () => (
   </div>
 );
 
-const TEAL = '#00A389';
-
-const fmtMMK = (v) => Number(v ?? 0).toLocaleString() + ' MMK';
-
-const RevenueTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-4 py-3">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="text-sm font-bold text-gray-800">{fmtMMK(payload[0].value)}</p>
-    </div>
-  );
-};
-
 const OwnerDashboard = () => {
   const { user } = useAuth();
   const isSuspended = user?.user_status_id === 2;
@@ -148,12 +133,6 @@ const OwnerDashboard = () => {
   const { data: subData, isLoading: subLoading } = useQuery({
     queryKey: ['owner-subscription'],
     queryFn: () => apiClient.get('/owner/subscription').then((r) => r.data),
-  });
-
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['owner-analytics-revenue'],
-    queryFn: () => apiClient.get('/owner/analytics/revenue').then((r) => r.data),
-    staleTime: 1000 * 60 * 5,
   });
 
   const hasActiveSub = subData?.subscription?.status?.label === 'Active';
@@ -200,100 +179,6 @@ const OwnerDashboard = () => {
       {!isSuspended && !subLoading && !hasActiveSub && (
         <div className="mb-6"><SubscriptionAlert /></div>
       )}
-
-      {/* Analytics Section */}
-      <div className="mb-8">
-        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">Analytics</h2>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          {[
-            {
-              label: 'Total Revenue',
-              value: analyticsLoading ? null : analytics?.total_earnings,
-              icon: (
-                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ),
-              accent: 'bg-teal-50 text-teal-600',
-            },
-            {
-              label: 'This Month',
-              value: analyticsLoading ? null : analytics?.this_month,
-              icon: (
-                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              ),
-              accent: 'bg-blue-50 text-blue-500',
-            },
-            {
-              label: 'Pending',
-              value: analyticsLoading ? null : analytics?.pending_amount,
-              icon: (
-                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ),
-              accent: 'bg-amber-50 text-amber-500',
-            },
-          ].map(({ label, value, icon, accent }) => (
-            <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>
-                {icon}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 font-medium mb-1">{label}</p>
-                {value == null ? (
-                  <div className="h-5 w-24 bg-gray-100 rounded animate-pulse" />
-                ) : (
-                  <p className="text-lg font-extrabold text-gray-900 truncate">
-                    {Number(value).toLocaleString()}
-                    <span className="text-xs font-medium text-gray-400 ml-1">MMK</span>
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bar Chart */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Revenue — Last 6 Months</p>
-          {analyticsLoading ? (
-            <div className="flex items-center justify-center h-48 gap-3 text-teal-500">
-              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              <span className="text-sm text-gray-400">Loading chart…</span>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={analytics?.monthly_trend ?? []} barSize={32} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => v.split(' ')[0]}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}
-                  width={40}
-                />
-                <Tooltip content={<RevenueTooltip />} cursor={{ fill: '#f0fdf9' }} />
-                <Bar dataKey="total" fill={TEAL} radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-24">

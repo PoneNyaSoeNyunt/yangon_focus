@@ -35,6 +35,7 @@ import VerifyPayments from './pages/owner/VerifyPayments';
 import OwnerSupport from './pages/owner/OwnerSupport';
 import OwnerSubscription from './pages/owner/OwnerSubscription';
 import OwnerReviews from './pages/owner/OwnerReviews';
+import OwnerAnalytics from './pages/owner/OwnerAnalytics';
 import RegisterWizard from './pages/RegisterWizard';
 
 const AdminRoute = ({ children }) => (
@@ -105,6 +106,7 @@ function App() {
           <Route path="/admin/helpdesk"       element={<AdminRoute><HelpDesk /></AdminRoute>} />
           <Route path="/admin/subscriptions" element={<AdminRoute><SubscriptionManagement /></AdminRoute>} />
 
+          <Route path="/owner/analytics"        element={<OwnerRoute><OwnerAnalytics /></OwnerRoute>} />
           <Route path="/owner/hostels"          element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/hostels/new"      element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
           <Route path="/owner/hostels/edit/:id" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
