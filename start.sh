@@ -3,7 +3,10 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "🚀 Running migrations..."
+echo "� Setting storage permissions..."
+chmod -R 775 /var/www/html/storage
+
+echo "�🚀 Running migrations..."
 php artisan migrate --force
 
 echo "🌱 Seeding database..."
