@@ -41,6 +41,9 @@ COPY . /var/www/html
 
 WORKDIR /var/www/html
 
+# Provide a base .env so Laravel can bootstrap; real values come from Render Dashboard
+RUN cp .env.example .env
+
 # Install PHP dependencies (no dev, optimised autoloader)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
