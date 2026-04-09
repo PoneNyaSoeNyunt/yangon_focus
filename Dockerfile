@@ -51,4 +51,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 80
+
+CMD ["/start.sh"]
