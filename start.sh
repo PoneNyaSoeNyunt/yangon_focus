@@ -4,7 +4,10 @@
 set -e
 
 echo "🚀 Running migrations..."
-php artisan migrate --force --seed
+php artisan migrate --force
+
+echo "🌱 Seeding database..."
+php artisan db:seed --force || echo 'Seeding skipped (data likely already exists)'
 
 echo "🌐 Starting Apache server..."
 apache2-foreground
