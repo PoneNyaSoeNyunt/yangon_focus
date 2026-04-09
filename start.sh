@@ -12,5 +12,8 @@ php artisan migrate --force
 echo "🌱 Seeding database..."
 php artisan db:seed --force || echo 'Seeding skipped (data likely already exists)'
 
+echo "🗺️  Clearing route cache..."
+php artisan route:clear
+
 echo "🌐 Starting Apache server..."
 apache2-foreground
