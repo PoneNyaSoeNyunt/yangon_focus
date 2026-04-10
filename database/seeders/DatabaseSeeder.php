@@ -17,11 +17,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             StatusCodeSeeder::class,
+            UserSeeder::class,
             TownshipSeeder::class,
             RoomTypeSeeder::class,
             PlatformConfigSeeder::class,
             PlatformPaymentMethodSeeder::class,
-            UserSeeder::class,
             ReportCategorySeeder::class,
         ]);
     }

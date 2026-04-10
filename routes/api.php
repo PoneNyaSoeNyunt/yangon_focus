@@ -23,6 +23,11 @@ use App\Http\Controllers\Api\V1\OwnerAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Temporary diagnostic route — remove after verifying production seeding
+    Route::get('/debug-user', function () {
+        return \App\Models\User::where('role', 'Super Admin')->first(['phone_number', 'role', 'user_status_id']) ?: 'No Admin Found';
+    });
+
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('check.lockout');
