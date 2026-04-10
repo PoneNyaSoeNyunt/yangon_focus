@@ -30,14 +30,16 @@ Route::prefix('v1')->group(function () {
     Route::get('/debug-cloudinary', function () {
         $url = config('filesystems.disks.cloudinary.url') ?: env('CLOUDINARY_URL');
         if (empty($url)) {
-            return response()->json(['status' => 'MISSING', 'message' => 'CLOUDINARY_URL env var is not set']);
+            return response()->json(['status' => 'MISSING', 'message' => 'CLOUDINARY_URL env var is not set on Render']);
         }
+        // Show masked URL so we can verify format without leaking secrets
+        $masked = preg_replace('#://(.{4}).*@#', '://$1****@', $url);
         try {
             $cloudinary = new \Cloudinary\Cloudinary($url);
             $cloudinary->adminApi()->ping();
-            return response()->json(['status' => 'OK', 'message' => 'Cloudinary connection successful']);
+            return response()->json(['status' => 'OK', 'url_preview' => $masked]);
         } catch (\Throwable $e) {
-            return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
+            return response()->json(['status' => 'ERROR', 'url_preview' => $masked, 'message' => $e->getMessage()]);
         }
     });
 
