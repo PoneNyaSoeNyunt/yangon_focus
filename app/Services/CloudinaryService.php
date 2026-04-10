@@ -29,10 +29,15 @@ class CloudinaryService
      */
     public function upload(UploadedFile $file, string $folder): string
     {
-        $result = $this->client()->uploadApi()->upload($file->getRealPath(), [
-            'folder'        => 'yangon-focus/' . $folder,
-            'resource_type' => 'image',
-        ]);
+        try {
+            $result = $this->client()->uploadApi()->upload($file->getRealPath(), [
+                'folder'        => 'yangon-focus/' . $folder,
+                'resource_type' => 'image',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Cloudinary upload failed', ['error' => $e->getMessage(), 'folder' => $folder]);
+            throw new \RuntimeException('Image upload failed: ' . $e->getMessage(), 0, $e);
+        }
 
         return $result['secure_url'];
     }

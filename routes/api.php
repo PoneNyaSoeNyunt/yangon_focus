@@ -23,9 +23,22 @@ use App\Http\Controllers\Api\V1\OwnerAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    // Temporary diagnostic route — remove after verifying production seeding
+    // Temporary diagnostic routes — remove after verifying production
     Route::get('/debug-user', function () {
         return \App\Models\User::where('role', 'Super Admin')->first(['phone_number', 'role', 'user_status_id']) ?: 'No Admin Found';
+    });
+    Route::get('/debug-cloudinary', function () {
+        $url = config('filesystems.disks.cloudinary.url') ?: env('CLOUDINARY_URL');
+        if (empty($url)) {
+            return response()->json(['status' => 'MISSING', 'message' => 'CLOUDINARY_URL env var is not set']);
+        }
+        try {
+            $cloudinary = new \Cloudinary\Cloudinary($url);
+            $cloudinary->adminApi()->ping();
+            return response()->json(['status' => 'OK', 'message' => 'Cloudinary connection successful']);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'ERROR', 'message' => $e->getMessage()]);
+        }
     });
 
     Route::post('/register', [AuthController::class, 'register']);
