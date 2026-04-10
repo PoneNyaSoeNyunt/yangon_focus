@@ -26,8 +26,8 @@ return new class extends Migration
                 ->pluck('id');
 
             DB::table('rooms')
-                ->whereIn('room_type_id', $dupeIds)
-                ->update(['room_type_id' => $dup->keep_id]);
+                ->whereIn('type_id', $dupeIds)
+                ->update(['type_id' => $dup->keep_id]);
 
             DB::table('room_types')
                 ->whereIn('id', $dupeIds)
