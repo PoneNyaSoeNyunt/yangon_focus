@@ -7,17 +7,21 @@ use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
-    protected Cloudinary $cloudinary;
+    protected ?Cloudinary $cloudinary = null;
 
-    public function __construct()
+    protected function client(): Cloudinary
     {
+        if ($this->cloudinary) {
+            return $this->cloudinary;
+        }
+
         $url = config('filesystems.disks.cloudinary.url') ?: env('CLOUDINARY_URL');
 
         if (empty($url)) {
-            throw new \RuntimeException('CLOUDINARY_URL is not configured. Set it in your .env file.');
+            throw new \RuntimeException('CLOUDINARY_URL is not configured. Set it in your .env or Render environment.');
         }
 
-        $this->cloudinary = new Cloudinary($url);
+        return $this->cloudinary = new Cloudinary($url);
     }
 
     /**
@@ -25,7 +29,7 @@ class CloudinaryService
      */
     public function upload(UploadedFile $file, string $folder): string
     {
-        $result = $this->cloudinary->uploadApi()->upload($file->getRealPath(), [
+        $result = $this->client()->uploadApi()->upload($file->getRealPath(), [
             'folder'        => 'yangon-focus/' . $folder,
             'resource_type' => 'image',
         ]);
@@ -41,7 +45,7 @@ class CloudinaryService
         $publicId = $this->extractPublicId($url);
 
         if ($publicId) {
-            $this->cloudinary->uploadApi()->destroy($publicId);
+            $this->client()->uploadApi()->destroy($publicId);
         }
     }
 
