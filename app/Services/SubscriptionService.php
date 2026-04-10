@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Storage;
 
 class SubscriptionService
 {
+    protected CloudinaryService $cloudinary;
+
+    public function __construct(CloudinaryService $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
     public function getSubscriptionFee(): string
     {
         return PlatformConfig::get('monthly_subscription_fee', '5000');
@@ -138,8 +144,7 @@ class SubscriptionService
 
         $screenshotUrl = null;
         if ($screenshot) {
-            $path          = $screenshot->store('subscription-payments', 'public');
-            $screenshotUrl = Storage::url($path);
+            $screenshotUrl = $this->cloudinary->upload($screenshot, 'subscription-payments');
         }
 
         $methodName = null;

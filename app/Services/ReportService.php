@@ -7,16 +7,22 @@ use Illuminate\Support\Facades\Storage;
 
 class ReportService
 {
+    protected CloudinaryService $cloudinary;
+
+    public function __construct(CloudinaryService $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
     public function createReport(int $reporterId, array $data): Report
     {
-        $path = $data['evidence']->store('report-evidence', 'public');
+        $evidenceUrl = $this->cloudinary->upload($data['evidence'], 'report-evidence');
 
         return Report::create([
             'reporter_id'  => $reporterId,
             'offender_id'  => $data['offender_id'],
             'category_id'  => $data['category_id'],
             'description'  => $data['description'] ?? null,
-            'evidence_url' => Storage::url($path),
+            'evidence_url' => $evidenceUrl,
         ]);
     }
 

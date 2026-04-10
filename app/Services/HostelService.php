@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Storage;
 
 class HostelService
 {
+    protected CloudinaryService $cloudinary;
+
+    public function __construct(CloudinaryService $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
     public function createHostel(int $ownerId, array $data): Hostel
     {
         $draftStatus = StatusCode::where('context', 'Hostel')
@@ -89,8 +95,7 @@ class HostelService
             ->where('label', 'Pending Review')
             ->firstOrFail();
 
-        $path = $image->store('licenses', 'public');
-        $url  = Storage::url($path);
+        $url = $this->cloudinary->upload($image, 'licenses');
 
         return BusinessLicense::create([
             'hostel_id'      => $hostelId,
@@ -107,8 +112,7 @@ class HostelService
         $isPrimary = !HostelImage::where('hostel_id', $hostelId)->exists();
 
         foreach ($files as $file) {
-            $path = $file->store("hostel-images/{$hostelId}", 'public');
-            $url  = Storage::url($path);
+            $url = $this->cloudinary->upload($file, "hostel-images/{$hostelId}");
 
             $created[] = HostelImage::create([
                 'hostel_id'   => $hostelId,
@@ -195,8 +199,7 @@ class HostelService
     public function deleteImage(int $imageId): void
     {
         $image = HostelImage::findOrFail($imageId);
-        $path  = ltrim(str_replace('/storage', 'public', $image->image_url), '/');
-        Storage::delete($path);
+        $this->cloudinary->delete($image->image_url);
         $image->delete();
     }
 
