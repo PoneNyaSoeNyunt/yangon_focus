@@ -2,16 +2,30 @@
 
 namespace App\Services;
 
+use Cloudinary\Cloudinary;
 use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
+    protected Cloudinary $cloudinary;
+
+    public function __construct()
+    {
+        $url = config('filesystems.disks.cloudinary.url') ?: env('CLOUDINARY_URL');
+
+        if (empty($url)) {
+            throw new \RuntimeException('CLOUDINARY_URL is not configured. Set it in your .env file.');
+        }
+
+        $this->cloudinary = new Cloudinary($url);
+    }
+
     /**
      * Upload a file to Cloudinary and return its secure URL.
      */
     public function upload(UploadedFile $file, string $folder): string
     {
-        $result = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+        $result = $this->cloudinary->uploadApi()->upload($file->getRealPath(), [
             'folder'        => 'yangon-focus/' . $folder,
             'resource_type' => 'image',
         ]);
@@ -27,7 +41,7 @@ class CloudinaryService
         $publicId = $this->extractPublicId($url);
 
         if ($publicId) {
-            cloudinary()->uploadApi()->destroy($publicId);
+            $this->cloudinary->uploadApi()->destroy($publicId);
         }
     }
 
