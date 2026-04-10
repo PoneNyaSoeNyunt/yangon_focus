@@ -12,9 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+        $middleware->api(append: [
+            \App\Http\Middleware\NoCacheAuthenticated::class,
         ]);
 
         $middleware->alias([
@@ -23,8 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'owner.only'     => \App\Http\Middleware\OwnerMiddleware::class,
             'check.status'   => \App\Http\Middleware\CheckUserStatus::class,
         ]);
-
-        //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
