@@ -61,6 +61,6 @@ class TownshipSeeder extends Seeder
             ['name' => 'Yankin'],
         ];
 
-        DB::table('townships')->insert($townships);
+        DB::table('townships')->insertOrIgnore($townships);
     }
 }
