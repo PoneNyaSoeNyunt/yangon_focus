@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Storage;
 
 class HostelService
 {
-    protected CloudinaryService $cloudinary;
+    protected ImageService $images;
 
-    public function __construct(CloudinaryService $cloudinary)
+    public function __construct(ImageService $images)
     {
-        $this->cloudinary = $cloudinary;
+        $this->images = $images;
     }
     public function createHostel(int $ownerId, array $data): Hostel
     {
@@ -95,7 +95,7 @@ class HostelService
             ->where('label', 'Pending Review')
             ->firstOrFail();
 
-        $url = $this->cloudinary->upload($image, 'licenses');
+        $url = $this->images->upload($image, 'licenses');
 
         return BusinessLicense::create([
             'hostel_id'      => $hostelId,
@@ -112,7 +112,7 @@ class HostelService
         $isPrimary = !HostelImage::where('hostel_id', $hostelId)->exists();
 
         foreach ($files as $file) {
-            $url = $this->cloudinary->upload($file, "hostel-images/{$hostelId}");
+            $url = $this->images->upload($file, "hostel-images/{$hostelId}");
 
             $created[] = HostelImage::create([
                 'hostel_id'   => $hostelId,
@@ -199,7 +199,7 @@ class HostelService
     public function deleteImage(int $imageId): void
     {
         $image = HostelImage::findOrFail($imageId);
-        $this->cloudinary->delete($image->image_url);
+        $this->images->delete($image->image_url);
         $image->delete();
     }
 

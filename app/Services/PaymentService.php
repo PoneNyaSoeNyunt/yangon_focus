@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Storage;
 
 class PaymentService
 {
-    protected CloudinaryService $cloudinary;
+    protected ImageService $images;
 
-    public function __construct(CloudinaryService $cloudinary)
+    public function __construct(ImageService $images)
     {
-        $this->cloudinary = $cloudinary;
+        $this->images = $images;
     }
     public function uploadDigitalPayment(int $guestId, int $bookingId, array $data): Payment
     {
@@ -35,7 +35,7 @@ class PaymentService
 
         $screenshotUrl = null;
         if (!empty($data['screenshot'])) {
-            $screenshotUrl = $this->cloudinary->upload($data['screenshot'], 'payment-screenshots');
+            $screenshotUrl = $this->images->upload($data['screenshot'], 'payment-screenshots');
         }
 
         $method = HostelPaymentMethod::findOrFail($data['hostel_payment_method_id']);
@@ -118,7 +118,7 @@ class PaymentService
 
         $screenshotUrl = null;
         if (!empty($data['screenshot'])) {
-            $screenshotUrl = $this->cloudinary->upload($data['screenshot'], 'payment-screenshots');
+            $screenshotUrl = $this->images->upload($data['screenshot'], 'payment-screenshots');
         }
 
         $isCash     = empty($data['hostel_payment_method_id']);

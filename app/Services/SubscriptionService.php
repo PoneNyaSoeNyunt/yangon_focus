@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\Storage;
 
 class SubscriptionService
 {
-    protected CloudinaryService $cloudinary;
+    protected ImageService $images;
 
-    public function __construct(CloudinaryService $cloudinary)
+    public function __construct(ImageService $images)
     {
-        $this->cloudinary = $cloudinary;
+        $this->images = $images;
     }
     public function getSubscriptionFee(): string
     {
@@ -144,7 +144,7 @@ class SubscriptionService
 
         $screenshotUrl = null;
         if ($screenshot) {
-            $screenshotUrl = $this->cloudinary->upload($screenshot, 'subscription-payments');
+            $screenshotUrl = $this->images->upload($screenshot, 'subscription-payments');
         }
 
         $methodName = null;
