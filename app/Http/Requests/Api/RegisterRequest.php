@@ -36,11 +36,14 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone_number' => ['required', 'string', 'unique:users,phone_number'],
-            'full_name' => ['required', 'string', 'max:255'],
-            'nrc_number' => ['required', 'string', 'max:255', 'unique:users,nrc_number'],
-            'role' => ['required', 'string', 'in:guest,owner'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'phone_number'    => ['required', 'string', 'unique:users,phone_number'],
+            'full_name'       => ['required', 'string', 'max:255'],
+            'nrc_region'      => ['required', 'integer', 'between:1,14'],
+            'nrc_township_id' => ['required', 'integer', 'exists:nrc_townships,id'],
+            'nrc_type'        => ['required', 'string', 'in:N,P,E,T'],
+            'nrc_number'      => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
+            'role'            => ['required', 'string', 'in:guest,owner'],
+            'password'        => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
 }
