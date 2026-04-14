@@ -287,6 +287,11 @@ const CreateHostel = () => {
     if (!basicForm.address.trim()) local.address = ['Address is required.'];
     if (!basicForm.type)           local.type = ['Type is required.'];
     if (!basicForm.township_id)    local.township_id = ['Township is required.'];
+    basicForm.payment_methods.forEach((pm, i) => {
+      if (!pm.method_name.trim())    local[`payment_methods.${i}.method_name`] = ['Method name is required.'];
+      if (!pm.account_number.trim()) local[`payment_methods.${i}.account_number`] = ['Account number is required.'];
+      if (!pm.account_name.trim())   local[`payment_methods.${i}.account_name`] = ['Account name is required.'];
+    });
     return local;
   };
 
@@ -507,37 +512,50 @@ const CreateHostel = () => {
               )}
               <div className="space-y-3">
                 {basicForm.payment_methods.map((pm, i) => (
-                  <div key={i} className="flex flex-col sm:grid sm:grid-cols-7 gap-2 sm:items-center">
-                    <input
-                      type="text"
-                      placeholder="Method (e.g. KBZPay)"
-                      value={pm.method_name}
-                      onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
-                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Phone / Account No."
-                      value={pm.account_number}
-                      onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
-                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Account Name"
-                      value={pm.account_name}
-                      onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
-                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePaymentMethod(i)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition self-end sm:self-center"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                  <div key={i} className="space-y-1">
+                    <div className="flex flex-col sm:grid sm:grid-cols-7 gap-2 sm:items-center">
+                      <input
+                        type="text"
+                        placeholder="Method (e.g. KBZPay)"
+                        value={pm.method_name}
+                        onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.method_name`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Phone / Account No."
+                        value={pm.account_number}
+                        onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.account_number`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Account Name"
+                        value={pm.account_name}
+                        onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.account_name`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePaymentMethod(i)}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition self-end sm:self-center"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    {(errors[`payment_methods.${i}.method_name`] || errors[`payment_methods.${i}.account_number`] || errors[`payment_methods.${i}.account_name`]) && (
+                      <p className="text-xs text-red-500 px-1">
+                        {(errors[`payment_methods.${i}.method_name`] ?? errors[`payment_methods.${i}.account_number`] ?? errors[`payment_methods.${i}.account_name`])?.[0]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
