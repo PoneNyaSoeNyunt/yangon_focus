@@ -210,34 +210,47 @@ const PayNowModal = ({ booking, onClose, onSuccess }) => {
           </div>
         ) : (
           <div className="space-y-2 mb-4">
-            {paymentMethods.map((m) => (
-              <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
-                  selectedMethodId === m.id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
-                }`}>
-                <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">{m.method_name}</p>
-                  <p className="text-xs text-gray-500">{m.account_number} · {m.account_name}</p>
-                </div>
-              </button>
-            ))}
+            {paymentMethods.map((m) => {
+              const isSelected = selectedMethodId === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
+                  className={`w-full text-left border-2 rounded-xl px-4 py-3 transition ${
+                    isSelected ? 'border-teal-500 bg-teal-50' : 'border-gray-100 bg-gray-50 hover:border-teal-300'
+                  }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-xs font-bold mb-0.5 ${isSelected ? 'text-teal-700' : 'text-gray-700'}`}>{m.method_name}</p>
+                      <p className="text-sm font-semibold text-gray-800">{m.account_number}</p>
+                      <p className="text-xs text-gray-500">{m.account_name}</p>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
             <button type="button" onClick={() => selectMethod('cash')}
-              className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
-                isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
+              className={`w-full text-left border-2 rounded-xl px-4 py-3 transition ${
+                isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-100 bg-gray-50 hover:border-amber-300'
               }`}>
-              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-800 text-sm">Pay at Property</p>
-                <p className="text-xs text-gray-500">Notify owner — pay in cash upon arrival</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-bold mb-0.5 ${isCash ? 'text-amber-700' : 'text-gray-700'}`}>Pay at Property</p>
+                  <p className="text-sm font-semibold text-gray-800">Cash on Arrival</p>
+                  <p className="text-xs text-gray-500">Notify owner — pay in person</p>
+                </div>
+                {isCash && (
+                  <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </button>
           </div>
