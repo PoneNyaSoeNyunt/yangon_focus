@@ -10,6 +10,15 @@ use Illuminate\Validation\Rules\Password;
 
 class UserProfileController extends Controller
 {
+    public function show(Request $request)
+    {
+        $user = $request->user()->load(['statusCode', 'nrcTownship']);
+
+        return response()->json([
+            'user' => new UserResource($user),
+        ]);
+    }
+
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -21,10 +30,15 @@ class UserProfileController extends Controller
         }
 
         $validated = $request->validate([
-            'full_name'    => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'unique:users,phone_number,' . $user->id, 'regex:/^09\d{7,9}$/'],
+            'full_name'       => ['required', 'string', 'max:255'],
+            'phone_number'    => ['required', 'string', 'unique:users,phone_number,' . $user->id, 'regex:/^09\d{7,9}$/'],
+            'nrc_region'      => ['required', 'integer', 'between:1,14'],
+            'nrc_township_id' => ['required', 'integer', 'exists:nrc_townships,id'],
+            'nrc_type'        => ['required', 'string', 'in:N,P,E,T'],
+            'nrc_number'      => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
         ], [
             'phone_number.regex' => 'Please enter a valid format: 09 followed by 7 to 9 digits (e.g., 09123456789).',
+            'nrc_number.regex'   => 'The NRC number must be exactly 6 digits.',
         ]);
 
         $user->update($validated);
