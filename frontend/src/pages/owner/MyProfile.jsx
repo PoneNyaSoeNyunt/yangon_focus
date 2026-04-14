@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import ProfileService from '../../services/ProfileService';
+import NrcPicker from '../../components/NrcPicker';
 
 const InputField = ({ label, id, error, ...props }) => (
   <div>
@@ -33,8 +34,12 @@ const MyProfile = () => {
   const isSuspended = user?.user_status_id === 2;
 
   const [profileForm, setProfileForm] = useState({
-    full_name:    user?.full_name    ?? '',
-    phone_number: user?.phone_number ?? '',
+    full_name:       user?.full_name       ?? '',
+    phone_number:    user?.phone_number    ?? '',
+    nrc_region:      user?.nrc_region      ? String(user.nrc_region) : '',
+    nrc_township_id: user?.nrc_township_id ? String(user.nrc_township_id) : '',
+    nrc_type:        user?.nrc_type        ?? '',
+    nrc_number:      user?.nrc_number      ?? '',
   });
   const [profileErrors, setProfileErrors]   = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -77,7 +82,11 @@ const MyProfile = () => {
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     setProfileSuccess('');
-    profileMutation.mutate(profileForm);
+    profileMutation.mutate({
+      ...profileForm,
+      nrc_region: Number(profileForm.nrc_region),
+      nrc_township_id: Number(profileForm.nrc_township_id),
+    });
   };
 
   const handlePasswordSubmit = (e) => {
@@ -136,11 +145,11 @@ const MyProfile = () => {
               error={profileErrors.phone_number?.[0]}
               disabled={isSuspended}
             />
-            <InputField
-              label="NRC Number" id="nrc_number" type="text"
-              value={user?.formatted_nrc || 'N/A'}
-              disabled
-              readOnly
+            <NrcPicker
+              value={{ nrc_region: profileForm.nrc_region, nrc_township_id: profileForm.nrc_township_id, nrc_type: profileForm.nrc_type, nrc_number: profileForm.nrc_number }}
+              onChange={(nrc) => setProfileForm(f => ({ ...f, ...nrc }))}
+              errors={profileErrors}
+              disabled={isSuspended}
             />
 
             <div className="pt-2">
