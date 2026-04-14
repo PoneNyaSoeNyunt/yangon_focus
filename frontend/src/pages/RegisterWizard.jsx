@@ -129,11 +129,11 @@ const StepRoleSelect = ({ onSelect }) => (
 
 /* ── Shared Select ── */
 const Select = ({ label, id, error, children, ...props }) => (
-  <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+  <div className="min-w-0">
+    {label && <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>}
     <select
       id={id}
-      className={`w-full pl-4 pr-8 py-2.5 border rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition appearance-none ${
+      className={`w-full max-w-full pl-3 pr-8 py-2.5 border rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition appearance-none truncate ${
         error ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'
       }`}
       {...props}
@@ -235,7 +235,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
         {/* ── Structured NRC Picker ── */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">NRC Number</label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <Select id="nrc_region" value={form.nrc_region} onChange={set('nrc_region')} error={errors.nrc_region?.[0]}>
               <option value="">Region</option>
               {regionCodes.map(code => (
