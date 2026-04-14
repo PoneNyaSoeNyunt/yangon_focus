@@ -161,7 +161,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
   });
 
   const regionCodes = nrcData ? Object.keys(nrcData).map(Number).sort((a, b) => a - b) : [];
-  const townshipsForRegion = form.nrc_region && nrcData ? (nrcData[form.nrc_region] || []) : [];
+  const townshipsForRegion = form.nrc_region && nrcData ? (nrcData[String(form.nrc_region)] || []) : [];
 
   const mutation = useMutation({
     mutationFn: authService.register,

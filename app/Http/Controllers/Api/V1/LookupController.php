@@ -26,7 +26,9 @@ class LookupController extends Controller
             ->orderBy('township_code')
             ->get(['id', 'region_code', 'township_code']);
 
-        return response()->json($townships->groupBy('region_code'));
+        $grouped = $townships->groupBy('region_code')->map(fn($group) => $group->values());
+
+        return response()->json($grouped);
     }
 
     public function contactInfo()
