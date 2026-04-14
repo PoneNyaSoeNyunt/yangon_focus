@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('nrc_township_id')->references('id')->on('nrc_townships');
+            $table->unique(
+                ['nrc_region', 'nrc_township_id', 'nrc_type', 'nrc_number'],
+                'users_nrc_unique'
+            );
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['nrc_township_id']);
+            $table->dropUnique('users_nrc_unique');
         });
     }
 };

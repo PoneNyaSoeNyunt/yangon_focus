@@ -16,14 +16,24 @@ class UserSeeder extends Seeder
             ->where('label', 'Active')
             ->value('id');
 
-        $user = User::updateOrCreate(
+        // Resolve township IDs from the seeded nrc_townships table
+        $dagana = DB::table('nrc_townships')
+            ->where('region_code', 12)->where('township_code', 'DAGANA')->value('id');
+        $tamana = DB::table('nrc_townships')
+            ->where('region_code', 12)->where('township_code', 'TAMANA')->value('id');
+
+        // Super Admin
+        User::updateOrCreate(
             ['phone_number' => '09765432189'],
             [
-                'full_name'      => 'Pone Nya',
-                'nrc_number'     => '12(N)111111',
-                'password_hash'  => Hash::make('$Admin123'),
-                'role'           => 'Super Admin',
-                'user_status_id' => $activeStatusId,
+                'full_name'       => 'Pone Nya',
+                'nrc_region'      => 12,
+                'nrc_township_id' => $dagana,
+                'nrc_type'        => 'N',
+                'nrc_number'      => '111111',
+                'password_hash'   => Hash::make('$Admin123'),
+                'role'            => 'Super Admin',
+                'user_status_id'  => $activeStatusId,
             ]
         );
 

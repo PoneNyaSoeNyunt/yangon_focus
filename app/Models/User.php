@@ -22,6 +22,9 @@ class User extends Authenticatable
     protected $fillable = [
         'phone_number',
         'full_name',
+        'nrc_region',
+        'nrc_township_id',
+        'nrc_type',
         'nrc_number',
         'password_hash',
         'role',
