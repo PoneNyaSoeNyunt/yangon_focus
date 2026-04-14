@@ -42,7 +42,10 @@ class SubscriptionService
             ->where('label', 'Verified')->value('id');
 
         $subscription = Subscription::where('owner_id', $ownerId)
-            ->where('status_id', $pendingId)
+            ->where(function ($q) use ($pendingId) {
+                $q->where('status_id', $pendingId)
+                  ->orWhereHas('payments', fn ($p) => $p->where('payment_status_id', 8));
+            })
             ->latest()
             ->firstOrFail();
 
