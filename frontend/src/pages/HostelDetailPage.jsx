@@ -270,9 +270,14 @@ const BookingModal = ({
               </div>
               <p className="font-semibold text-gray-800">Booking submitted!</p>
               <p className="text-sm text-gray-400">Please make your payment to the owner within <span className="font-semibold text-amber-500">24 hours</span> to secure your bed. Unpaid bookings may be cancelled.</p>
-              <button onClick={onClose} className="mt-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition">
-                Done
-              </button>
+              <div className="flex items-center gap-3 mt-2">
+                <button onClick={onClose} className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
+                  Later
+                </button>
+                <button onClick={() => window.location.href = '/guest/bookings'} className="px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition">
+                  Go to Dashboard
+                </button>
+              </div>
             </div>
           ) : (
             <>
