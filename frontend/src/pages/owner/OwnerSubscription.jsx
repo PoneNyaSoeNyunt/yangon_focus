@@ -123,10 +123,11 @@ const OwnerSubscription = () => {
     setSelectedMethodId(null);
   };
 
-  const subscription   = subData?.subscription;
-  const fee            = subData?.fee ?? '5000';
-  const days           = daysRemaining(subscription?.end_date);
-  const statusLabel    = subscription?.status?.label;
+  const subscription      = subData?.subscription;
+  const fee               = subData?.fee ?? '5000';
+  const subscriptionUntil = subData?.subscription_until;
+  const days              = subData?.days_remaining ?? daysRemaining(subscription?.end_date);
+  const statusLabel       = subscription?.status?.label;
   const history        = Array.isArray(historyData) ? historyData : [];
   const activeMethods  = Array.isArray(methodsData) ? methodsData : [];
 
@@ -159,10 +160,10 @@ const OwnerSubscription = () => {
                 )}
               </div>
 
-              {subscription?.end_date && (
+              {(subscriptionUntil || subscription?.end_date) && (
                 <div>
                   <p className="text-xs text-gray-400 font-medium mb-0.5">Next Payment Due</p>
-                  <p className="text-sm font-semibold text-gray-800">{fmtDate(subscription.end_date)}</p>
+                  <p className="text-sm font-semibold text-gray-800">{fmtDate(subscriptionUntil ?? subscription.end_date)}</p>
                 </div>
               )}
 
