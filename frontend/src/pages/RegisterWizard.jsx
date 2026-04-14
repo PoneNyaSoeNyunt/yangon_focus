@@ -154,8 +154,10 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
   });
   const [errors, setErrors] = useState({});
   const [phoneError, setPhoneError] = useState('');
+  const [nrcNumError, setNrcNumError] = useState('');
 
   const validatePhone = (value) => /^09\d{7,9}$/.test(value);
+  const validateNrcNum = (value) => /^\d{6}$/.test(value);
 
   const onChangePhone = (e) => {
     const val = e.target.value.replace(/\D/g, '');
@@ -165,11 +167,25 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
 
   const onBlurPhone = () => {
     if (form.phone_number && !validatePhone(form.phone_number)) {
-      setPhoneError('Please enter a valid Myanmar phone number (e.g., 09791234567).');
+      setPhoneError('Please enter a valid format: 09 followed by 7 to 9 digits (e.g., 09123456789).');
     }
   };
 
   const onFocusPhone = () => setPhoneError('');
+
+  const onChangeNrcNum = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setForm(f => ({ ...f, nrc_number: val }));
+    setErrors(er => ({ ...er, nrc_number: undefined, _general: undefined }));
+  };
+
+  const onBlurNrcNum = () => {
+    if (form.nrc_number && !validateNrcNum(form.nrc_number)) {
+      setNrcNumError('The NRC number must be exactly 6 digits.');
+    }
+  };
+
+  const onFocusNrcNum = () => setNrcNumError('');
 
   const { data: nrcData } = useQuery({
     queryKey: ['nrc-lookup'],
@@ -246,7 +262,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
         <Field label="Full Name" id="full_name" name="full_name" type="text" autoComplete="name" placeholder="Ma Thida Aung"
           value={form.full_name} onChange={set('full_name')} error={errors.full_name?.[0]}
           iconPath="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09xxxxxxxxx"
+        <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09XXXXXXXXX"
           value={form.phone_number} onChange={onChangePhone}
           onBlur={onBlurPhone} onFocus={onFocusPhone}
           error={errors.phone_number?.[0] || phoneError}
@@ -278,12 +294,13 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
             <div>
               <input
                 id="nrc_number" type="text" inputMode="numeric" maxLength={6} placeholder="123456"
-                value={form.nrc_number} onChange={set('nrc_number')}
+                value={form.nrc_number} onChange={onChangeNrcNum}
+                onBlur={onBlurNrcNum} onFocus={onFocusNrcNum}
                 className={`w-full pl-3 pr-2 py-2.5 border rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition ${
-                  errors.nrc_number ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  (errors.nrc_number || nrcNumError) ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                 }`}
               />
-              {errors.nrc_number?.[0] && <p className="mt-1 text-xs text-red-500">{errors.nrc_number[0]}</p>}
+              {(errors.nrc_number?.[0] || nrcNumError) && <p className="mt-1 text-xs text-red-500">{errors.nrc_number?.[0] || nrcNumError}</p>}
             </div>
           </div>
         </div>
