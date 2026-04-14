@@ -51,6 +51,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/townships',           [LookupController::class, 'townships']);
     Route::get('/room-types',          [LookupController::class, 'roomTypes']);
     Route::get('/contact-info',        [LookupController::class, 'contactInfo']);
+    Route::get('/nrc-data',            [LookupController::class, 'nrcData']);
     Route::get('/report-categories',   [ReportController::class, 'categories']);
     Route::get('/public/hostels',                          [PublicHostelController::class, 'index']);
     Route::get('/public/hostels/{id}',                    [PublicHostelController::class, 'show']);

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             PlatformConfigSeeder::class,
             PlatformPaymentMethodSeeder::class,
             ReportCategorySeeder::class,
+            NrcTownshipSeeder::class,
         ]);
     }
 }
