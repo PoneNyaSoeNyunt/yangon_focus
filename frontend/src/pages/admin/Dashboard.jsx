@@ -220,7 +220,7 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <span className="text-gray-400 font-medium">NRC</span>
-                        <p className="font-mono text-gray-600 mt-0.5">{u.nrc_number ?? '—'}</p>
+                        <p className="font-mono text-gray-600 mt-0.5">{u.formatted_nrc ?? '—'}</p>
                       </div>
                       <div className="col-span-2 mt-1">
                         <span className="text-gray-400 font-medium">Registered</span>
@@ -277,7 +277,7 @@ const Dashboard = () => {
                           </div>
                         </td>
                         <td className="px-5 py-3.5 font-mono text-gray-600">{u.phone_number}</td>
-                        <td className="px-5 py-3.5 font-mono text-gray-500 text-xs">{u.nrc_number}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-500 text-xs">{u.formatted_nrc ?? '—'}</td>
                         <td className="px-5 py-3.5">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLES[u.role]?.color ?? 'bg-gray-100 text-gray-600'}`}>
                             {ROLES[u.role]?.label ?? u.role}

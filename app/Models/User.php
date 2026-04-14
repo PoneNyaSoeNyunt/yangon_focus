@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->belongsTo(StatusCode::class, 'user_status_id');
     }
 
+    public function nrcTownship()
+    {
+        return $this->belongsTo(NrcTownship::class, 'nrc_township_id');
+    }
+
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class, 'owner_id');

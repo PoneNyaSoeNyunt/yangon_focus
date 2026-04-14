@@ -25,7 +25,6 @@ const Profile = () => {
   const [profileForm, setProfileForm] = useState({
     full_name:    user?.full_name    ?? '',
     phone_number: user?.phone_number ?? '',
-    nrc_number:   user?.nrc_number   ?? '',
   });
   const [profileErrors, setProfileErrors] = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -145,9 +144,9 @@ const Profile = () => {
               label="NRC Number"
               id="nrc_number"
               type="text"
-              value={profileForm.nrc_number}
-              onChange={(e) => setProfileForm((f) => ({ ...f, nrc_number: e.target.value }))}
-              error={profileErrors.nrc_number?.[0]}
+              value={user?.formatted_nrc || 'N/A'}
+              disabled
+              readOnly
             />
 
             <div className="pt-2">

@@ -411,7 +411,7 @@ const SubscriptionManagement = () => {
                   </div>
                   <div>
                     <span className="text-gray-400 font-medium">NRC</span>
-                    <p className="text-gray-700 mt-0.5">{owner.nrc_number ?? '—'}</p>
+                    <p className="text-gray-700 mt-0.5">{owner.formatted_nrc ?? '—'}</p>
                   </div>
                   <div className="col-span-2 mt-1">
                     <span className="text-gray-400 font-medium">Hostels</span>
@@ -524,7 +524,7 @@ const SubscriptionManagement = () => {
                     <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
                     <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">{owner.full_name}</td>
                     <td className="px-3 py-4 font-mono text-gray-600 whitespace-nowrap">{owner.phone_number}</td>
-                    <td className="px-3 py-4 text-gray-600 whitespace-nowrap">{owner.nrc_number ?? '—'}</td>
+                    <td className="px-3 py-4 text-gray-600 whitespace-nowrap">{owner.formatted_nrc ?? '—'}</td>
                     <td className="px-3 py-4">
                       {owner.hostels && owner.hostels.length > 0 ? (
                         <div className="flex flex-col gap-1">

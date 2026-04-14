@@ -31,7 +31,7 @@ const SuccessAlert = ({ message }) => (
 const MyProfile = () => {
   const { user, login } = useAuth();
   const isSuspended = user?.user_status_id === 2;
-  const [form, setForm]   = useState({ full_name: '', phone_number: '', nrc_number: '' });
+  const [form, setForm]   = useState({ full_name: '', phone_number: '' });
   const [pwForm, setPwForm] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [profileErrors, setProfileErrors]   = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -40,7 +40,7 @@ const MyProfile = () => {
 
   useEffect(() => {
     if (user) {
-      setForm({ full_name: user.full_name ?? '', phone_number: user.phone_number ?? '', nrc_number: user.nrc_number ?? '' });
+      setForm({ full_name: user.full_name ?? '', phone_number: user.phone_number ?? '' });
     }
   }, [user]);
 
@@ -103,8 +103,9 @@ const MyProfile = () => {
               value={form.phone_number}  onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
               error={profileErrors.phone_number?.[0]} disabled={isSuspended} />
             <InputField label="NRC Number"    id="nrc_number"    type="text"
-              value={form.nrc_number}    onChange={(e) => setForm((f) => ({ ...f, nrc_number: e.target.value }))}
-              error={profileErrors.nrc_number?.[0]} disabled={isSuspended} />
+              value={user?.formatted_nrc || 'N/A'}
+              disabled
+              readOnly />
 
             <div className="pt-1">
               <button type="submit" disabled={profileMutation.isPending || isSuspended}

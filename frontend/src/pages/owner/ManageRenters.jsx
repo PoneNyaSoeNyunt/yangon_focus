@@ -147,7 +147,7 @@ function TenantDrawer({ renter, onClose, onViewPayments }) {
 
           <div className="space-y-4">
             <InfoRow label="Phone" value={renter.phone_number} icon="phone" />
-            <InfoRow label="NRC Number" value={renter.nrc_number} icon="id" />
+            <InfoRow label="NRC Number" value={renter.formatted_nrc || 'N/A'} icon="id" />
             <InfoRow label="Room" value={`Room ${renter.room_label}`} icon="door" />
             <InfoRow label="Bed Number" value={`Bed ${renter.bed_number}`} icon="bed" />
             <InfoRow label="Check-in Date" value={formatDate(renter.check_in_date)} icon="calendar" />

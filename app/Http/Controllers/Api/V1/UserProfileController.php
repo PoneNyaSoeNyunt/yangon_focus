@@ -15,16 +15,19 @@ class UserProfileController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'full_name'    => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'unique:users,phone_number,' . $user->id],
-            'nrc_number'   => ['required', 'string', 'unique:users,nrc_number,' . $user->id],
+            'full_name'       => ['required', 'string', 'max:255'],
+            'phone_number'    => ['required', 'string', 'unique:users,phone_number,' . $user->id],
+            'nrc_region'      => ['required', 'integer', 'between:1,14'],
+            'nrc_township_id' => ['required', 'integer', 'exists:nrc_townships,id'],
+            'nrc_type'        => ['required', 'string', 'in:N,P,E,T'],
+            'nrc_number'      => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
         ]);
 
         $user->update($validated);
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => new UserResource($user->fresh()->load('statusCode')),
+            'user'    => new UserResource($user->fresh()->load(['statusCode', 'nrcTownship'])),
         ]);
     }
 

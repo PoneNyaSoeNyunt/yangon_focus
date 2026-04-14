@@ -27,7 +27,7 @@ class AuthController extends Controller
     {
         $user = $this->userService->createUser($request->validated());
 
-        $userModel = \App\Models\User::find($user->id);
+        $userModel = \App\Models\User::with(['statusCode', 'nrcTownship'])->find($user->id);
         $token = $userModel->createToken('auth-token')->plainTextToken;
 
         return response()->json([
@@ -62,7 +62,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $userModel = \App\Models\User::find($user->id);
+        $userModel = \App\Models\User::with(['statusCode', 'nrcTownship'])->find($user->id);
         $token = $userModel->createToken('auth-token')->plainTextToken;
 
         return response()->json([
