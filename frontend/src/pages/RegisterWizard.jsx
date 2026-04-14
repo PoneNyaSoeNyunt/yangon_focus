@@ -154,6 +154,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
   });
   const [errors, setErrors] = useState({});
   const [phoneError, setPhoneError] = useState('');
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const validatePhone = (value) => {
     if (!value) return '';
@@ -244,7 +245,9 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
           value={form.full_name} onChange={set('full_name')} error={errors.full_name?.[0]}
           iconPath="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09xxxxxxxxx"
-          value={form.phone_number} onChange={onChangePhone} error={errors.phone_number?.[0] || phoneError}
+          value={form.phone_number} onChange={onChangePhone}
+          onBlur={() => setPhoneTouched(true)}
+          error={errors.phone_number?.[0] || (phoneTouched && form.phone_number.length >= 3 ? phoneError : '')}
           iconPath="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
 
         {/* ── Structured NRC Picker ── */}
