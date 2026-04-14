@@ -862,6 +862,7 @@ const SubscriptionManagement = () => {
                     <th className="px-4 py-3 text-xs font-semibold text-gray-500">Method</th>
                     <th className="px-4 py-3 text-xs font-semibold text-gray-500">Date</th>
                     <th className="px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Screenshot</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -874,6 +875,19 @@ const SubscriptionManagement = () => {
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
                           {p.status?.label ?? '—'}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {p.screenshot_url ? (
+                          <a href={p.screenshot_url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 text-xs font-medium">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            View
+                          </a>
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
