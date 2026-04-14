@@ -45,6 +45,7 @@ const OwnerSubscription = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [selectedMethodId, setSelectedMethodId] = useState(null);
   const fileRef = useRef(null);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   const { data: subData, isLoading: subLoading } = useQuery({
     queryKey: ['owner-subscription'],
@@ -223,70 +224,50 @@ const OwnerSubscription = () => {
             <p className="text-sm text-gray-400">No payment history yet.</p>
           </div>
         ) : (
-          <>
-            {/* ── Mobile card list ── */}
-            <div className="lg:hidden p-3 space-y-3">
-              {history.map((p) => (
-                <div key={p.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs text-gray-400 font-medium">Date</p>
-                      <p className="text-sm font-semibold text-gray-800 mt-0.5">{fmtDate(p.created_at)}</p>
-                    </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                      {p.status?.label ?? '—'}
+          <div className="p-4 space-y-2.5">
+            {history.map((p, idx) => {
+              const statusLabel = p.status?.label ?? '—';
+              const statusCls =
+                statusLabel === 'Verified'       ? 'bg-green-100 text-green-700' :
+                statusLabel === 'Pending Review' ? 'bg-amber-100 text-amber-700' :
+                statusLabel === 'Rejected'       ? 'bg-red-100 text-red-500'     :
+                'bg-gray-100 text-gray-600';
+              const methodColors = {
+                KBZPay:          'bg-blue-50 text-blue-700 border-blue-200',
+                WaveMoney:       'bg-orange-50 text-orange-700 border-orange-200',
+                'Bank Transfer': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                Cash:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+              };
+              const methodCls = methodColors[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50 text-xs">
+                  <div className="flex-shrink-0">
+                    <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                      {p.payment_method ?? 'Unknown'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <div>
-                      <p className="text-gray-400 font-medium">Amount</p>
-                      <p className="font-semibold text-gray-800 mt-0.5">
-                        {p.total_amount != null ? Number(p.total_amount).toLocaleString() + ' MMK' : '—'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 font-medium">Months Covered</p>
-                      <p className="text-gray-700 mt-0.5">
-                        {monthsCovered(p.total_amount, fee)} month{monthsCovered(p.total_amount, fee) !== 1 ? 's' : ''}
-                      </p>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 truncate">Payment #{history.length - idx}</p>
+                    <p className="text-gray-400 mt-0.5 truncate">
+                      {fmtDate(p.created_at)}
+                      {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
+                    </p>
                   </div>
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                    {statusLabel}
+                  </span>
+                  {p.screenshot_url && (
+                    <button
+                      onClick={() => setLightboxUrl(p.screenshot_url)}
+                      className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                      aria-label="View receipt">
+                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            {/* ── Desktop table ── */}
-            <div className="hidden lg:block rounded-b-2xl">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left">
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Date</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Amount</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Months Covered</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {history.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/60 transition">
-                      <td className="px-6 py-4 text-gray-600">{fmtDate(p.created_at)}</td>
-                      <td className="px-6 py-4 font-semibold text-gray-800">
-                        {p.total_amount != null ? Number(p.total_amount).toLocaleString() + ' MMK' : '—'}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {monthsCovered(p.total_amount, fee)} month{monthsCovered(p.total_amount, fee) !== 1 ? 's' : ''}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                          {p.status?.label ?? '—'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -425,6 +406,28 @@ const OwnerSubscription = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Payment receipt"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>
