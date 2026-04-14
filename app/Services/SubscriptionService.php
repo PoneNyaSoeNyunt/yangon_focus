@@ -151,18 +151,31 @@ class SubscriptionService
             ->where('label', 'Overdue')
             ->value('id');
 
+        $activeId = StatusCode::where('context', 'Subscription')
+            ->where('label', 'Active')
+            ->value('id');
+
         $subscription = Subscription::where('owner_id', $ownerId)
             ->whereIn('status_id', [$pendingVerificationId, $overdueId])
             ->latest()
             ->first();
 
         if (!$subscription) {
-            $subscription = Subscription::create([
-                'owner_id'   => $ownerId,
-                'start_date' => now(),
-                'end_date'   => now()->addDays(30),
-                'status_id'  => $pendingVerificationId,
-            ]);
+            $activeSubscription = Subscription::where('owner_id', $ownerId)
+                ->where('status_id', $activeId)
+                ->latest()
+                ->first();
+
+            if ($activeSubscription) {
+                $subscription = $activeSubscription;
+            } else {
+                $subscription = Subscription::create([
+                    'owner_id'   => $ownerId,
+                    'start_date' => now(),
+                    'end_date'   => now()->addDays(30),
+                    'status_id'  => $pendingVerificationId,
+                ]);
+            }
         }
 
         $screenshotUrl = null;
