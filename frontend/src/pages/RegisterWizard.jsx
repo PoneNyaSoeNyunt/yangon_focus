@@ -153,6 +153,20 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
     password: '', password_confirmation: '',
   });
   const [errors, setErrors] = useState({});
+  const [phoneError, setPhoneError] = useState('');
+
+  const validatePhone = (value) => {
+    if (!value) return '';
+    return /^(09|\+959)\d{7,9}$/.test(value) ? '' : 'Please enter a valid Myanmar phone number (e.g., 09791234567).';
+  };
+
+  const onChangePhone = (e) => {
+    let val = e.target.value;
+    val = val.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    setForm(f => ({ ...f, phone_number: val }));
+    setErrors(er => ({ ...er, phone_number: undefined, _general: undefined }));
+    setPhoneError(val ? validatePhone(val) : '');
+  };
 
   const { data: nrcData } = useQuery({
     queryKey: ['nrc-lookup'],
@@ -184,6 +198,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
     const errs = {};
     if (!form.full_name.trim()) errs.full_name = ['Full name is required.'];
     if (!form.phone_number.trim()) errs.phone_number = ['Phone number is required.'];
+    else if (!/^(09|\+959)\d{7,9}$/.test(form.phone_number)) errs.phone_number = ['Please enter a valid Myanmar phone number (e.g., 09791234567).'];
     if (!form.nrc_region) errs.nrc_region = ['Region is required.'];
     if (!form.nrc_township_id) errs.nrc_township_id = ['Township is required.'];
     if (!form.nrc_type) errs.nrc_type = ['Type is required.'];
@@ -229,7 +244,7 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
           value={form.full_name} onChange={set('full_name')} error={errors.full_name?.[0]}
           iconPath="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09xxxxxxxxx"
-          value={form.phone_number} onChange={set('phone_number')} error={errors.phone_number?.[0]}
+          value={form.phone_number} onChange={onChangePhone} error={errors.phone_number?.[0] || phoneError}
           iconPath="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
 
         {/* ── Structured NRC Picker ── */}
