@@ -854,45 +854,47 @@ const SubscriptionManagement = () => {
           ) : payments.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">No subscription payments found for this owner.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left">
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Amount</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Method</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Date</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Screenshot</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/60 transition">
-                      <td className="px-4 py-3 font-semibold text-gray-800">{fmtAmt(p.total_amount)}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.payment_method ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{fmtDate(p.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                          {p.status?.label ?? '—'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {p.screenshot_url ? (
-                          <a href={p.screenshot_url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 text-xs font-medium">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            View
-                          </a>
-                        ) : (
-                          <span className="text-gray-300 text-xs">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2.5">
+              {payments.map((p, idx) => {
+                const statusLabel = p.status?.label ?? '—';
+                const statusCls =
+                  statusLabel === 'Verified'       ? 'bg-green-100 text-green-700' :
+                  statusLabel === 'Pending Review' ? 'bg-amber-100 text-amber-700' :
+                  statusLabel === 'Rejected'       ? 'bg-red-100 text-red-500'     :
+                  'bg-gray-100 text-gray-600';
+                const methodColors = {
+                  KBZPay:          'bg-blue-50 text-blue-700 border-blue-200',
+                  WaveMoney:       'bg-orange-50 text-orange-700 border-orange-200',
+                  'Bank Transfer': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                  Cash:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+                };
+                const methodCls = methodColors[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+                return (
+                  <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50 text-xs">
+                    <div className="flex-shrink-0">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-800 truncate">Payment #{payments.length - idx}</p>
+                      <p className="text-gray-400 mt-0.5 truncate">
+                        {fmtDate(p.created_at)}
+                        {p.total_amount ? ` · ${fmtAmt(p.total_amount)}` : ''}
+                      </p>
+                    </div>
+                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                      {statusLabel}
+                    </span>
+                    {p.screenshot_url && (
+                      <a href={p.screenshot_url} target="_blank" rel="noopener noreferrer"
+                        className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition">
+                        <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </Modal>
