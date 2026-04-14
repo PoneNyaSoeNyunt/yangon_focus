@@ -8,6 +8,7 @@ use App\Models\PlatformConfig;
 use App\Models\StatusCode;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -45,11 +46,17 @@ class SubscriptionService
             ->latest()
             ->firstOrFail();
 
+        $owner = User::findOrFail($ownerId);
+        $currentExpiry = $owner->subscription_until ? Carbon::parse($owner->subscription_until) : now();
+        $newExpiry = ($currentExpiry->isPast() ? now() : $currentExpiry)->addMonth();
+
         $subscription->update([
             'status_id'  => $activeId,
             'start_date' => now(),
-            'end_date'   => now()->addDays(30),
+            'end_date'   => $newExpiry,
         ]);
+
+        $owner->update(['subscription_until' => $newExpiry]);
 
         Payment::where('subscription_id', $subscription->id)
             ->where('payment_status_id', 8)
@@ -110,9 +117,17 @@ class SubscriptionService
             ->latest()
             ->first();
 
+        $owner = User::find($ownerId);
+        $subscriptionUntil = $owner?->subscription_until;
+        $daysRemaining = $subscriptionUntil
+            ? (int) max(0, now()->diffInDays(Carbon::parse($subscriptionUntil), false))
+            : 0;
+
         return [
-            'subscription' => $subscription,
-            'fee'          => $this->getSubscriptionFee(),
+            'subscription'       => $subscription,
+            'fee'                => $this->getSubscriptionFee(),
+            'subscription_until' => $subscriptionUntil,
+            'days_remaining'     => $daysRemaining,
         ];
     }
 

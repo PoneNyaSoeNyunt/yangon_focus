@@ -29,6 +29,7 @@ class User extends Authenticatable
         'password_hash',
         'role',
         'user_status_id',
+        'subscription_until',
     ];
 
     /**
@@ -49,8 +50,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'created_at'         => 'datetime',
+            'updated_at'         => 'datetime',
+            'subscription_until' => 'datetime',
         ];
     }
 
