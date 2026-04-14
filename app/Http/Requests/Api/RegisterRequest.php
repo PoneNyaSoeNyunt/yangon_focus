@@ -33,10 +33,17 @@ class RegisterRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    public function messages(): array
+    {
+        return [
+            'phone_number.regex' => 'Please enter a valid Myanmar phone number (e.g., 09791234567).',
+        ];
+    }
+
     public function rules(): array
     {
         return [
-            'phone_number'    => ['required', 'string', 'unique:users,phone_number'],
+            'phone_number'    => ['required', 'string', 'unique:users,phone_number', 'regex:/^(09|\+959)\d{7,9}$/'],
             'full_name'       => ['required', 'string', 'max:255'],
             'nrc_region'      => ['required', 'integer', 'between:1,14'],
             'nrc_township_id' => ['required', 'integer', 'exists:nrc_townships,id'],

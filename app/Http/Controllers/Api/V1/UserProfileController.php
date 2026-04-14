@@ -14,13 +14,21 @@ class UserProfileController extends Controller
     {
         $user = $request->user();
 
+        if ($request->has('phone_number')) {
+            $request->merge([
+                'phone_number' => \App\Models\User::normalizePhoneNumber($request->input('phone_number')),
+            ]);
+        }
+
         $validated = $request->validate([
             'full_name'       => ['required', 'string', 'max:255'],
-            'phone_number'    => ['required', 'string', 'unique:users,phone_number,' . $user->id],
+            'phone_number'    => ['required', 'string', 'unique:users,phone_number,' . $user->id, 'regex:/^(09|\+959)\d{7,9}$/'],
             'nrc_region'      => ['required', 'integer', 'between:1,14'],
             'nrc_township_id' => ['required', 'integer', 'exists:nrc_townships,id'],
             'nrc_type'        => ['required', 'string', 'in:N,P,E,T'],
             'nrc_number'      => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
+        ], [
+            'phone_number.regex' => 'Please enter a valid Myanmar phone number (e.g., 09791234567).',
         ]);
 
         $user->update($validated);
