@@ -65,17 +65,25 @@ class SubscriptionService
                 'subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1),
                 'statusCode:id,label',
                 'hostels:id,owner_id,name',
+                'nrcTownship',
             ])
             ->get()
-            ->map(fn ($u) => [
-                'id'                  => $u->id,
-                'full_name'           => $u->full_name,
-                'phone_number'        => $u->phone_number,
-                'nrc_number'          => $u->nrc_number,
-                'account_status'      => $u->statusCode?->label ?? 'Active',
-                'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
-                'hostels'             => $u->hostels->pluck('name')->toArray(),
-            ]);
+            ->map(function ($u) {
+                $formattedNrc = null;
+                if ($u->nrc_region && $u->nrcTownship && $u->nrc_type && $u->nrc_number) {
+                    $formattedNrc = $u->nrc_region . '/' . $u->nrcTownship->township_code . '(' . $u->nrc_type . ')' . $u->nrc_number;
+                }
+
+                return [
+                    'id'                  => $u->id,
+                    'full_name'           => $u->full_name,
+                    'phone_number'        => $u->phone_number,
+                    'formatted_nrc'       => $formattedNrc,
+                    'account_status'      => $u->statusCode?->label ?? 'Active',
+                    'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
+                    'hostels'             => $u->hostels->pluck('name')->toArray(),
+                ];
+            });
     }
 
     public function getOwnerHostelDetails(int $ownerId): \Illuminate\Database\Eloquent\Collection
