@@ -69,7 +69,7 @@ class SubscriptionService
     {
         return User::where('role', 'Owner')
             ->with([
-                'subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1),
+                'subscriptions' => fn ($q) => $q->with(['status', 'payments'])->latest()->limit(1),
                 'statusCode:id,label',
                 'hostels:id,owner_id,name',
                 'nrcTownship',
@@ -81,13 +81,21 @@ class SubscriptionService
                     $formattedNrc = $u->nrc_region . '/' . $u->nrcTownship->township_code . '(' . $u->nrc_type . ')' . $u->nrc_number;
                 }
 
+                $latestSub = $u->subscriptions->first();
+                $hasPendingPayment = $latestSub
+                    ? $latestSub->payments->contains('payment_status_id', 8)
+                    : false;
+
+                $subStatus = $latestSub?->status?->label ?? 'No Subscription';
+
                 return [
                     'id'                  => $u->id,
                     'full_name'           => $u->full_name,
                     'phone_number'        => $u->phone_number,
                     'formatted_nrc'       => $formattedNrc,
                     'account_status'      => $u->statusCode?->label ?? 'Active',
-                    'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
+                    'subscription_status' => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment' => $hasPendingPayment,
                     'hostels'             => $u->hostels->pluck('name')->toArray(),
                 ];
             });
