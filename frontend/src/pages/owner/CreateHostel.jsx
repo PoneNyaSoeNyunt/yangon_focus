@@ -505,34 +505,34 @@ const CreateHostel = () => {
               {basicForm.payment_methods.length === 0 && (
                 <p className="text-xs text-gray-400 italic mb-2">No payment methods added yet. Guests will only see "Pay at Property" (Cash).</p>
               )}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {basicForm.payment_methods.map((pm, i) => (
-                  <div key={i} className="grid grid-cols-7 gap-2 items-center">
+                  <div key={i} className="flex flex-col sm:grid sm:grid-cols-7 gap-2 sm:items-center">
                     <input
                       type="text"
                       placeholder="Method (e.g. KBZPay)"
                       value={pm.method_name}
                       onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     />
                     <input
                       type="text"
                       placeholder="Phone / Account No."
                       value={pm.account_number}
                       onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     />
                     <input
                       type="text"
                       placeholder="Account Name"
                       value={pm.account_name}
                       onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      className="sm:col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                     />
                     <button
                       type="button"
                       onClick={() => removePaymentMethod(i)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
+                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition self-end sm:self-center"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
