@@ -182,7 +182,7 @@ const OwnerSubscription = () => {
               )}
             </div>
 
-            <div className="text-right">
+            <div className="text-left">
               <p className="text-xs text-gray-400 mb-1">Monthly Fee</p>
               <p className="text-2xl font-extrabold text-teal-600 leading-tight">
                 {Number(fee).toLocaleString()}
