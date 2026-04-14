@@ -22,9 +22,9 @@ class UserProfileController extends Controller
 
         $validated = $request->validate([
             'full_name'    => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'unique:users,phone_number,' . $user->id, 'regex:/^(09|\+959)\d{7,9}$/'],
+            'phone_number' => ['required', 'string', 'unique:users,phone_number,' . $user->id, 'regex:/^09\d{7,9}$/'],
         ], [
-            'phone_number.regex' => 'Please enter a valid Myanmar phone number (e.g., 09791234567).',
+            'phone_number.regex' => 'Please enter a valid format: 09 followed by 7 to 9 digits (e.g., 09123456789).',
         ]);
 
         $user->update($validated);
