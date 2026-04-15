@@ -87,6 +87,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/rooms/{id}',                     [OwnerHostelController::class, 'destroyRoom']);
         Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
         Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
+        Route::patch('/payments/{id}/reject',            [PaymentController::class, 'rejectDigital']);
 
         Route::get('/renters',                           [RenterController::class, 'index']);
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
