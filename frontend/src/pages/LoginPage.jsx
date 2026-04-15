@@ -64,7 +64,11 @@ const LoginPage = () => {
   });
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === 'phone_number' ? value.replace(/\D/g, '') : value,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -157,6 +161,7 @@ const LoginPage = () => {
                     id="phone_number"
                     name="phone_number"
                     type="tel"
+                    inputMode="numeric"
                     autoComplete="tel"
                     required
                     value={form.phone_number}
