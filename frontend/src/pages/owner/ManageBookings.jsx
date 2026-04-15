@@ -256,12 +256,17 @@ const BookingDetailModal = ({ booking, onClose, onVerify, onReject, onCancel, on
 
             {/* Cancellation info */}
             {statusLabel === 'Cancelled' && (
-              <div className="sm:col-span-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <div className="sm:col-span-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 space-y-1">
                 <p className="text-xs font-semibold text-red-500 uppercase tracking-wider">Cancellation Reason</p>
-                <p className="text-sm text-red-700 mt-1">
+                <p className="text-sm text-red-700">
                   {booking.cancelled_by === 'owner' ? 'Cancelled by you' : 'Cancelled by the guest'}
                   {booking.cancel_reason ? `: "${booking.cancel_reason}"` : '.'}
                 </p>
+                {booking.updated_at && (
+                  <p className="text-[10px] text-red-400">
+                    {fmtDateTime(booking.updated_at)}
+                  </p>
+                )}
               </div>
             )}
           </div>
