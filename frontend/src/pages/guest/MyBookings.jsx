@@ -305,7 +305,8 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
   const isCancelled  = booking.status_label === 'Cancelled';
   const total        = Number(booking.locked_price) * Number(booking.stay_duration);
   const hostel       = booking.bed?.room?.hostel;
-  const latestPayment = booking.payments?.[0];
+  const payments = booking.payments ?? [];
+  const latestPayment = payments.length > 0 ? payments[payments.length - 1] : null;
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason]   = useState('');
 
@@ -340,20 +341,24 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
         </div>
       </div>
 
-      {latestPayment && (
+      {payments.length > 0 && (
         <div className="mb-3 space-y-2">
-          <div className="px-3 py-2 bg-gray-50 rounded-xl text-xs text-gray-500 flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[latestPayment.status] ?? 'bg-gray-100 text-gray-600'}`}>
-              {latestPayment.status}
-            </span>
-            {latestPayment.payment_method} payment submitted
-          </div>
-          {latestPayment.status === 'Rejected' && latestPayment.rejection_reason && (
-            <div className="px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600">
-              <p className="font-semibold mb-0.5">Rejection reason:</p>
-              <p className="italic">{latestPayment.rejection_reason}</p>
+          {[...payments].reverse().map((p, idx) => (
+            <div key={p.id} className="space-y-1.5">
+              <div className={`px-3 py-2 rounded-xl text-xs text-gray-500 flex items-center gap-2 ${idx === 0 ? 'bg-gray-50' : 'bg-gray-50/60 opacity-60'}`}>
+                <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {p.status}
+                </span>
+                {p.payment_method} payment submitted
+              </div>
+              {p.status === 'Rejected' && p.rejection_reason && (
+                <div className={`px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 ${idx !== 0 ? 'opacity-60' : ''}`}>
+                  <p className="font-semibold mb-0.5">Rejection reason:</p>
+                  <p className="italic">{p.rejection_reason}</p>
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
       )}
 
