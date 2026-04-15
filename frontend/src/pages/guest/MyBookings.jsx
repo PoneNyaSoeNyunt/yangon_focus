@@ -341,11 +341,19 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
       </div>
 
       {latestPayment && (
-        <div className="mb-3 px-3 py-2 bg-gray-50 rounded-xl text-xs text-gray-500 flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[latestPayment.status] ?? 'bg-gray-100 text-gray-600'}`}>
-            {latestPayment.status}
-          </span>
-          {latestPayment.type} payment submitted
+        <div className="mb-3 space-y-2">
+          <div className="px-3 py-2 bg-gray-50 rounded-xl text-xs text-gray-500 flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[latestPayment.status] ?? 'bg-gray-100 text-gray-600'}`}>
+              {latestPayment.status}
+            </span>
+            {latestPayment.payment_method} payment submitted
+          </div>
+          {latestPayment.status === 'Rejected' && latestPayment.rejection_reason && (
+            <div className="px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600">
+              <p className="font-semibold mb-0.5">Rejection reason:</p>
+              <p className="italic">{latestPayment.rejection_reason}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -369,7 +377,7 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
                 </button>
               )}
               <button
-                disabled={!!latestPayment}
+                disabled={latestPayment?.status === 'Pending Review' || latestPayment?.status === 'Verified'}
                 onClick={() => onPayNow(booking)}
                 className="px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl transition">
                 Pay Now

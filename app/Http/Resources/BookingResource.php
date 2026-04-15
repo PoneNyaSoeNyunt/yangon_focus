@@ -32,13 +32,14 @@ class BookingResource extends JsonResource
             ],
             'payments' => $this->whenLoaded('payments', fn() =>
                 $this->payments->map(fn($p) => [
-                    'id'             => $p->id,
-                    'payment_method' => $p->payment_method,
-                    'total_amount'   => $p->total_amount,
-                    'is_advance'     => (bool) $p->is_advance,
-                    'status'         => $p->status?->label,
-                    'screenshot_url' => $p->screenshot_url,
-                    'paid_at'        => $p->created_at?->toDateString(),
+                    'id'               => $p->id,
+                    'payment_method'   => $p->payment_method,
+                    'total_amount'     => $p->total_amount,
+                    'is_advance'       => (bool) $p->is_advance,
+                    'status'           => $p->status?->label,
+                    'screenshot_url'   => $p->screenshot_url,
+                    'rejection_reason' => $p->rejection_reason,
+                    'paid_at'          => $p->created_at?->toDateString(),
                 ])
             ),
             'cancel_reason'  => $this->cancel_reason,
