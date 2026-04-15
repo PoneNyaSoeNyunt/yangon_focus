@@ -950,7 +950,7 @@ const CreateHostel = () => {
                         ×
                       </button>
                     </div>
-                    <div className="flex gap-3 p-4">
+                    {lightboxImage.id && <div className="flex gap-3 p-4">
                       <button
                         type="button"
                         onClick={() => makePrimaryMutation.mutate(lightboxImage.id)}
@@ -987,7 +987,7 @@ const CreateHostel = () => {
                         )}
                         Delete
                       </button>
-                    </div>
+                    </div>}
                   </div>
                 </div>
               )}
