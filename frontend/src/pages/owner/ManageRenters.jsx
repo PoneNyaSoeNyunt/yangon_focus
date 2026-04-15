@@ -38,6 +38,7 @@ function isOverdue(dateStr) {
 }
 
 function PaymentHistoryModal({ renter, onClose }) {
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const { data: payments = [], isLoading, isError } = useQuery({
     queryKey: ['renter-payments', renter.guest_id],
     queryFn:  () => ownerService.getRenterPayments(renter.guest_id),
@@ -99,14 +100,13 @@ function PaymentHistoryModal({ renter, onClose }) {
                     </p>
                   </div>
                   {p.screenshot_url && (
-                    <a
-                      href={p.screenshot_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition"
+                    <button
+                      onClick={() => setLightboxUrl(p.screenshot_url)}
+                      className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                      aria-label="View receipt"
                     >
                       <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                    </a>
+                    </button>
                   )}
                 </div>
               ))}
@@ -114,6 +114,28 @@ function PaymentHistoryModal({ renter, onClose }) {
           )}
         </div>
       </div>
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Payment receipt"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
