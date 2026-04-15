@@ -148,6 +148,7 @@ const BookingDetailModal = ({ booking, onClose, onVerify, onReject, onCancel, on
   const total       = Number(booking.locked_price) * Number(booking.stay_duration);
   const pendingPayments = (booking.payments ?? []).filter(p => p.status?.label === 'Pending Review' && p.screenshot_url);
   const hasPendingCash  = booking.payments?.some(p => p.payment_method === 'Cash' && p.status?.label === 'Pending Review');
+  const hasActivePayment = booking.payments?.some(p => p.status?.label === 'Pending Review' || p.status?.label === 'Verified');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -312,7 +313,7 @@ const BookingDetailModal = ({ booking, onClose, onVerify, onReject, onCancel, on
           )}
 
           {/* Cancel booking */}
-          {isPending && (
+          {isPending && !hasActivePayment && (
             <button
               onClick={() => { setShowCancelForm(true); setCancelReason(''); setCancelErr(''); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold rounded-xl transition border border-red-100"
