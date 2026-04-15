@@ -100,6 +100,7 @@ class SubscriptionService
                     'subscription_status' => $hasPendingPayment ? 'Pending Verification' : $subStatus,
                     'has_pending_payment' => $hasPendingPayment,
                     'hostels'             => $u->hostels->pluck('name')->toArray(),
+                    'next_payment_due'    => $latestSub?->end_date?->toDateString(),
                 ];
             });
     }

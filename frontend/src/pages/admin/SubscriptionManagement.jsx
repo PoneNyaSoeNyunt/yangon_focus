@@ -417,12 +417,8 @@ const SubscriptionManagement = () => {
                     <p className="text-gray-700 mt-0.5">{owner.formatted_nrc ?? '—'}</p>
                   </div>
                   <div className="col-span-2 mt-1">
-                    <span className="text-gray-400 font-medium">Hostels</span>
-                    <div className="mt-0.5">
-                      {owner.hostels && owner.hostels.length > 0
-                        ? owner.hostels.map((h, i) => <p key={i} className="text-gray-700">{h}</p>)
-                        : <p className="text-gray-400">No hostels</p>}
-                    </div>
+                    <span className="text-gray-400 font-medium">Next Payment Due</span>
+                    <p className="text-gray-700 mt-0.5">{owner.next_payment_due ? fmtDate(owner.next_payment_due) : '—'}</p>
                   </div>
                 </div>
 
@@ -514,7 +510,7 @@ const SubscriptionManagement = () => {
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Full Name</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Hostel</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Next Payment Due</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Status</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Subscription</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Details</th>
@@ -528,16 +524,8 @@ const SubscriptionManagement = () => {
                     <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">{owner.full_name}</td>
                     <td className="px-3 py-4 font-mono text-gray-600 whitespace-nowrap">{owner.phone_number}</td>
                     <td className="px-3 py-4 text-gray-600 whitespace-nowrap">{owner.formatted_nrc ?? '—'}</td>
-                    <td className="px-3 py-4">
-                      {owner.hostels && owner.hostels.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {owner.hostels.map((hostelName, i) => (
-                            <span key={i} className="text-xs text-gray-700">{hostelName}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">No hostels</span>
-                      )}
+                    <td className="px-3 py-4 text-gray-600 whitespace-nowrap">
+                      {owner.next_payment_due ? fmtDate(owner.next_payment_due) : '—'}
                     </td>
                     <td className="px-3 py-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
