@@ -343,13 +343,22 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
 
       {payments.length > 0 && (
         <div className="mb-3 space-y-2">
-          {[...payments].reverse().map((p, idx) => (
+          {[...payments].reverse().map((p, idx) => {
+            const submitted = p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+            const statusTime = p.updated_at && p.status !== 'Pending Review' ? new Date(p.updated_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+            return (
             <div key={p.id} className="space-y-1.5">
-              <div className={`px-3 py-2 rounded-xl text-xs text-gray-500 flex items-center gap-2 ${idx === 0 ? 'bg-gray-50' : 'bg-gray-50/60 opacity-60'}`}>
-                <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {p.status}
-                </span>
-                {p.payment_method} payment submitted
+              <div className={`px-3 py-2 rounded-xl text-xs text-gray-500 ${idx === 0 ? 'bg-gray-50' : 'bg-gray-50/60 opacity-60'}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {p.status}
+                  </span>
+                  {p.payment_method} payment
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-gray-400">
+                  <span>Submitted: {submitted}</span>
+                  {statusTime && <span>{p.status === 'Verified' ? 'Verified' : p.status === 'Rejected' ? 'Rejected' : 'Updated'}: {statusTime}</span>}
+                </div>
               </div>
               {p.status === 'Rejected' && p.rejection_reason && (
                 <div className={`px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 ${idx !== 0 ? 'opacity-60' : ''}`}>
@@ -358,7 +367,8 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

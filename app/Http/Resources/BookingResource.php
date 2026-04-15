@@ -39,7 +39,8 @@ class BookingResource extends JsonResource
                     'status'           => $p->status?->label,
                     'screenshot_url'   => $p->screenshot_url,
                     'rejection_reason' => $p->rejection_reason,
-                    'paid_at'          => $p->created_at?->toDateString(),
+                    'paid_at'          => $p->created_at?->toIso8601String(),
+                    'updated_at'       => $p->updated_at?->toIso8601String(),
                 ])
             ),
             'cancel_reason'  => $this->cancel_reason,
