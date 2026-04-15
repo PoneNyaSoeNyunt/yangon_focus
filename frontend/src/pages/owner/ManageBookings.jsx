@@ -25,6 +25,7 @@ const PAY_STATUS_CLS = {
 };
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDateTime = (d) => d ? new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 /* ── Card for the grid ── */
 const BookingCard = ({ booking, onView }) => {
@@ -235,7 +236,7 @@ const BookingDetailModal = ({ booking, onClose, onVerify, onReject, onCancel, on
                         <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${mCls}`}>{method}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-800 truncate">{p.is_advance ? 'Advance' : `Payment #${idx + 1}`}</p>
-                          <p className="text-gray-400 mt-0.5">{fmtDate(p.created_at)}{p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}</p>
+                          <p className="text-gray-400 mt-0.5">{fmtDateTime(p.created_at)}{p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}</p>
                         </div>
                         <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${sCls}`}>{p.status?.label}</span>
                         {p.screenshot_url && (

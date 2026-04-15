@@ -47,6 +47,8 @@ const Modal = ({ title, onClose, children, wide }) => (
 
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDateTime = (iso) =>
+  iso ? new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 const fmtAmt = (v) =>
   v != null ? Number(v).toLocaleString() + ' MMK' : '—';
@@ -880,7 +882,7 @@ const SubscriptionManagement = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-800 truncate">Payment #{payments.length - idx}</p>
                       <p className="text-gray-400 mt-0.5 truncate">
-                        {fmtDate(p.created_at)}
+                        {fmtDateTime(p.created_at)}
                         {p.total_amount ? ` · ${fmtAmt(p.total_amount)}` : ''}
                       </p>
                     </div>

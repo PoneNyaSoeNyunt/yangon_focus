@@ -19,8 +19,11 @@ function formatMMK(amount) {
   return `${Number(amount).toLocaleString()} MMK`;
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, withTime = false) {
   if (!dateStr) return '—';
+  if (withTime) return new Date(dateStr).toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric',
   });
@@ -96,7 +99,7 @@ function PaymentHistoryModal({ renter, onClose }) {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
                       {p.payment_method ? ` • ${p.payment_method}` : ''}
-                      {' • '}{formatDate(p.paid_at)}
+                      {' • '}{formatDate(p.paid_at, true)}
                     </p>
                   </div>
                   {p.screenshot_url && (

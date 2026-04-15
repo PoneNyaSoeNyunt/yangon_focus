@@ -23,6 +23,8 @@ const Spinner = ({ sm }) => (
 
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDateTime = (iso) =>
+  iso ? new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 const daysRemaining = (endDate) => {
   if (!endDate) return null;
@@ -249,7 +251,7 @@ const OwnerSubscription = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-800 truncate">Payment #{history.length - idx}</p>
                     <p className="text-gray-400 mt-0.5 truncate">
-                      {fmtDate(p.created_at)}
+                      {fmtDateTime(p.created_at)}
                       {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
                     </p>
                   </div>
