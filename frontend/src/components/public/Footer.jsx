@@ -153,7 +153,7 @@ const Footer = () => {
           <ul className="space-y-2 text-sm">
             <li><button onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition text-left">Home</button></li>
             <li><button onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition text-left">About</button></li>
-            <li><a href="#results" className="hover:text-teal-400 transition">Browse Hostels</a></li>
+            <li><button onClick={() => { navigate('/'); setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100); }} className="hover:text-teal-400 transition text-left">Browse Hostels</button></li>
             <li>
               <button onClick={handleOwnerLogin} className="hover:text-teal-400 transition text-left">
                 Owner Login
