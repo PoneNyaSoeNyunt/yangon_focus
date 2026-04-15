@@ -46,6 +46,11 @@ const ownerService = {
     return response.data;
   },
 
+  async updateLicenseNumber(hostelId, licenseNumber) {
+    const response = await apiClient.patch(`/owner/hostels/${hostelId}/license`, { license_number: licenseNumber });
+    return response.data;
+  },
+
   async uploadImages(hostelId, files) {
     const form = new FormData();
     files.forEach((file) => form.append('images[]', file));

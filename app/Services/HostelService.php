@@ -97,6 +97,26 @@ class HostelService
 
         $url = $this->images->upload($image, 'licenses');
 
+        $existing = BusinessLicense::where('hostel_id', $hostelId)->first();
+
+        if ($existing) {
+            $existing->update([
+                'license_number'   => $licenseNumber,
+                'image_url'        => $url,
+                'submitted_at'     => now(),
+                'status_id'        => $pendingStatus->id,
+                'verified_at'      => null,
+                'rejection_reason' => null,
+            ]);
+
+            $draftStatus = StatusCode::where('context', 'Hostel')
+                ->where('label', 'Draft')
+                ->firstOrFail();
+            Hostel::where('id', $hostelId)->update(['listing_status_id' => $draftStatus->id]);
+
+            return $existing->fresh('status');
+        }
+
         return BusinessLicense::create([
             'hostel_id'      => $hostelId,
             'license_number' => $licenseNumber,
@@ -104,6 +124,13 @@ class HostelService
             'submitted_at'   => now(),
             'status_id'      => $pendingStatus->id,
         ]);
+    }
+
+    public function updateLicenseNumber(int $hostelId, string $licenseNumber): BusinessLicense
+    {
+        $license = BusinessLicense::where('hostel_id', $hostelId)->firstOrFail();
+        $license->update(['license_number' => $licenseNumber]);
+        return $license->fresh('status');
     }
 
     public function uploadImages(int $hostelId, array $files): array

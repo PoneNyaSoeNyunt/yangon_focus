@@ -102,6 +102,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update'])->middleware('check.status:owner');
         Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms'])->middleware('check.status:owner');
         Route::post('/hostels/{id}/license',            [OwnerHostelController::class, 'uploadLicense']);
+        Route::patch('/hostels/{id}/license',           [OwnerHostelController::class, 'updateLicenseNumber']);
         Route::post('/hostels/{id}/images',              [OwnerHostelController::class, 'uploadImages']);
         Route::patch('/hostels/{id}/images/{imageId}/primary', [OwnerHostelController::class, 'makeImagePrimary']);
         Route::delete('/hostels/{id}/images/{imageId}',         [OwnerHostelController::class, 'deleteImage']);
