@@ -43,6 +43,7 @@ class PaymentService
         return Payment::create([
             'hostel_payment_method_id' => $method->id,
             'payment_method'           => $method->method_name,
+            'total_amount'             => $booking->locked_price,
             'booking_id'               => $bookingId,
             'hostel_id'                => $booking->bed->room->hostel_id,
             'screenshot_url'           => $screenshotUrl,
@@ -86,6 +87,7 @@ class PaymentService
             } else {
                 Payment::create([
                     'payment_method'    => 'Cash',
+                    'total_amount'      => $booking->locked_price,
                     'booking_id'        => $bookingId,
                     'hostel_id'         => $booking->bed->room->hostel_id,
                     'payment_status_id' => $verifiedId,
