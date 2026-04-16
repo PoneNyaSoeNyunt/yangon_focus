@@ -38,6 +38,7 @@ class StatusCodeSeeder extends Seeder
             ['id' => 18, 'context' => 'License', 'label' => 'Pending Review'],
             ['id' => 19, 'context' => 'License', 'label' => 'Verified'],
             ['id' => 20, 'context' => 'License', 'label' => 'Rejected'],
+            ['id' => 26, 'context' => 'License', 'label' => 'Disabled'],
 
             ['id' => 21, 'context' => 'Comment',      'label' => 'Open'],
             ['id' => 22, 'context' => 'Comment',      'label' => 'Resolved'],

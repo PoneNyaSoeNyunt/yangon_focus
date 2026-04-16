@@ -115,7 +115,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/users/{id}/status',   [SuperAdminController::class, 'updateStatus']);
         Route::get('/licenses',              [AdminLicenseController::class, 'index']);
         Route::patch('/licenses/{id}/verify',  [AdminLicenseController::class, 'verify']);
-        Route::patch('/licenses/{id}/disable', [AdminLicenseController::class, 'disable']);
+        Route::patch('/licenses/{id}/disable',      [AdminLicenseController::class, 'disable']);
+        Route::patch('/licenses/{id}/undo-disable', [AdminLicenseController::class, 'undoDisable']);
         Route::get('/reports',               [ReportController::class, 'adminIndex']);
         Route::patch('/reports/{id}/resolve',[ReportController::class, 'resolve']);
         Route::get('/comments',                          [CommentController::class, 'adminIndex']);

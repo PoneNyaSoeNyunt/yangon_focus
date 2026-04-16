@@ -95,15 +95,45 @@ class SuperAdminService
     {
         $license = BusinessLicense::findOrFail($licenseId);
 
-        $disabledStatus = StatusCode::where('context', 'Hostel')
+        $disabledHostelStatus = StatusCode::where('context', 'Hostel')
+            ->where('label', 'Disabled')
+            ->firstOrFail();
+
+        $disabledLicenseStatus = StatusCode::where('context', 'License')
             ->where('label', 'Disabled')
             ->firstOrFail();
 
         $license->hostel()->update([
-            'listing_status_id' => $disabledStatus->id,
+            'listing_status_id' => $disabledHostelStatus->id,
             'disable_reason'    => $reason,
         ]);
 
-        return $license->load(['hostel.owner', 'status']);
+        $license->update(['status_id' => $disabledLicenseStatus->id]);
+
+        return $license->fresh(['hostel.owner', 'status']);
+    }
+
+    public function undoDisable(int $licenseId): BusinessLicense
+    {
+        $license = BusinessLicense::findOrFail($licenseId);
+
+        $verifiedLicenseStatus = StatusCode::where('context', 'License')
+            ->where('label', 'Verified')
+            ->firstOrFail();
+
+        $publishedHostelStatus = StatusCode::where('context', 'Hostel')
+            ->where('label', 'Published')
+            ->firstOrFail();
+
+        $license->update([
+            'status_id' => $verifiedLicenseStatus->id,
+        ]);
+
+        $license->hostel()->update([
+            'listing_status_id' => $publishedHostelStatus->id,
+            'disable_reason'    => null,
+        ]);
+
+        return $license->fresh(['hostel.owner', 'status']);
     }
 }

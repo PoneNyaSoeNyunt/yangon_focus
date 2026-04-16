@@ -50,4 +50,14 @@ class AdminLicenseController extends Controller
             'license' => $license,
         ]);
     }
+
+    public function undoDisable(int $id)
+    {
+        $license = $this->superAdminService->undoDisable($id);
+
+        return response()->json([
+            'message' => 'Hostel disable has been undone.',
+            'license' => $license,
+        ]);
+    }
 }
