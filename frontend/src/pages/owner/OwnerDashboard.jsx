@@ -113,7 +113,7 @@ const HostelCard = ({ hostel, isSuspended }) => {
         )}
         {status === 'Disabled' && (
           <button
-            onClick={() => navigate(editPath)}
+            onClick={() => navigate(`${editPath}?step=2`)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

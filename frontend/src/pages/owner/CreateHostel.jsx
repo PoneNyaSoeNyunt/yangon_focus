@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
 import ImageUploader from '../../components/owner/ImageUploader';
@@ -56,9 +56,13 @@ const emptyRoom = () => ({ label: '', type_id: '', price_per_month: '', max_occu
 const CreateHostel = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const editMode = !!id;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    const s = Number(searchParams.get('step'));
+    return editMode && s >= 0 && s <= 2 ? s : 0;
+  });
   const [hostelId, setHostelId] = useState(id ? Number(id) : null);
   const [errors, setErrors] = useState({});
   const [galleryFiles, setGalleryFiles] = useState([]);
