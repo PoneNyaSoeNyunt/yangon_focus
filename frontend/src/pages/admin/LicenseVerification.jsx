@@ -10,7 +10,8 @@ const STATUS_STYLES = {
 };
 
 const LicenseCard = ({ license, onView }) => {
-  const statusLabel = license.status?.label ?? 'Unknown';
+  const isHostelDisabled = license.hostel?.listing_status?.label === 'Disabled';
+  const statusLabel = isHostelDisabled ? 'Disabled' : (license.status?.label ?? 'Unknown');
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
@@ -159,7 +160,8 @@ const DisableModal = ({ onConfirm, onCancel, isPending }) => {
 const LicenseModal = ({ license, onClose, onApprove, onReject, onDisable, onUndoDisable, isPending, isDisabling, isUndoing }) => {
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [showDisableForm, setShowDisableForm] = useState(false);
-  const statusLabel = license.status?.label ?? 'Unknown';
+  const isHostelDisabled = license.hostel?.listing_status?.label === 'Disabled';
+  const statusLabel = isHostelDisabled ? 'Disabled' : (license.status?.label ?? 'Unknown');
   const isPendingReview = statusLabel === 'Pending Review';
 
   return (

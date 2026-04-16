@@ -57,13 +57,21 @@ class SuperAdminService
 
     public function getLicenses(array $filters = []): LengthAwarePaginator
     {
-        $query = BusinessLicense::with(['hostel.owner', 'status'])
+        $query = BusinessLicense::with(['hostel.owner', 'hostel.listingStatus', 'status'])
             ->orderBy('submitted_at', 'desc');
 
         if (!empty($filters['status_label'])) {
-            $query->whereHas('status', fn($q) =>
-                $q->where('label', $filters['status_label'])
-            );
+            if ($filters['status_label'] === 'Disabled') {
+                $query->whereHas('hostel.listingStatus', fn($q) =>
+                    $q->where('label', 'Disabled')
+                );
+            } else {
+                $query->whereHas('status', fn($q) =>
+                    $q->where('label', $filters['status_label'])
+                )->whereHas('hostel.listingStatus', fn($q) =>
+                    $q->where('label', '!=', 'Disabled')
+                );
+            }
         }
 
         return $query->paginate(15);
@@ -99,41 +107,27 @@ class SuperAdminService
             ->where('label', 'Disabled')
             ->firstOrFail();
 
-        $disabledLicenseStatus = StatusCode::where('context', 'License')
-            ->where('label', 'Disabled')
-            ->firstOrFail();
-
         $license->hostel()->update([
             'listing_status_id' => $disabledHostelStatus->id,
             'disable_reason'    => $reason,
         ]);
 
-        $license->update(['status_id' => $disabledLicenseStatus->id]);
-
-        return $license->fresh(['hostel.owner', 'status']);
+        return $license->fresh(['hostel.owner', 'hostel.listingStatus', 'status']);
     }
 
     public function undoDisable(int $licenseId): BusinessLicense
     {
         $license = BusinessLicense::findOrFail($licenseId);
 
-        $verifiedLicenseStatus = StatusCode::where('context', 'License')
-            ->where('label', 'Verified')
-            ->firstOrFail();
-
         $publishedHostelStatus = StatusCode::where('context', 'Hostel')
             ->where('label', 'Published')
             ->firstOrFail();
-
-        $license->update([
-            'status_id' => $verifiedLicenseStatus->id,
-        ]);
 
         $license->hostel()->update([
             'listing_status_id' => $publishedHostelStatus->id,
             'disable_reason'    => null,
         ]);
 
-        return $license->fresh(['hostel.owner', 'status']);
+        return $license->fresh(['hostel.owner', 'hostel.listingStatus', 'status']);
     }
 }
