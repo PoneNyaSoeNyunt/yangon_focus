@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../api/client';
+import adminService from '../../services/adminService';
 
 const STATUS_STYLES = {
   'Active':               'bg-teal-100 text-teal-700',
@@ -71,6 +72,8 @@ const SubscriptionManagement = () => {
   const [walletError, setWalletError]   = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [lightboxUrl, setLightboxUrl]     = useState(null);
+  const [disableTarget, setDisableTarget] = useState(null);
+  const [disableReason, setDisableReason] = useState('');
 
   useEffect(() => {
     if (!openDropdown) return;
@@ -78,6 +81,22 @@ const SubscriptionManagement = () => {
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [openDropdown]);
+
+  const hostelDisableMutation = useMutation({
+    mutationFn: ({ id, reason }) => adminService.disableLicense(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-owner-hostels'] });
+      setDisableTarget(null);
+      setDisableReason('');
+    },
+  });
+
+  const hostelUndoDisableMutation = useMutation({
+    mutationFn: (id) => adminService.undoDisableLicense(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-owner-hostels'] });
+    },
+  });
 
   const { data: configData } = useQuery({
     queryKey: ['admin-sub-config'],
@@ -702,15 +721,40 @@ const SubscriptionManagement = () => {
                       <p className="text-xs text-teal-600 mt-0.5">
                         {hostel.township?.name ?? '—'}
                         {hostel.listing_status?.label && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full text-[10px] font-semibold">
+                          <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                            hostel.listing_status.label === 'Published' ? 'bg-teal-100 text-teal-700'
+                            : hostel.listing_status.label === 'Disabled' ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-500'
+                          }`}>
                             {hostel.listing_status.label}
                           </span>
                         )}
                       </p>
                     </div>
-                    <span className="text-xs text-teal-600 font-semibold flex-shrink-0">
-                      {hostel.rooms?.length ?? 0} room{(hostel.rooms?.length ?? 0) !== 1 ? 's' : ''}
-                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-xs text-teal-600 font-semibold">
+                        {hostel.rooms?.length ?? 0} room{(hostel.rooms?.length ?? 0) !== 1 ? 's' : ''}
+                      </span>
+                      {hostel.listing_status?.label === 'Disabled' ? (
+                        <button
+                          onClick={() => {
+                            const licenseId = hostel.business_licenses?.[0]?.id;
+                            if (licenseId) hostelUndoDisableMutation.mutate(licenseId);
+                          }}
+                          disabled={hostelUndoDisableMutation.isPending}
+                          className="px-2.5 py-1 rounded-lg bg-teal-500 hover:bg-teal-600 text-white text-[10px] font-semibold transition disabled:opacity-60"
+                        >
+                          {hostelUndoDisableMutation.isPending ? 'Undoing...' : 'Undo Disable'}
+                        </button>
+                      ) : hostel.listing_status?.label !== 'Draft' && hostel.business_licenses?.[0]?.id && (
+                        <button
+                          onClick={() => setDisableTarget({ hostelName: hostel.name, licenseId: hostel.business_licenses[0].id })}
+                          className="px-2.5 py-1 rounded-lg border border-amber-400 text-amber-600 text-[10px] font-semibold hover:bg-amber-50 transition"
+                        >
+                          Disable
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {hostel.rooms?.length > 0 ? (
@@ -741,6 +785,37 @@ const SubscriptionManagement = () => {
               ))}
             </div>
           )}
+        </Modal>
+      )}
+
+      {/* --- Hostel Disable Reason Modal --- */}
+      {disableTarget && (
+        <Modal title={`Disable — ${disableTarget.hostelName}`} onClose={() => { setDisableTarget(null); setDisableReason(''); }}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">Provide a reason for disabling this hostel. The owner will see this message.</p>
+            <textarea
+              value={disableReason}
+              onChange={(e) => setDisableReason(e.target.value)}
+              rows={3}
+              placeholder="Reason for disabling (required)..."
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setDisableTarget(null); setDisableReason(''); }}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => hostelDisableMutation.mutate({ id: disableTarget.licenseId, reason: disableReason })}
+                disabled={hostelDisableMutation.isPending || !disableReason.trim()}
+                className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition disabled:opacity-60"
+              >
+                {hostelDisableMutation.isPending ? 'Disabling...' : 'Confirm Disable'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

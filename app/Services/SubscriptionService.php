@@ -107,7 +107,7 @@ class SubscriptionService
 
     public function getOwnerHostelDetails(int $ownerId): \Illuminate\Database\Eloquent\Collection
     {
-        return \App\Models\Hostel::with(['rooms:id,hostel_id,label,price_per_month,max_occupancy', 'township:id,name', 'listingStatus:id,label'])
+        return \App\Models\Hostel::with(['rooms:id,hostel_id,label,price_per_month,max_occupancy', 'township:id,name', 'listingStatus:id,label', 'businessLicenses:id,hostel_id'])
             ->where('owner_id', $ownerId)
             ->get();
     }
