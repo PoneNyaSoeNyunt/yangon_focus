@@ -102,25 +102,42 @@ const AdvancePayModal = ({ bookingId, hostelId, livePrice, onClose, onSuccess })
           </div>
         ) : (
           <div className="space-y-2 mb-4">
-            {paymentMethods.map((m) => (
-              <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition ${
-                  selectedMethodId === m.id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
-                }`}>
-                <div>
-                  <p className="font-semibold text-gray-800 text-xs">{m.method_name}</p>
-                  <p className="text-[10px] text-gray-500">{m.account_number} · {m.account_name}</p>
-                </div>
-              </button>
-            ))}
+            {paymentMethods.map((m) => {
+              const isSelected = selectedMethodId === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border-2 text-left transition ${
+                    isSelected ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
+                  }`}>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-xs">{m.method_name}</p>
+                    <p className="text-[10px] text-gray-500">{m.account_number} · {m.account_name}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
             <button type="button" onClick={() => selectMethod('cash')}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition ${
+              className={`w-full flex items-center justify-between p-3 rounded-xl border-2 text-left transition ${
                 isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
               }`}>
               <div>
                 <p className="font-semibold text-gray-800 text-xs">Pay at Property</p>
                 <p className="text-[10px] text-gray-500">Notify owner — pay in cash</p>
               </div>
+              {isCash && (
+                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </button>
           </div>
         )}
