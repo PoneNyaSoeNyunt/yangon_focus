@@ -204,7 +204,7 @@ class HostelService
 
     public function getOwnerHostels(int $ownerId)
     {
-        return Hostel::with(['township', 'listingStatus', 'rooms'])
+        return Hostel::with(['township', 'listingStatus', 'rooms', 'businessLicenses.status'])
             ->where('owner_id', $ownerId)
             ->orderBy('created_at', 'desc')
             ->get();
