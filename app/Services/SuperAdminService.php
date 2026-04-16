@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Hostel;
 use App\Models\StatusCode;
 use App\Models\BusinessLicense;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -84,8 +85,24 @@ class SuperAdminService
             $publishedStatus = StatusCode::where('context', 'Hostel')
                 ->where('label', 'Published')
                 ->firstOrFail();
-            $license->hostel()->update(['listing_status_id' => $publishedStatus->id]);
+            $license->hostel()->update(['listing_status_id' => $publishedStatus->id, 'disable_reason' => null]);
         }
+
+        return $license->load(['hostel.owner', 'status']);
+    }
+
+    public function disableHostel(int $licenseId, string $reason): BusinessLicense
+    {
+        $license = BusinessLicense::findOrFail($licenseId);
+
+        $disabledStatus = StatusCode::where('context', 'Hostel')
+            ->where('label', 'Disabled')
+            ->firstOrFail();
+
+        $license->hostel()->update([
+            'listing_status_id' => $disabledStatus->id,
+            'disable_reason'    => $reason,
+        ]);
 
         return $license->load(['hostel.owner', 'status']);
     }

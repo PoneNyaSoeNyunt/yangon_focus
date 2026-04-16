@@ -112,7 +112,7 @@ class HostelService
             $draftStatus = StatusCode::where('context', 'Hostel')
                 ->where('label', 'Draft')
                 ->firstOrFail();
-            Hostel::where('id', $hostelId)->update(['listing_status_id' => $draftStatus->id]);
+            Hostel::where('id', $hostelId)->update(['listing_status_id' => $draftStatus->id, 'disable_reason' => null]);
 
             return $existing->fresh('status');
         }
