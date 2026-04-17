@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
+import heroBg from '../../assets/hero-bg.jpg';
 
 const GuestModal = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -132,27 +133,33 @@ const HeroSection = ({ onFindHostels }) => {
       {showSubModal       && <SubscriptionModal onClose={() => setShowSubModal(false)} onSubscribe={() => navigate('/owner/subscription')} />}
       {showRestrictedModal && <AccountRestrictedModal status={ownerStatus} onClose={() => setShowRestrictedModal(false)} />}
 
-      <section className="relative bg-gradient-to-br from-teal-900 via-teal-800 to-cyan-900 overflow-hidden">
+      <section className="relative overflow-hidden">
+        {/* Layer 1 — Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        />
+
+        {/* Layer 2 — Dot pattern (subtle texture) */}
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-400/10 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400/10 rounded-full translate-y-1/2 -translate-x-1/4" />
 
+        {/* Layer 3 — Content (topmost) */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-          <div className="max-w-3xl">
+          <div className="max-w-2xl -ml-2 sm:-ml-4 bg-black/40 backdrop-blur-sm rounded-3xl p-8 sm:p-10 border border-white/10 shadow-2xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-700/60 border border-teal-600/40 text-teal-200 text-xs font-semibold mb-5">
               <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse" />
               Verified Hostels Across Yangon
             </span>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5 drop-shadow-lg">
               Find Your Perfect <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-300">
                 Hostel in Yangon
               </span>
             </h1>
 
-            <p className="text-lg text-teal-100/80 mb-8 max-w-xl">
+            <p className="text-lg text-teal-100/90 mb-8 max-w-xl drop-shadow">
               Affordable, licensed, and verified hostels for students, workers, and travelers.
               Search by location, type, and budget — all in one place.
             </p>
