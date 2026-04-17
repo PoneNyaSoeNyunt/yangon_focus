@@ -376,7 +376,7 @@ const SubscriptionManagement = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="text-xs text-gray-400 mr-1">#{idx + 1}</span>
-                      <span className="font-bold text-gray-900 text-sm">{row.hostel_name}</span>
+                      <span className={`font-bold text-sm ${row.hostel_name ? 'text-gray-900' : 'text-gray-400 italic'}`}>{row.hostel_name ?? 'No hostels yet'}</span>
                       {row.listing_status && (
                         <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
                           row.listing_status === 'Published' ? 'bg-teal-100 text-teal-700'
@@ -410,7 +410,7 @@ const SubscriptionManagement = () => {
                       onClick={() => setDetailsModal(row)}
                       className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
                     >
-                      Details
+                      Show
                     </button>
 
                     {canVerify && (
@@ -474,8 +474,8 @@ const SubscriptionManagement = () => {
                   return (
                     <tr key={row.id} className="hover:bg-gray-50/70 transition">
                       <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
-                      <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">
-                        {row.hostel_name}
+                      <td className={`px-3 py-4 font-semibold whitespace-nowrap ${row.hostel_name ? 'text-gray-900' : 'text-gray-400 italic'}`}>
+                        {row.hostel_name ?? 'No hostels yet'}
                         {row.listing_status && (
                           <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
                             row.listing_status === 'Published' ? 'bg-teal-100 text-teal-700'
@@ -500,7 +500,7 @@ const SubscriptionManagement = () => {
                           onClick={() => setDetailsModal(row)}
                           className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
                         >
-                          Details
+                          Show
                         </button>
                       </td>
                       <td className="px-3 py-4">
@@ -594,7 +594,7 @@ const SubscriptionManagement = () => {
 
       {/* --- Details Modal (Owner info + Payment history) --- */}
       {detailsModal && (
-        <Modal title={`${detailsModal.hostel_name} — Details`} onClose={() => setDetailsModal(null)} wide>
+        <Modal title={`${detailsModal.hostel_name ?? detailsModal.owner_name} — Details`} onClose={() => setDetailsModal(null)} wide>
           <div className="space-y-6">
             {/* Owner Info */}
             <div>

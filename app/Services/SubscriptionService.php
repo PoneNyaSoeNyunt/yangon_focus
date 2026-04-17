@@ -107,7 +107,7 @@ class SubscriptionService
 
     public function getAllHostelsWithSubscription(): \Illuminate\Support\Collection
     {
-        return \App\Models\Hostel::with([
+        $hostelRows = \App\Models\Hostel::with([
                 'owner' => fn ($q) => $q->with([
                     'subscriptions' => fn ($s) => $s->with(['status', 'payments'])->latest()->limit(1),
                     'statusCode:id,label',
@@ -148,6 +148,49 @@ class SubscriptionService
                     'next_payment_due'     => $owner?->subscription_until?->toIso8601String(),
                 ];
             });
+
+        $ownerIdsWithHostels = $hostelRows->pluck('owner_id')->filter()->unique();
+
+        $ownerOnlyRows = User::where('role', 'Owner')
+            ->whereNotIn('id', $ownerIdsWithHostels)
+            ->with([
+                'subscriptions' => fn ($q) => $q->with(['status', 'payments'])->latest()->limit(1),
+                'statusCode:id,label',
+                'nrcTownship',
+            ])
+            ->get()
+            ->filter(function ($u) {
+                $latestSub = $u->subscriptions->first();
+                return $latestSub !== null;
+            })
+            ->map(function ($u) {
+                $latestSub = $u->subscriptions->first();
+                $hasPendingPayment = $latestSub->payments->contains('payment_status_id', 8);
+                $subStatus = $latestSub->status?->label ?? 'No Subscription';
+
+                $formattedNrc = null;
+                if ($u->nrc_region && $u->nrcTownship && $u->nrc_type && $u->nrc_number) {
+                    $formattedNrc = $u->nrc_region . '/' . $u->nrcTownship->township_code . '(' . $u->nrc_type . ')' . $u->nrc_number;
+                }
+
+                return [
+                    'id'                   => 'owner-' . $u->id,
+                    'hostel_name'          => null,
+                    'hostel_township'      => null,
+                    'listing_status'       => null,
+                    'business_license_id'  => null,
+                    'owner_id'             => $u->id,
+                    'owner_name'           => $u->full_name,
+                    'owner_phone'          => $u->phone_number,
+                    'owner_nrc'            => $formattedNrc,
+                    'owner_account_status' => $u->statusCode?->label ?? 'Active',
+                    'subscription_status'  => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment'  => $hasPendingPayment,
+                    'next_payment_due'     => $u->subscription_until?->toIso8601String(),
+                ];
+            });
+
+        return $hostelRows->concat($ownerOnlyRows)->values();
     }
 
     public function getOwnerHostelDetails(int $ownerId): \Illuminate\Database\Eloquent\Collection
