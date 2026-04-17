@@ -91,7 +91,7 @@ const SearchableSelect = ({
           disabled ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'hover:border-gray-300'
         } ${error ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
       >
-        <span className={selected ? 'text-gray-900' : 'text-gray-400'}>
+        <span className="text-gray-900">
           {selected?.label ?? placeholder}
         </span>
         <svg
