@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('nrc_townships', function (Blueprint $table) {
             $table->id();
             $table->unsignedTinyInteger('region_code');
-            $table->string('township_code', 10);
+            $table->string('township_code', 16);
+            $table->string('township_en', 100);
+            $table->string('township_mm', 100);
             $table->timestamps();
 
             $table->unique(['region_code', 'township_code']);

@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class NrcTownship extends Model
 {
-    protected $fillable = ['region_code', 'township_code'];
+    protected $fillable = ['region_code', 'township_code', 'township_en', 'township_mm'];
 }
