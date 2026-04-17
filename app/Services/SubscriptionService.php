@@ -105,6 +105,51 @@ class SubscriptionService
             });
     }
 
+    public function getAllHostelsWithSubscription(): \Illuminate\Support\Collection
+    {
+        return \App\Models\Hostel::with([
+                'owner' => fn ($q) => $q->with([
+                    'subscriptions' => fn ($s) => $s->with(['status', 'payments'])->latest()->limit(1),
+                    'statusCode:id,label',
+                    'nrcTownship',
+                ]),
+                'township:id,name',
+                'listingStatus:id,label',
+                'businessLicenses:id,hostel_id',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($h) {
+                $owner     = $h->owner;
+                $latestSub = $owner?->subscriptions?->first();
+                $hasPendingPayment = $latestSub
+                    ? $latestSub->payments->contains('payment_status_id', 8)
+                    : false;
+                $subStatus = $latestSub?->status?->label ?? 'No Subscription';
+
+                $formattedNrc = null;
+                if ($owner && $owner->nrc_region && $owner->nrcTownship && $owner->nrc_type && $owner->nrc_number) {
+                    $formattedNrc = $owner->nrc_region . '/' . $owner->nrcTownship->township_code . '(' . $owner->nrc_type . ')' . $owner->nrc_number;
+                }
+
+                return [
+                    'id'                   => $h->id,
+                    'hostel_name'          => $h->name,
+                    'hostel_township'      => $h->township?->name,
+                    'listing_status'       => $h->listingStatus?->label,
+                    'business_license_id'  => $h->businessLicenses?->first()?->id,
+                    'owner_id'             => $owner?->id,
+                    'owner_name'           => $owner?->full_name,
+                    'owner_phone'          => $owner?->phone_number,
+                    'owner_nrc'            => $formattedNrc,
+                    'owner_account_status' => $owner?->statusCode?->label ?? 'Active',
+                    'subscription_status'  => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment'  => $hasPendingPayment,
+                    'next_payment_due'     => $owner?->subscription_until?->toIso8601String(),
+                ];
+            });
+    }
+
     public function getOwnerHostelDetails(int $ownerId): \Illuminate\Database\Eloquent\Collection
     {
         return \App\Models\Hostel::with(['rooms:id,hostel_id,label,price_per_month,max_occupancy', 'township:id,name', 'listingStatus:id,label', 'businessLicenses:id,hostel_id'])

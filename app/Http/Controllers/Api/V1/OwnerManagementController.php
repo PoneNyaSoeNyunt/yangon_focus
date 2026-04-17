@@ -14,6 +14,11 @@ class OwnerManagementController extends Controller
         return response()->json($this->subscriptionService->getAllOwners());
     }
 
+    public function hostels()
+    {
+        return response()->json($this->subscriptionService->getAllHostelsWithSubscription());
+    }
+
     public function hostelDetails(int $id)
     {
         return response()->json($this->subscriptionService->getOwnerHostelDetails($id));

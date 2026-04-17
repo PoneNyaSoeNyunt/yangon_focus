@@ -129,6 +129,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/subscription-config',             [SubscriptionConfigController::class, 'update']);
 
         Route::get('/owners',                            [OwnerManagementController::class, 'index']);
+        Route::get('/hostels-subscription',              [OwnerManagementController::class, 'hostels']);
         Route::get('/owners/{id}/hostels',               [OwnerManagementController::class, 'hostelDetails']);
         Route::get('/owners/{id}/subscription-history',      [OwnerManagementController::class, 'subscriptionHistory']);
         Route::patch('/owners/{id}/subscription/verify',     [OwnerManagementController::class, 'verifySubscription']);
