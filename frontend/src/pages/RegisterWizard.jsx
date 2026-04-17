@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import authService from '../services/authService';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import SearchableSelect from '../components/SearchableSelect';
 
 const normalizePhone = (raw) => {
   let n = raw.trim().replace(/[\s\-()]/g, '');
@@ -278,12 +279,18 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
                 <option key={code} value={code}>{code}</option>
               ))}
             </Select>
-            <Select id="nrc_township_id" value={form.nrc_township_id} onChange={set('nrc_township_id')} error={errors.nrc_township_id?.[0]}>
-              <option value="">Township</option>
-              {townshipsForRegion.map(t => (
-                <option key={t.id} value={t.id}>{t.township_code}</option>
-              ))}
-            </Select>
+            <SearchableSelect
+              id="nrc_township_id"
+              value={form.nrc_township_id}
+              onChange={(v) => {
+                setForm(f => ({ ...f, nrc_township_id: v }));
+                setErrors(er => ({ ...er, nrc_township_id: undefined, _general: undefined }));
+              }}
+              placeholder="Township"
+              disabled={!form.nrc_region}
+              error={errors.nrc_township_id?.[0]}
+              options={townshipsForRegion.map(t => ({ value: String(t.id), label: t.township_code }))}
+            />
             <Select id="nrc_type" value={form.nrc_type} onChange={set('nrc_type')} error={errors.nrc_type?.[0]}>
               <option value="">Type</option>
               <option value="N">N</option>

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
+import SearchableSelect from './SearchableSelect';
 
 const SelectField = ({ label, id, error, children, ...props }) => (
   <div className="min-w-0">
@@ -60,12 +61,15 @@ const NrcPicker = ({ value, onChange, errors = {}, disabled = false }) => {
             <option key={code} value={code}>{code}</option>
           ))}
         </SelectField>
-        <SelectField id="nrc_township_id" value={value.nrc_township_id} onChange={set('nrc_township_id')} error={errors.nrc_township_id?.[0]} disabled={disabled}>
-          <option value="">Township</option>
-          {townshipsForRegion.map(t => (
-            <option key={t.id} value={t.id}>{t.township_code}</option>
-          ))}
-        </SelectField>
+        <SearchableSelect
+          id="nrc_township_id"
+          value={value.nrc_township_id}
+          onChange={(v) => onChange({ ...value, nrc_township_id: v })}
+          placeholder="Township"
+          disabled={disabled || !value.nrc_region}
+          error={errors.nrc_township_id?.[0]}
+          options={townshipsForRegion.map(t => ({ value: t.id, label: t.township_code }))}
+        />
         <SelectField id="nrc_type" value={value.nrc_type} onChange={set('nrc_type')} error={errors.nrc_type?.[0]} disabled={disabled}>
           <option value="">Type</option>
           <option value="N">N</option>
