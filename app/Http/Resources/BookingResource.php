@@ -47,6 +47,13 @@ class BookingResource extends JsonResource
             'cancelled_by'   => $this->cancelled_by,
             'cancelled_at'   => $this->cancelled_by ? $this->updated_at?->toIso8601String() : null,
             'has_review' => $this->whenLoaded('review', fn() => $this->review !== null, false),
+            'review'     => $this->whenLoaded('review', fn() => $this->review ? [
+                'id'              => $this->review->id,
+                'rating'          => $this->review->rating,
+                'service_quality' => $this->review->service_quality,
+                'hygiene_score'   => $this->review->hygiene_score,
+                'comment'         => $this->review->comment,
+            ] : null),
         ];
     }
 }

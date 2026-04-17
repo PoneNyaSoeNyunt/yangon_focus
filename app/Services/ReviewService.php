@@ -52,6 +52,7 @@ class ReviewService
             'avg_hygiene_score'   => $avg_hygiene_score,
             'reviews'             => $reviews->map(fn($r) => [
                 'id'              => $r->id,
+                'guest_id'        => $r->guest_id,
                 'guest_name'      => $r->guest->full_name,
                 'rating'          => $r->rating,
                 'service_quality' => $r->service_quality,
@@ -59,6 +60,46 @@ class ReviewService
                 'comment'         => $r->comment,
                 'created_at'      => $r->created_at->toDateString(),
             ])->values(),
+        ];
+    }
+
+    public function updateReview(int $guestId, int $reviewId, array $data): Review
+    {
+        $review = Review::where('id', $reviewId)
+            ->where('guest_id', $guestId)
+            ->firstOrFail();
+
+        $review->update([
+            'rating'          => $data['rating'],
+            'service_quality' => $data['service_quality'],
+            'hygiene_score'   => $data['hygiene_score'],
+            'comment'         => $data['comment'],
+        ]);
+
+        return $review->fresh();
+    }
+
+    public function deleteReview(int $guestId, int $reviewId): void
+    {
+        $review = Review::where('id', $reviewId)
+            ->where('guest_id', $guestId)
+            ->firstOrFail();
+
+        $review->delete();
+    }
+
+    public function getReviewEligibility(int $guestId, int $hostelId): array
+    {
+        $completedBooking = Booking::with('status')
+            ->where('guest_id', $guestId)
+            ->whereHas('bed.room', fn($q) => $q->where('hostel_id', $hostelId))
+            ->whereHas('status', fn($q) => $q->where('label', 'Completed'))
+            ->whereDoesntHave('review')
+            ->first();
+
+        return [
+            'can_review' => !!$completedBooking,
+            'booking_id' => $completedBooking?->id,
         ];
     }
 }

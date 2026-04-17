@@ -166,12 +166,123 @@ const ScoreBar = ({ label, value, max = 5 }) => (
   </div>
 );
 
+/* ── Star Picker ──────────────────────────────────── */
+const StarPicker = ({ value, onChange }) => (
+  <span className="inline-flex gap-1">
+    {[1, 2, 3, 4, 5].map((n) => (
+      <button key={n} type="button" onClick={() => onChange(n)}>
+        <svg className={`w-6 h-6 ${n <= value ? 'text-amber-400' : 'text-gray-200'}`} viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      </button>
+    ))}
+  </span>
+);
+
+/* ── Review Form (write / edit) ───────────────────── */
+const ReviewForm = ({ bookingId, editReview, hostelId, onDone }) => {
+  const queryClient = useQueryClient();
+  const isEdit = !!editReview;
+  const [form, setForm] = useState({
+    rating:          editReview?.rating ?? 0,
+    service_quality: editReview?.service_quality ?? 0,
+    hygiene_score:   editReview?.hygiene_score ?? 0,
+    comment:         editReview?.comment ?? '',
+  });
+  const [error, setError] = useState('');
+
+  const submitMutation = useMutation({
+    mutationFn: () => isEdit
+      ? reviewService.updateReview(editReview.id, form)
+      : reviewService.submitReview(bookingId, form),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hostel-reviews', hostelId] });
+      queryClient.invalidateQueries({ queryKey: ['review-eligibility', hostelId] });
+      queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
+      setError('');
+      if (onDone) onDone();
+    },
+    onError: (err) => setError(err?.response?.data?.message ?? 'Submission failed.'),
+  });
+
+  const canSubmit = form.rating > 0 && form.service_quality > 0 && form.hygiene_score > 0 && form.comment.trim();
+
+  return (
+    <div className="bg-white rounded-2xl border border-teal-200 shadow-sm p-5 space-y-4">
+      <h3 className="text-sm font-bold text-gray-800">{isEdit ? 'Edit Your Review' : 'Write a Review'}</h3>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Overall Rating</label>
+        <StarPicker value={form.rating} onChange={(v) => setForm((f) => ({ ...f, rating: v }))} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Service Quality</label>
+          <StarPicker value={form.service_quality} onChange={(v) => setForm((f) => ({ ...f, service_quality: v }))} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Hygiene</label>
+          <StarPicker value={form.hygiene_score} onChange={(v) => setForm((f) => ({ ...f, hygiene_score: v }))} />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Comment <span className="text-red-400">*</span></label>
+        <textarea
+          value={form.comment}
+          onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
+          rows={3}
+          maxLength={1000}
+          placeholder="Share your experience…"
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
+        />
+        <p className="text-right text-xs text-gray-400 mt-0.5">{form.comment.length}/1000</p>
+      </div>
+
+      {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+
+      <div className="flex gap-2">
+        {isEdit && (
+          <button onClick={onDone} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+        )}
+        <button
+          disabled={!canSubmit || submitMutation.isPending}
+          onClick={() => submitMutation.mutate()}
+          className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition"
+        >
+          {submitMutation.isPending ? 'Submitting…' : isEdit ? 'Update Review' : 'Submit Review'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 /* ── Reviews Section ───────────────────────────────── */
-const ReviewsSection = ({ hostelId }) => {
+const ReviewsSection = ({ hostelId, userId }) => {
+  const queryClient = useQueryClient();
+  const [editingReview, setEditingReview] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['hostel-reviews', hostelId],
     queryFn: () => reviewService.getHostelReviews(hostelId),
     enabled: !!hostelId,
+  });
+
+  const { data: eligibility } = useQuery({
+    queryKey: ['review-eligibility', hostelId],
+    queryFn: () => reviewService.getReviewEligibility(hostelId),
+    enabled: !!hostelId && !!userId,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hostel-reviews', hostelId] });
+      queryClient.invalidateQueries({ queryKey: ['review-eligibility', hostelId] });
+      queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
+      setDeleteConfirm(null);
+    },
   });
 
   if (isLoading) return (
@@ -183,21 +294,41 @@ const ReviewsSection = ({ hostelId }) => {
 
   const total   = data?.total ?? 0;
   const reviews = data?.reviews ?? [];
+  const canReview = eligibility?.can_review && !showForm && !editingReview;
 
   return (
     <div className="mt-10">
-      <h2 className="text-lg font-bold text-gray-900 mb-4">
-        Reviews
-        {total > 0 && <span className="ml-2 text-sm font-normal text-gray-400">— {total} {total === 1 ? 'review' : 'reviews'}</span>}
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-gray-900">
+          Reviews
+          {total > 0 && <span className="ml-2 text-sm font-normal text-gray-400">— {total} {total === 1 ? 'review' : 'reviews'}</span>}
+        </h2>
+        {canReview && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold rounded-xl transition"
+          >
+            Write Review
+          </button>
+        )}
+      </div>
 
-      {total === 0 ? (
+      {showForm && (
+        <div className="mb-6">
+          <ReviewForm
+            bookingId={eligibility.booking_id}
+            hostelId={hostelId}
+            onDone={() => setShowForm(false)}
+          />
+        </div>
+      )}
+
+      {total === 0 && !showForm ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
           <p className="text-gray-400 text-sm">No reviews yet. Be the first to review!</p>
         </div>
-      ) : (
+      ) : total > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Summary card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center gap-3">
             <p className="text-5xl font-extrabold text-gray-900">{data.avg_rating}</p>
             <StarDisplay value={Math.round(data.avg_rating)} size="lg" />
@@ -208,29 +339,68 @@ const ReviewsSection = ({ hostelId }) => {
             </div>
           </div>
 
-          {/* Comment list */}
           <div className="lg:col-span-2 space-y-3">
             {reviews.map((r) => (
-              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-bold text-teal-700">{r.guest_name?.charAt(0)}</span>
+              <div key={r.id}>
+                {editingReview?.id === r.id ? (
+                  <ReviewForm
+                    editReview={r}
+                    hostelId={hostelId}
+                    onDone={() => setEditingReview(null)}
+                  />
+                ) : (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-teal-700">{r.guest_name?.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">{r.guest_name}</p>
+                          <p className="text-xs text-gray-400">{r.created_at}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <StarDisplay value={r.rating} />
+                        <div className="flex gap-3 text-xs text-gray-400">
+                          <span>Service: <span className="font-semibold text-gray-600">{r.service_quality}/5</span></span>
+                          <span>Hygiene: <span className="font-semibold text-gray-600">{r.hygiene_score}/5</span></span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">{r.guest_name}</p>
-                      <p className="text-xs text-gray-400">{r.created_at}</p>
-                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{r.comment}</p>
+                    {userId && r.guest_id === userId && (
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => setEditingReview(r)}
+                          className="text-xs font-semibold text-teal-600 hover:text-teal-700 transition"
+                        >
+                          Edit
+                        </button>
+                        {deleteConfirm === r.id ? (
+                          <span className="flex items-center gap-2 text-xs">
+                            <span className="text-gray-500">Delete?</span>
+                            <button
+                              onClick={() => deleteMutation.mutate(r.id)}
+                              disabled={deleteMutation.isPending}
+                              className="font-semibold text-red-500 hover:text-red-600 transition"
+                            >
+                              {deleteMutation.isPending ? 'Deleting…' : 'Yes'}
+                            </button>
+                            <button onClick={() => setDeleteConfirm(null)} className="font-semibold text-gray-500 hover:text-gray-600 transition">No</button>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirm(r.id)}
+                            className="text-xs font-semibold text-red-500 hover:text-red-600 transition"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <StarDisplay value={r.rating} />
-                    <div className="flex gap-3 text-xs text-gray-400">
-                      <span>Service: <span className="font-semibold text-gray-600">{r.service_quality}/5</span></span>
-                      <span>Hygiene: <span className="font-semibold text-gray-600">{r.hygiene_score}/5</span></span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{r.comment}</p>
+                )}
               </div>
             ))}
           </div>
@@ -520,7 +690,7 @@ const HostelDetailPage = () => {
         )}
 
         {/* ── Reviews ── */}
-        <ReviewsSection hostelId={hostel.id} />
+        <ReviewsSection hostelId={hostel.id} userId={user?.id} />
       </main>
 
       <Footer />

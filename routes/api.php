@@ -69,6 +69,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('/guest/bookings/{id}/pay-cash',    [BookingController::class, 'guestPayCash']);
         Route::post('/bookings/{id}/payment',            [PaymentController::class, 'guestUpload']);
         Route::post('/guest/bookings/{id}/review',       [ReviewController::class, 'store']);
+        Route::put('/guest/reviews/{id}',                [ReviewController::class, 'update']);
+        Route::delete('/guest/reviews/{id}',             [ReviewController::class, 'destroy']);
+        Route::get('/guest/hostels/{id}/review-eligibility', [ReviewController::class, 'eligibility']);
         Route::patch('/guest/bookings/{id}/finish',          [BookingController::class, 'guestFinish']);
         Route::post('/guest/bookings/{id}/advance-payment',  [PaymentController::class, 'guestUploadAdvance']);
         Route::get('/guest/current-stays',               [CurrentStayController::class, 'index']);
