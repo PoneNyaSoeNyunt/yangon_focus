@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import apiClient from '../../api/client';
+import ImageUploadField from '../../components/shared/ImageUploadField';
 
 const FAQ = [
   {
@@ -19,6 +20,7 @@ const FAQ = [
 
 const OwnerSupport = () => {
   const [form, setForm] = useState({ subject: '', message: '' });
+  const [imageFile, setImageFile] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -32,10 +34,13 @@ const OwnerSupport = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (payload) => apiClient.post('/comments', payload),
+    mutationFn: (payload) => apiClient.post('/comments', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
     onSuccess: () => {
       setSubmitted(true);
       setForm({ subject: '', message: '' });
+      setImageFile(null);
       setErrors({});
     },
     onError: (err) => {
@@ -49,7 +54,11 @@ const OwnerSupport = () => {
     if (!form.subject.trim()) errs.subject = 'Subject is required.';
     if (!form.message.trim()) errs.message = 'Message is required.';
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    mutation.mutate({ subject: form.subject.trim(), message: form.message.trim() });
+    const fd = new FormData();
+    fd.append('subject', form.subject.trim());
+    fd.append('message', form.message.trim());
+    if (imageFile) fd.append('image', imageFile);
+    mutation.mutate(fd);
   };
 
   const set = (field) => (e) => {
@@ -150,6 +159,11 @@ const OwnerSupport = () => {
               />
               {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
             </div>
+            <ImageUploadField
+              file={imageFile}
+              onChange={(f) => { setImageFile(f); setErrors(er => ({ ...er, image: undefined })); }}
+              error={errors.image?.[0] ?? errors.image}
+            />
             <button
               type="submit"
               disabled={mutation.isPending}
