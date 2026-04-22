@@ -77,40 +77,76 @@ function PaymentHistoryModal({ renter, onClose }) {
               {payments.map((p, idx) => (
                 <div
                   key={p.payment_id}
-                  className={`flex items-start gap-4 p-4 rounded-xl border ${
+                  className={`p-4 rounded-xl border ${
                     p.is_advance ? 'border-purple-200 bg-purple-50/40' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex-shrink-0 mt-0.5 flex flex-col items-center gap-1">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
-                      {p.payment_method ?? 'Unknown'}
-                    </span>
-                    {p.is_advance && (
-                      <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        Paid Ahead
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</p>
+                  {/* Mobile: vertical stack */}
+                  <div className="flex flex-col gap-2.5 sm:hidden text-xs">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-gray-800">
+                        {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
+                      </p>
                       <span className={`text-xs font-medium ${STATUS_COLORS[p.status] ?? 'text-gray-500'}`}>{p.status}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
-                      {p.payment_method ? ` • ${p.payment_method}` : ''}
-                      {' • '}{formatDate(p.paid_at, true)}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {p.is_advance && (
+                        <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                          Paid Ahead
+                        </span>
+                      )}
+                      <span className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-500">{formatDate(p.paid_at, true)}</p>
+                      {p.screenshot_url && (
+                        <button
+                          onClick={() => setLightboxUrl(p.screenshot_url)}
+                          className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                          aria-label="View receipt"
+                        >
+                          <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {p.screenshot_url && (
-                    <button
-                      onClick={() => setLightboxUrl(p.screenshot_url)}
-                      className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
-                      aria-label="View receipt"
-                    >
-                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                    </button>
-                  )}
+
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden sm:flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-0.5 flex flex-col items-center gap-1">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {p.is_advance && (
+                        <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          Paid Ahead
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</p>
+                        <span className={`text-xs font-medium ${STATUS_COLORS[p.status] ?? 'text-gray-500'}`}>{p.status}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
+                        {p.payment_method ? ` • ${p.payment_method}` : ''}
+                        {' • '}{formatDate(p.paid_at, true)}
+                      </p>
+                    </div>
+                    {p.screenshot_url && (
+                      <button
+                        onClick={() => setLightboxUrl(p.screenshot_url)}
+                        className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                        aria-label="View receipt"
+                      >
+                        <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

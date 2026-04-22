@@ -232,21 +232,49 @@ const BookingDetailModal = ({ booking, onClose, onVerify, onReject, onCancel, on
                     const mCls   = METHOD_COLORS[method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
                     const sCls   = PAY_STATUS_CLS[p.status?.label] ?? 'bg-gray-100 text-gray-500';
                     return (
-                      <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50 text-xs">
-                        <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${mCls}`}>{method}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 truncate">{p.is_advance ? 'Advance' : `Payment #${idx + 1}`}</p>
-                          <p className="text-gray-400 mt-0.5">{fmtDateTime(p.created_at)}{p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}</p>
+                      <div key={p.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 text-xs">
+                        {/* Mobile: vertical stack */}
+                        <div className="flex flex-col gap-2 sm:hidden">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-gray-800">{p.is_advance ? 'Advance' : `Payment #${idx + 1}`}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${sCls}`}>{p.status?.label}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${mCls}`}>{method}</span>
+                            {p.total_amount && (
+                              <span className="font-semibold text-gray-700">{Number(p.total_amount).toLocaleString()} MMK</span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-gray-400">{fmtDateTime(p.created_at)}</p>
+                            {p.screenshot_url && (
+                              <button
+                                onClick={() => setLightboxUrl(p.screenshot_url)}
+                                className="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                              >
+                                <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${sCls}`}>{p.status?.label}</span>
-                        {p.screenshot_url && (
-                          <button
-                            onClick={() => setLightboxUrl(p.screenshot_url)}
-                            className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
-                          >
-                            <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                          </button>
-                        )}
+
+                        {/* Desktop: horizontal row */}
+                        <div className="hidden sm:flex items-center gap-3">
+                          <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${mCls}`}>{method}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-800 truncate">{p.is_advance ? 'Advance' : `Payment #${idx + 1}`}</p>
+                            <p className="text-gray-400 mt-0.5">{fmtDateTime(p.created_at)}{p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}</p>
+                          </div>
+                          <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${sCls}`}>{p.status?.label}</span>
+                          {p.screenshot_url && (
+                            <button
+                              onClick={() => setLightboxUrl(p.screenshot_url)}
+                              className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                            >
+                              <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
