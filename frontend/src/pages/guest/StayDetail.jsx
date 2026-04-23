@@ -385,28 +385,68 @@ const StayDetail = () => {
               return (
                 <div
                   key={p.id}
-                  className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border text-xs ${
+                  className={`p-3 rounded-xl border text-xs ${
                     isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1 flex-shrink-0">
-                    <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
-                      {p.payment_method ?? 'Unknown'}
-                    </span>
-                    {isAdv && (
-                      <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        Paid Ahead
+                  {/* Mobile: vertical stack */}
+                  <div className="flex flex-col gap-2 sm:hidden">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-800">{label}</p>
+                      <div className="flex items-center gap-1.5">
+                        {isAdv && (
+                          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                            Paid Ahead
+                          </span>
+                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                          {p.status ?? '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                        {p.payment_method ?? 'Unknown'}
                       </span>
-                    )}
+                      {p.total_amount && (
+                        <span className="font-semibold text-gray-700">{Number(p.total_amount).toLocaleString()} MMK</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-400">
+                        {p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </p>
+                      {p.screenshot_url && (
+                        <button
+                          onClick={() => setLightboxUrl(p.screenshot_url)}
+                          className="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                          aria-label="View receipt"
+                        >
+                          <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">{label}</p>
-                    <p className="text-gray-400 mt-0.5 truncate">
-                      {p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
-                      {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 sm:flex-col sm:gap-1">
+
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden sm:flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {isAdv && (
+                        <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                          Paid Ahead
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-800 truncate">{label}</p>
+                      <p className="text-gray-400 mt-0.5 truncate">
+                        {p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                        {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
+                      </p>
+                    </div>
                     <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
                       {p.status ?? '—'}
                     </span>
