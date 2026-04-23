@@ -480,7 +480,7 @@ const StayDetail = () => {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-semibold tracking-wider">Owner Contact</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-semibold tracking-wider">{stay.hostel?.owner_name ?? 'Owner Contact'}</p>
             {stay.hostel?.owner_phone
               ? <a href={`tel:${stay.hostel.owner_phone}`} className="text-xs sm:text-sm font-semibold text-teal-600 hover:text-teal-700 transition truncate block">
                   {stay.hostel.owner_phone}
