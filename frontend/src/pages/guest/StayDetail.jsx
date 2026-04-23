@@ -385,11 +385,11 @@ const StayDetail = () => {
               return (
                 <div
                   key={p.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border text-xs ${
+                  className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border text-xs ${
                     isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex flex-col items-start gap-1 flex-shrink-0">
+                  <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1 flex-shrink-0">
                     <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
                       {p.payment_method ?? 'Unknown'}
                     </span>
@@ -406,18 +406,20 @@ const StayDetail = () => {
                       {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
                     </p>
                   </div>
-                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
-                    {p.status ?? '—'}
-                  </span>
-                  {p.screenshot_url && (
-                    <button
-                      onClick={() => setLightboxUrl(p.screenshot_url)}
-                      className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
-                      aria-label="View receipt"
-                    >
-                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 sm:flex-col sm:gap-1">
+                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                      {p.status ?? '—'}
+                    </span>
+                    {p.screenshot_url && (
+                      <button
+                        onClick={() => setLightboxUrl(p.screenshot_url)}
+                        className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                        aria-label="View receipt"
+                      >
+                        <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
