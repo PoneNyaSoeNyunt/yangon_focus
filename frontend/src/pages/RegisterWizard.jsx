@@ -445,7 +445,7 @@ const RegisterWizard = () => {
     else setGuestDone(true);
   };
 
-  const totalSteps = role === 'owner' ? 3 : 2;
+  const totalSteps = 2;
 
   const STEP_SUBTITLES = {
     1: 'Choose how you want to use Yangon Focus',
