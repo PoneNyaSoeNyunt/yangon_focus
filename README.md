@@ -55,6 +55,8 @@ cp .env.example .env
 php artisan key:generate
 ```
 
+> `key:generate` automatically writes a random `APP_KEY` into your `.env` file. No manual action needed — Laravel uses this key to encrypt sessions, cookies, and other sensitive data. Never share or commit this key.
+
 ### 3. Configure the database
 
 Open `.env` and set the database credentials:
