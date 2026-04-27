@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
+import apiClient from '../../api/client';
 import ImageUploader from '../../components/owner/ImageUploader';
 
 const STEPS = ['Basic Info', 'Rooms & Beds', 'License & Gallery'];
@@ -58,6 +59,18 @@ const CreateHostel = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const editMode = !!id;
+
+  const { data: subData, isLoading: subLoading } = useQuery({
+    queryKey: ['owner-subscription'],
+    queryFn: () => apiClient.get('/owner/subscription').then((r) => r.data),
+    enabled: !editMode,
+  });
+
+  useEffect(() => {
+    if (!editMode && !subLoading && subData && subData.subscription?.status?.label !== 'Active') {
+      navigate('/owner/hostels', { replace: true });
+    }
+  }, [editMode, subLoading, subData, navigate]);
 
   const [step, setStep] = useState(() => {
     const s = Number(searchParams.get('step'));
