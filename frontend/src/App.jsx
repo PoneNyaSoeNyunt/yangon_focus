@@ -31,7 +31,6 @@ import GuestLayout from './components/guest/GuestLayout';
 import ManageBookings from './pages/owner/ManageBookings';
 import ManageRenters from './pages/owner/ManageRenters';
 import OwnerMyProfile from './pages/owner/MyProfile';
-import VerifyPayments from './pages/owner/VerifyPayments';
 import OwnerSupport from './pages/owner/OwnerSupport';
 import OwnerSubscription from './pages/owner/OwnerSubscription';
 import OwnerReviews from './pages/owner/OwnerReviews';
@@ -112,7 +111,7 @@ function App() {
           <Route path="/owner/hostels/edit/:id" element={<OwnerRoute><CreateHostel /></OwnerRoute>} />
           <Route path="/owner/bookings"  element={<OwnerRoute><ManageBookings /></OwnerRoute>} />
           <Route path="/owner/renters"   element={<OwnerRoute><ManageRenters /></OwnerRoute>} />
-          <Route path="/owner/payments"  element={<OwnerRoute><VerifyPayments /></OwnerRoute>} />
+          <Route path="/owner/payments"  element={<Navigate to="/owner/bookings" replace />} />
           <Route path="/owner/subscription" element={<OwnerRoute><OwnerSubscription /></OwnerRoute>} />
           <Route path="/owner/profile"    element={<OwnerRoute><OwnerMyProfile /></OwnerRoute>} />
           <Route path="/owner/reviews"   element={<OwnerRoute><OwnerReviews /></OwnerRoute>} />

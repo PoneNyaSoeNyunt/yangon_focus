@@ -151,9 +151,9 @@ const Footer = () => {
         <div id="about">
           <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-teal-400 transition">Home</Link></li>
-            <li><Link to="/about" className="hover:text-teal-400 transition">About</Link></li>
-            <li><a href="#results" className="hover:text-teal-400 transition">Browse Hostels</a></li>
+            <li><button onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition text-left">Home</button></li>
+            <li><button onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition text-left">About</button></li>
+            <li><button onClick={() => { navigate('/'); setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100); }} className="hover:text-teal-400 transition text-left">Browse Hostels</button></li>
             <li>
               <button onClick={handleOwnerLogin} className="hover:text-teal-400 transition text-left">
                 Owner Login
@@ -198,8 +198,8 @@ const Footer = () => {
       <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <p>&copy; {new Date().getFullYear()} Yangon Focus. All rights reserved.</p>
         <div className="flex gap-4">
-          <Link to="/privacy" className="hover:text-teal-400 transition">Privacy Policy</Link>
-          <Link to="/terms" className="hover:text-teal-400 transition">Terms of Service</Link>
+          <button onClick={() => { navigate('/privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition">Privacy Policy</button>
+          <button onClick={() => { navigate('/terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-teal-400 transition">Terms of Service</button>
         </div>
       </div>
     </div>

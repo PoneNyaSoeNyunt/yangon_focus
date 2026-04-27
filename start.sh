@@ -6,7 +6,10 @@ set -e
 echo "� Setting storage permissions..."
 chmod -R 775 /var/www/html/storage
 
-echo "�🚀 Running migrations..."
+echo "🔗 Creating storage symlink..."
+php artisan storage:link --force
+
+echo "🚀 Running migrations..."
 php artisan migrate --force
 
 echo "🌱 Seeding database..."

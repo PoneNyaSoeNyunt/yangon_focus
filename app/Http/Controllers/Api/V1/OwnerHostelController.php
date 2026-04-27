@@ -73,6 +73,18 @@ class OwnerHostelController extends Controller
         ], 201);
     }
 
+    public function updateLicenseNumber(Request $request, int $id)
+    {
+        $request->validate(['license_number' => ['required', 'string', 'max:255']]);
+
+        $license = $this->hostelService->updateLicenseNumber($id, $request->license_number);
+
+        return response()->json([
+            'message' => 'License number updated.',
+            'license' => $license,
+        ]);
+    }
+
     public function uploadImages(UploadImagesRequest $request, int $id)
     {
         $images = $this->hostelService->uploadImages($id, $request->file('images'));

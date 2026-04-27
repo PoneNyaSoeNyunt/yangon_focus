@@ -7,16 +7,22 @@ use Illuminate\Support\Facades\Storage;
 
 class ReportService
 {
+    protected ImageService $images;
+
+    public function __construct(ImageService $images)
+    {
+        $this->images = $images;
+    }
     public function createReport(int $reporterId, array $data): Report
     {
-        $path = $data['evidence']->store('report-evidence', 'public');
+        $evidenceUrl = $this->images->upload($data['evidence'], 'report-evidence');
 
         return Report::create([
             'reporter_id'  => $reporterId,
             'offender_id'  => $data['offender_id'],
             'category_id'  => $data['category_id'],
             'description'  => $data['description'] ?? null,
-            'evidence_url' => Storage::url($path),
+            'evidence_url' => $evidenceUrl,
         ]);
     }
 

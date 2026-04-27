@@ -28,14 +28,14 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-1 flex-1">
-            <Link to="/about"
+            <button onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition">
               About
-            </Link>
-            <Link to="/contact"
+            </button>
+            <button onClick={() => { navigate('/contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition">
               Contact
-            </Link>
+            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-3 ml-auto">
@@ -88,8 +88,8 @@ const Navbar = () => {
 
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
-          <Link to="/about" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">About</Link>
-          <Link to="/contact" className="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">Contact</Link>
+          <button onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); setMenuOpen(false); }} className="block w-full px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">About</button>
+          <button onClick={() => { navigate('/contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); setMenuOpen(false); }} className="block w-full px-3 py-2 text-sm font-medium text-gray-600 hover:bg-teal-50 rounded-lg text-center">Contact</button>
           <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
             {isAuthenticated ? (
               <>

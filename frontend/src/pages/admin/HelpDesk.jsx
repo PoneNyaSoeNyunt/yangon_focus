@@ -12,6 +12,7 @@ const TAB_STYLES = {
 const HelpDesk = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('Open');
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-comments'],
@@ -125,10 +126,23 @@ const HelpDesk = () => {
                 )}
               </div>
 
-              <div className="px-6 pb-4">
+              <div className="px-6 pb-4 space-y-3">
                 <p className="text-sm text-gray-600 bg-gray-50 rounded-xl px-4 py-3 leading-relaxed whitespace-pre-wrap">
                   {c.message}
                 </p>
+                {c.image_url && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-400 mb-1.5">Attachment</p>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxUrl(c.image_url)}
+                      className="block w-32 h-32 rounded-xl overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      aria-label="View attachment"
+                    >
+                      <img src={c.image_url} alt="Inquiry attachment" className="w-full h-full object-cover" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center gap-4">
@@ -145,13 +159,13 @@ const HelpDesk = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-                  {c.user?.nrc_number && (
+                  {c.user?.formatted_nrc && (
                     <span className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1 rounded-lg text-xs text-gray-600 font-mono">
                       <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2" />
                       </svg>
-                      {c.user.nrc_number}
+                      {c.user.formatted_nrc}
                     </span>
                   )}
                   <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
@@ -167,6 +181,30 @@ const HelpDesk = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Inquiry attachment"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

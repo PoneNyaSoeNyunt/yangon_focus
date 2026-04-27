@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
+import NrcPicker from '../../components/NrcPicker';
 
 const InputField = ({ label, id, error, ...props }) => (
   <div>
@@ -31,7 +32,7 @@ const SuccessAlert = ({ message }) => (
 const MyProfile = () => {
   const { user, login } = useAuth();
   const isSuspended = user?.user_status_id === 2;
-  const [form, setForm]   = useState({ full_name: '', phone_number: '', nrc_number: '' });
+  const [form, setForm]   = useState({ full_name: '', phone_number: '', nrc_region: '', nrc_township_id: '', nrc_type: '', nrc_number: '' });
   const [pwForm, setPwForm] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [profileErrors, setProfileErrors]   = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -40,7 +41,12 @@ const MyProfile = () => {
 
   useEffect(() => {
     if (user) {
-      setForm({ full_name: user.full_name ?? '', phone_number: user.phone_number ?? '', nrc_number: user.nrc_number ?? '' });
+      setForm({
+        full_name: user.full_name ?? '', phone_number: user.phone_number ?? '',
+        nrc_region: user.nrc_region ? String(user.nrc_region) : '',
+        nrc_township_id: user.nrc_township_id ? String(user.nrc_township_id) : '',
+        nrc_type: user.nrc_type ?? '', nrc_number: user.nrc_number ?? '',
+      });
     }
   }, [user]);
 
@@ -91,7 +97,14 @@ const MyProfile = () => {
             </div>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); profileMutation.mutate(form); }} className="space-y-4">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            profileMutation.mutate({
+              ...form,
+              nrc_region: Number(form.nrc_region),
+              nrc_township_id: Number(form.nrc_township_id),
+            });
+          }} className="space-y-4">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Personal Information</h2>
 
             {profileSuccess && <SuccessAlert message={profileSuccess} />}
@@ -102,9 +115,12 @@ const MyProfile = () => {
             <InputField label="Phone Number"  id="phone_number"  type="text"
               value={form.phone_number}  onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
               error={profileErrors.phone_number?.[0]} disabled={isSuspended} />
-            <InputField label="NRC Number"    id="nrc_number"    type="text"
-              value={form.nrc_number}    onChange={(e) => setForm((f) => ({ ...f, nrc_number: e.target.value }))}
-              error={profileErrors.nrc_number?.[0]} disabled={isSuspended} />
+            <NrcPicker
+              value={{ nrc_region: form.nrc_region, nrc_township_id: form.nrc_township_id, nrc_type: form.nrc_type, nrc_number: form.nrc_number }}
+              onChange={(nrc) => setForm(f => ({ ...f, ...nrc }))}
+              errors={profileErrors}
+              disabled={isSuspended}
+            />
 
             <div className="pt-1">
               <button type="submit" disabled={profileMutation.isPending || isSuspended}

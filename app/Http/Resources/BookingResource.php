@@ -32,18 +32,28 @@ class BookingResource extends JsonResource
             ],
             'payments' => $this->whenLoaded('payments', fn() =>
                 $this->payments->map(fn($p) => [
-                    'id'             => $p->id,
-                    'payment_method' => $p->payment_method,
-                    'total_amount'   => $p->total_amount,
-                    'is_advance'     => (bool) $p->is_advance,
-                    'status'         => $p->status?->label,
-                    'screenshot_url' => $p->screenshot_url,
-                    'paid_at'        => $p->created_at?->toDateString(),
+                    'id'               => $p->id,
+                    'payment_method'   => $p->payment_method,
+                    'total_amount'     => $p->total_amount,
+                    'is_advance'       => (bool) $p->is_advance,
+                    'status'           => $p->status?->label,
+                    'screenshot_url'   => $p->screenshot_url,
+                    'rejection_reason' => $p->rejection_reason,
+                    'paid_at'          => $p->created_at?->toIso8601String(),
+                    'updated_at'       => $p->updated_at?->toIso8601String(),
                 ])
             ),
             'cancel_reason'  => $this->cancel_reason,
             'cancelled_by'   => $this->cancelled_by,
+            'cancelled_at'   => $this->cancelled_by ? $this->updated_at?->toIso8601String() : null,
             'has_review' => $this->whenLoaded('review', fn() => $this->review !== null, false),
+            'review'     => $this->whenLoaded('review', fn() => $this->review ? [
+                'id'              => $this->review->id,
+                'rating'          => $this->review->rating,
+                'service_quality' => $this->review->service_quality,
+                'hygiene_score'   => $this->review->hygiene_score,
+                'comment'         => $this->review->comment,
+            ] : null),
         ];
     }
 }

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../api/client';
+import adminService from '../../services/adminService';
 
 const STATUS_STYLES = {
   'Active':               'bg-teal-100 text-teal-700',
@@ -47,6 +48,8 @@ const Modal = ({ title, onClose, children, wide }) => (
 
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDateTime = (iso) =>
+  iso ? new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 const fmtAmt = (v) =>
   v != null ? Number(v).toLocaleString() + ' MMK' : '—';
@@ -57,24 +60,33 @@ const SubscriptionManagement = () => {
   const [feeModal, setFeeModal]       = useState(false);
   const [feeInput, setFeeInput]       = useState('');
   const [feeError, setFeeError]       = useState('');
-  const [hostelModal, setHostelModal]   = useState(null);
-  const [paymentModal, setPaymentModal] = useState(null);
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [detailsModal, setDetailsModal] = useState(null);
   const [search, setSearch]                   = useState('');
-  const [statusFilter, setStatusFilter]       = useState('');
   const [subFilter, setSubFilter]             = useState('');
 
   const [walletModal, setWalletModal]   = useState(null);
   const [walletForm, setWalletForm]     = useState({ method_name: '', account_number: '', account_name: '' });
   const [walletError, setWalletError]   = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [lightboxUrl, setLightboxUrl]     = useState(null);
+  const [disableTarget, setDisableTarget] = useState(null);
+  const [disableReason, setDisableReason] = useState('');
 
-  useEffect(() => {
-    if (!openDropdown) return;
-    const close = () => setOpenDropdown(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [openDropdown]);
+  const hostelDisableMutation = useMutation({
+    mutationFn: ({ id, reason }) => adminService.disableLicense(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hostels-subscription'] });
+      setDisableTarget(null);
+      setDisableReason('');
+    },
+  });
+
+  const hostelUndoDisableMutation = useMutation({
+    mutationFn: (id) => adminService.undoDisableLicense(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hostels-subscription'] });
+    },
+  });
 
   const { data: configData } = useQuery({
     queryKey: ['admin-sub-config'],
@@ -86,34 +98,20 @@ const SubscriptionManagement = () => {
     queryFn:  () => apiClient.get('/admin/payment-methods').then((r) => r.data),
   });
 
-  const { data: ownersData, isLoading: ownersLoading } = useQuery({
-    queryKey: ['admin-owners'],
-    queryFn:  () => apiClient.get('/admin/owners').then((r) => r.data),
-  });
-
-  const { data: hostelsData, isLoading: hostelsLoading } = useQuery({
-    queryKey: ['admin-owner-hostels', hostelModal?.id],
-    queryFn:  () => apiClient.get(`/admin/owners/${hostelModal.id}/hostels`).then((r) => r.data),
-    enabled:  !!hostelModal,
+  const { data: hostelRowsData, isLoading: hostelsLoading } = useQuery({
+    queryKey: ['admin-hostels-subscription'],
+    queryFn:  () => apiClient.get('/admin/hostels-subscription').then((r) => r.data),
   });
 
   const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
-    queryKey: ['admin-owner-sub-history', paymentModal?.id],
-    queryFn:  () => apiClient.get(`/admin/owners/${paymentModal.id}/subscription-history`).then((r) => r.data),
-    enabled:  !!paymentModal,
-  });
-
-  const manageMutation = useMutation({
-    mutationFn: ({ id, label }) => apiClient.patch(`/admin/users/${id}/status`, { label }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-owners'] });
-      setOpenDropdown(null);
-    },
+    queryKey: ['admin-owner-sub-history', detailsModal?.owner_id],
+    queryFn:  () => apiClient.get(`/admin/owners/${detailsModal.owner_id}/subscription-history`).then((r) => r.data),
+    enabled:  !!detailsModal?.owner_id,
   });
 
   const verifyMutation = useMutation({
     mutationFn: (ownerId) => apiClient.patch(`/admin/owners/${ownerId}/subscription/verify`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-owners'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-hostels-subscription'] }),
   });
 
   const updateFeeMutation = useMutation({
@@ -201,19 +199,18 @@ const SubscriptionManagement = () => {
     updateFeeMutation.mutate(feeInput);
   };
 
-  const owners  = Array.isArray(ownersData)   ? ownersData   : [];
-  const hostels = Array.isArray(hostelsData)  ? hostelsData  : [];
-  const payments = Array.isArray(paymentsData) ? paymentsData : [];
-  const wallets  = Array.isArray(walletsData)  ? walletsData  : [];
+  const hostelRows = Array.isArray(hostelRowsData) ? hostelRowsData : [];
+  const payments   = Array.isArray(paymentsData)   ? paymentsData   : [];
+  const wallets    = Array.isArray(walletsData)    ? walletsData    : [];
 
-  const filteredOwners = owners.filter((o) => {
+  const filteredRows = hostelRows.filter((h) => {
     const q = search.toLowerCase();
     const matchSearch = !q ||
-      o.full_name?.toLowerCase().includes(q) ||
-      o.phone_number?.toLowerCase().includes(q);
-    const matchStatus = !statusFilter || o.account_status === statusFilter;
-    const matchSub    = !subFilter    || o.subscription_status === subFilter;
-    return matchSearch && matchStatus && matchSub;
+      h.hostel_name?.toLowerCase().includes(q) ||
+      h.owner_name?.toLowerCase().includes(q) ||
+      h.owner_phone?.toLowerCase().includes(q);
+    const matchSub = !subFilter || h.subscription_status === subFilter;
+    return matchSearch && matchSub;
   });
 
   return (
@@ -316,14 +313,14 @@ const SubscriptionManagement = () => {
         )}
       </div>
 
-      {/* Owners Table */}
+      {/* Hostel Lists Table */}
       <div className="lg:bg-white lg:rounded-2xl lg:border lg:border-gray-100 lg:shadow-sm">
         <div className="px-4 py-4 lg:border-b border-gray-100 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h2 className="font-bold text-gray-800 text-sm">Owner Overview</h2>
+              <h2 className="font-bold text-gray-800 text-sm">Hostel Lists</h2>
               <p className="text-xs text-gray-400 mt-0.5">
-                {filteredOwners.length} of {owners.length} owner{owners.length !== 1 ? 's' : ''}
+                {filteredRows.length} of {hostelRows.length} hostel{hostelRows.length !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -335,23 +332,12 @@ const SubscriptionManagement = () => {
               </svg>
               <input
                 type="text"
-                placeholder="Search by name or phone…"
+                placeholder="Search by hostel, owner or phone…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
               />
             </div>
-            {/* Status filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white transition"
-            >
-              <option value="">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Suspended">Suspended</option>
-              <option value="Blacklisted">Blacklisted</option>
-            </select>
             {/* Subscription filter */}
             <select
               value={subFilter}
@@ -367,139 +353,102 @@ const SubscriptionManagement = () => {
           </div>
         </div>
 
-        {ownersLoading ? (
+        {hostelsLoading ? (
           <div className="flex items-center justify-center py-16 gap-3 text-teal-500">
-            <Spinner /> <span className="text-sm text-gray-400">Loading owners…</span>
+            <Spinner /> <span className="text-sm text-gray-400">Loading hostels…</span>
           </div>
-        ) : owners.length === 0 ? (
-          <div className="py-16 text-center text-sm text-gray-400">No owners registered yet.</div>
-        ) : filteredOwners.length === 0 ? (
-          <div className="py-16 text-center text-sm text-gray-400">No owners match your search or filters.</div>
+        ) : hostelRows.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">No hostels listed yet.</div>
+        ) : filteredRows.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">No hostels match your search or filters.</div>
         ) : (
           <>
           {/* ── Mobile card list ── */}
           <div className="lg:hidden p-3 space-y-3">
-            {filteredOwners.map((owner, idx) => (
-              <div key={owner.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                {/* Header row */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs text-gray-400 mr-1">#{idx + 1}</span>
-                    <span className="font-bold text-gray-900 text-sm">{owner.full_name}</span>
-                  </div>
-                  <div className="flex items-start gap-2 flex-shrink-0">
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-[10px] text-gray-400 font-medium">Status</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {owner.account_status ?? 'Active'}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-[10px] text-gray-400 font-medium">Subscription</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {owner.subscription_status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info rows */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <div>
-                    <span className="text-gray-400 font-medium">Phone</span>
-                    <p className="font-mono text-gray-700 mt-0.5">{owner.phone_number}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 font-medium">NRC</span>
-                    <p className="text-gray-700 mt-0.5">{owner.nrc_number ?? '—'}</p>
-                  </div>
-                  <div className="col-span-2 mt-1">
-                    <span className="text-gray-400 font-medium">Hostels</span>
-                    <div className="mt-0.5">
-                      {owner.hostels && owner.hostels.length > 0
-                        ? owner.hostels.map((h, i) => <p key={i} className="text-gray-700">{h}</p>)
-                        : <p className="text-gray-400">No hostels</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions row */}
-                <div className="flex items-center gap-2 flex-wrap pt-1" onClick={(e) => e.stopPropagation()}>
-                  {/* View dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenDropdown(openDropdown === `view-${owner.id}` ? null : `view-${owner.id}`)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
-                    >
-                      View
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {openDropdown === `view-${owner.id}` && (
-                      <div className="absolute left-0 mt-1 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
-                        <button onClick={() => { setOpenDropdown(null); setHostelModal({ id: owner.id, name: owner.full_name }); }}
-                          className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition">Hostels</button>
-                        <button onClick={() => { setOpenDropdown(null); setPaymentModal({ id: owner.id, name: owner.full_name }); }}
-                          className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition">Payments</button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Verify */}
-                  {owner.subscription_status === 'Pending Verification' && (
-                    <button
-                      onClick={() => verifyMutation.mutate(owner.id)}
-                      disabled={verifyMutation.isPending && verifyMutation.variables === owner.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
-                    >
-                      {verifyMutation.isPending && verifyMutation.variables === owner.id ? <Spinner sm /> : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
-                      Verify
-                    </button>
-                  )}
-
-                  {/* Manage dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenDropdown(openDropdown === owner.id ? null : owner.id)}
-                      disabled={manageMutation.isPending && manageMutation.variables?.id === owner.id}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {manageMutation.isPending && manageMutation.variables?.id === owner.id ? (
-                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                      ) : (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+            {filteredRows.map((row, idx) => {
+              const ownerHasSubscription = row.subscription_status !== 'No Subscription';
+              const isDisabled = row.listing_status === 'Disabled';
+              const canDisable = ownerHasSubscription && row.business_license_id && !isDisabled;
+              const canVerify  = row.subscription_status === 'Pending Verification';
+              return (
+                <div key={row.id} className="p-4 space-y-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  {/* Header row */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-xs text-gray-400 mr-1">#{idx + 1}</span>
+                      <span className={`font-bold text-sm ${row.hostel_name ? 'text-gray-900' : 'text-gray-400 italic'}`}>{row.hostel_name ?? 'No hostels yet'}</span>
+                      {row.listing_status && (
+                        <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          row.listing_status === 'Published' ? 'bg-teal-100 text-teal-700'
+                          : row.listing_status === 'Disabled' ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {row.listing_status}
+                        </span>
                       )}
-                      Manage
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${STATUS_STYLES[row.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {row.subscription_status}
+                    </span>
+                  </div>
+
+                  {/* Info rows */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                      <span className="text-gray-400 font-medium">Owner</span>
+                      <p className="text-gray-700 mt-0.5">{row.owner_name ?? '—'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 font-medium">Next Payment Due</span>
+                      <p className="text-gray-700 mt-0.5">{row.next_payment_due ? fmtDate(row.next_payment_due) : '—'}</p>
+                    </div>
+                  </div>
+
+                  {/* Actions row */}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    <button
+                      onClick={() => setDetailsModal(row)}
+                      className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
+                    >
+                      Show
                     </button>
-                    {openDropdown === owner.id && (
-                      <div className="absolute left-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
-                        {owner.account_status !== 'Suspended' && (
-                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Suspended' }); }}
-                            disabled={manageMutation.isPending}
-                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition">Suspend</button>
-                        )}
-                        {owner.account_status !== 'Blacklisted' && (
-                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Blacklisted' }); }}
-                            disabled={manageMutation.isPending}
-                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition">Blacklist</button>
-                        )}
-                        {owner.account_status !== 'Active' && (
-                          <button onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Active' }); }}
-                            disabled={manageMutation.isPending}
-                            className="w-full text-left px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition">Activate</button>
-                        )}
-                      </div>
+
+                    {canVerify && (
+                      <button
+                        onClick={() => verifyMutation.mutate(row.owner_id)}
+                        disabled={verifyMutation.isPending && verifyMutation.variables === row.owner_id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
+                      >
+                        {verifyMutation.isPending && verifyMutation.variables === row.owner_id
+                          ? <Spinner sm />
+                          : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        }
+                        Verify
+                      </button>
+                    )}
+
+                    {canDisable && (
+                      <button
+                        onClick={() => setDisableTarget({ hostelName: row.hostel_name, licenseId: row.business_license_id })}
+                        className="px-3 py-1.5 rounded-lg border border-amber-400 text-amber-600 text-xs font-semibold hover:bg-amber-50 transition"
+                      >
+                        Disable
+                      </button>
+                    )}
+
+                    {ownerHasSubscription && isDisabled && row.business_license_id && (
+                      <button
+                        onClick={() => hostelUndoDisableMutation.mutate(row.business_license_id)}
+                        disabled={hostelUndoDisableMutation.isPending}
+                        className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold transition disabled:opacity-60"
+                      >
+                        {hostelUndoDisableMutation.isPending ? 'Undoing…' : 'Undo Disable'}
+                      </button>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* ── Desktop table ── */}
@@ -508,144 +457,95 @@ const SubscriptionManagement = () => {
               <thead>
                 <tr className="bg-gray-50 text-left">
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500 w-8">#</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Full Name</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Phone Number</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">NRC Number</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Hostel</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Status</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Subscription</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Hostel Name</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Owner Name</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Subscription Status</th>
+                  <th className="px-3 py-3 text-xs font-semibold text-gray-500">Next Payment Due</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Details</th>
                   <th className="px-3 py-3 text-xs font-semibold text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredOwners.map((owner, idx) => (
-                  <tr key={owner.id} className="hover:bg-gray-50/70 transition">
-                    <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
-                    <td className="px-3 py-4 font-semibold text-gray-900 whitespace-nowrap">{owner.full_name}</td>
-                    <td className="px-3 py-4 font-mono text-gray-600 whitespace-nowrap">{owner.phone_number}</td>
-                    <td className="px-3 py-4 text-gray-600 whitespace-nowrap">{owner.nrc_number ?? '—'}</td>
-                    <td className="px-3 py-4">
-                      {owner.hostels && owner.hostels.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {owner.hostels.map((hostelName, i) => (
-                            <span key={i} className="text-xs text-gray-700">{hostelName}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">No hostels</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[owner.account_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {owner.account_status ?? 'Active'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[owner.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {owner.subscription_status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-4">
-                      <div className="relative" onClick={(e) => e.stopPropagation()}>
+                {filteredRows.map((row, idx) => {
+                  const ownerHasSubscription = row.subscription_status !== 'No Subscription';
+                  const isDisabled = row.listing_status === 'Disabled';
+                  const canDisable = ownerHasSubscription && row.business_license_id && !isDisabled;
+                  const canVerify  = row.subscription_status === 'Pending Verification';
+                  return (
+                    <tr key={row.id} className="hover:bg-gray-50/70 transition">
+                      <td className="px-3 py-4 text-gray-400 text-xs">{idx + 1}</td>
+                      <td className={`px-3 py-4 font-semibold whitespace-nowrap ${row.hostel_name ? 'text-gray-900' : 'text-gray-400 italic'}`}>
+                        {row.hostel_name ?? 'No hostels yet'}
+                        {row.listing_status && (
+                          <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                            row.listing_status === 'Published' ? 'bg-teal-100 text-teal-700'
+                            : row.listing_status === 'Disabled' ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {row.listing_status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-4 text-gray-700 whitespace-nowrap">{row.owner_name ?? '—'}</td>
+                      <td className="px-3 py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[row.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {row.subscription_status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-4 text-gray-600 whitespace-nowrap">
+                        {row.next_payment_due ? fmtDate(row.next_payment_due) : '—'}
+                      </td>
+                      <td className="px-3 py-4">
                         <button
-                          onClick={() => setOpenDropdown(openDropdown === `view-${owner.id}` ? null : `view-${owner.id}`)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
+                          onClick={() => setDetailsModal(row)}
+                          className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
                         >
-                          View
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
+                          Show
                         </button>
-                        {openDropdown === `view-${owner.id}` && (
-                          <div className="absolute left-0 mt-1 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
+                      </td>
+                      <td className="px-3 py-4">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {canVerify && (
                             <button
-                              onClick={() => { setOpenDropdown(null); setHostelModal({ id: owner.id, name: owner.full_name }); }}
-                              className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition"
+                              onClick={() => verifyMutation.mutate(row.owner_id)}
+                              disabled={verifyMutation.isPending && verifyMutation.variables === row.owner_id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
                             >
-                              Hostels
+                              {verifyMutation.isPending && verifyMutation.variables === row.owner_id
+                                ? <Spinner sm />
+                                : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                              }
+                              Verify
                             </button>
-                            <button
-                              onClick={() => { setOpenDropdown(null); setPaymentModal({ id: owner.id, name: owner.full_name }); }}
-                              className="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 transition"
-                            >
-                              Payments
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {owner.subscription_status === 'Pending Verification' && (
-                          <button
-                            onClick={() => verifyMutation.mutate(owner.id)}
-                            disabled={verifyMutation.isPending && verifyMutation.variables === owner.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition"
-                          >
-                            {verifyMutation.isPending && verifyMutation.variables === owner.id
-                              ? <Spinner sm />
-                              : <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                            }
-                            Verify
-                          </button>
-                        )}
+                          )}
 
-                        {/* Manage dropdown */}
-                        <div className="relative" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => setOpenDropdown(openDropdown === owner.id ? null : owner.id)}
-                            disabled={manageMutation.isPending && manageMutation.variables?.id === owner.id}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {manageMutation.isPending && manageMutation.variables?.id === owner.id ? (
-                              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            )}
-                            Manage
-                          </button>
-                          {openDropdown === owner.id && (
-                            <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
-                              {owner.account_status !== 'Suspended' && (
-                                <button
-                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Suspended' }); }}
-                                  disabled={manageMutation.isPending}
-                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition"
-                                >
-                                  Suspend
-                                </button>
-                              )}
-                              {owner.account_status !== 'Blacklisted' && (
-                                <button
-                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Blacklisted' }); }}
-                                  disabled={manageMutation.isPending}
-                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-red-700 hover:bg-red-50 transition"
-                                >
-                                  Blacklist
-                                </button>
-                              )}
-                              {owner.account_status !== 'Active' && (
-                                <button
-                                  onClick={() => { setOpenDropdown(null); manageMutation.mutate({ id: owner.id, label: 'Active' }); }}
-                                  disabled={manageMutation.isPending}
-                                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-teal-700 hover:bg-teal-50 transition"
-                                >
-                                  Activate
-                                </button>
-                              )}
-                            </div>
+                          {canDisable && (
+                            <button
+                              onClick={() => setDisableTarget({ hostelName: row.hostel_name, licenseId: row.business_license_id })}
+                              className="px-3 py-1.5 rounded-lg border border-amber-400 text-amber-600 text-xs font-semibold hover:bg-amber-50 transition"
+                            >
+                              Disable
+                            </button>
+                          )}
+
+                          {ownerHasSubscription && isDisabled && row.business_license_id && (
+                            <button
+                              onClick={() => hostelUndoDisableMutation.mutate(row.business_license_id)}
+                              disabled={hostelUndoDisableMutation.isPending}
+                              className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white text-xs font-semibold transition disabled:opacity-60"
+                            >
+                              {hostelUndoDisableMutation.isPending ? 'Undoing…' : 'Undo Disable'}
+                            </button>
+                          )}
+
+                          {!canVerify && !canDisable && !(ownerHasSubscription && isDisabled) && (
+                            <span className="text-xs text-gray-300">—</span>
                           )}
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -692,64 +592,165 @@ const SubscriptionManagement = () => {
         </Modal>
       )}
 
-      {/* --- Hostel Detail Modal --- */}
-      {hostelModal && (
-        <Modal title={`${hostelModal.name} — Hostels`} onClose={() => setHostelModal(null)} wide>
-          {hostelsLoading ? (
-            <div className="flex items-center justify-center py-12 gap-3 text-teal-500">
-              <Spinner /> <span className="text-sm text-gray-400">Loading hostels…</span>
-            </div>
-          ) : hostels.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">No hostels found for this owner.</p>
-          ) : (
-            <div className="space-y-5">
-              {hostels.map((hostel) => (
-                <div key={hostel.id} className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="bg-teal-50 px-4 py-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-teal-800 text-sm">{hostel.name}</p>
-                      <p className="text-xs text-teal-600 mt-0.5">
-                        {hostel.township?.name ?? '—'}
-                        {hostel.listing_status?.label && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full text-[10px] font-semibold">
-                            {hostel.listing_status.label}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <span className="text-xs text-teal-600 font-semibold flex-shrink-0">
-                      {hostel.rooms?.length ?? 0} room{(hostel.rooms?.length ?? 0) !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-
-                  {hostel.rooms?.length > 0 ? (
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-gray-50 text-left">
-                          <th className="px-4 py-2.5 font-semibold text-gray-500">Room Label</th>
-                          <th className="px-4 py-2.5 font-semibold text-gray-500">Max Occupancy</th>
-                          <th className="px-4 py-2.5 font-semibold text-gray-500 text-right">Price / Month</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {hostel.rooms.map((room) => (
-                          <tr key={room.id} className="hover:bg-gray-50/60 transition">
-                            <td className="px-4 py-3 font-medium text-gray-800">{room.label}</td>
-                            <td className="px-4 py-3 text-gray-500">{room.max_occupancy} beds</td>
-                            <td className="px-4 py-3 text-right font-semibold text-teal-700">
-                              {Number(room.price_per_month).toLocaleString()} MMK
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p className="text-xs text-gray-400 px-4 py-3">No rooms defined for this hostel.</p>
-                  )}
+      {/* --- Details Modal (Owner info + Payment history) --- */}
+      {detailsModal && (
+        <Modal title={`${detailsModal.hostel_name ?? detailsModal.owner_name} — Details`} onClose={() => setDetailsModal(null)} wide>
+          <div className="space-y-6">
+            {/* Owner Info */}
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">Owner Information</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-xl">
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">Full Name</p>
+                  <p className="text-sm text-gray-800 font-semibold">{detailsModal.owner_name ?? '—'}</p>
                 </div>
-              ))}
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">Phone</p>
+                  <p className="text-sm text-gray-800 font-mono">{detailsModal.owner_phone ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">NRC</p>
+                  <p className="text-sm text-gray-800">{detailsModal.owner_nrc ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">Account Status</p>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${ACCOUNT_STATUS_STYLES[detailsModal.owner_account_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                    {detailsModal.owner_account_status ?? 'Active'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">Subscription</p>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[detailsModal.subscription_status] ?? 'bg-gray-100 text-gray-500'}`}>
+                    {detailsModal.subscription_status}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">Next Payment Due</p>
+                  <p className="text-sm text-gray-800">{detailsModal.next_payment_due ? fmtDate(detailsModal.next_payment_due) : '—'}</p>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* Payment History */}
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">Subscription Payment History</h4>
+              {paymentsLoading ? (
+                <div className="flex items-center justify-center py-8 gap-3 text-teal-500">
+                  <Spinner sm /> <span className="text-xs text-gray-400">Loading payments…</span>
+                </div>
+              ) : payments.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-6">No subscription payments yet.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {payments.map((p, idx) => {
+                    const statusLabel = p.status?.label ?? '—';
+                    const statusCls =
+                      statusLabel === 'Verified'       ? 'bg-green-100 text-green-700' :
+                      statusLabel === 'Pending Review' ? 'bg-amber-100 text-amber-700' :
+                      statusLabel === 'Rejected'       ? 'bg-red-100 text-red-500'     :
+                      'bg-gray-100 text-gray-600';
+                    const methodColors = {
+                      KBZPay:          'bg-blue-50 text-blue-700 border-blue-200',
+                      WaveMoney:       'bg-orange-50 text-orange-700 border-orange-200',
+                      'Bank Transfer': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                      Cash:            'bg-emerald-50 text-emerald-700 border-emerald-200',
+                    };
+                    const methodCls = methodColors[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+                    return (
+                      <div key={p.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 text-xs">
+                        {/* Mobile: vertical stack */}
+                        <div className="flex flex-col gap-2 sm:hidden">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-gray-800">Payment #{payments.length - idx}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                              {statusLabel}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                              {p.payment_method ?? 'Unknown'}
+                            </span>
+                            {p.total_amount && (
+                              <span className="font-semibold text-gray-700">{fmtAmt(p.total_amount)}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-gray-400">{fmtDateTime(p.created_at)}</p>
+                            {p.screenshot_url && (
+                              <button
+                                onClick={() => setLightboxUrl(p.screenshot_url)}
+                                className="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                                aria-label="View receipt">
+                                <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Desktop: horizontal row */}
+                        <div className="hidden sm:flex items-center gap-3">
+                          <div className="flex-shrink-0">
+                            <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                              {p.payment_method ?? 'Unknown'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-800 truncate">Payment #{payments.length - idx}</p>
+                            <p className="text-gray-400 mt-0.5 truncate">
+                              {fmtDateTime(p.created_at)}
+                              {p.total_amount ? ` · ${fmtAmt(p.total_amount)}` : ''}
+                            </p>
+                          </div>
+                          <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                            {statusLabel}
+                          </span>
+                          {p.screenshot_url && (
+                            <button
+                              onClick={() => setLightboxUrl(p.screenshot_url)}
+                              className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                              aria-label="View receipt">
+                              <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* --- Hostel Disable Reason Modal --- */}
+      {disableTarget && (
+        <Modal title={`Disable — ${disableTarget.hostelName}`} onClose={() => { setDisableTarget(null); setDisableReason(''); }}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">Provide a reason for disabling this hostel. The owner will see this message.</p>
+            <textarea
+              value={disableReason}
+              onChange={(e) => setDisableReason(e.target.value)}
+              rows={3}
+              placeholder="Reason for disabling (required)..."
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setDisableTarget(null); setDisableReason(''); }}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => hostelDisableMutation.mutate({ id: disableTarget.licenseId, reason: disableReason })}
+                disabled={hostelDisableMutation.isPending || !disableReason.trim()}
+                className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition disabled:opacity-60"
+              >
+                {hostelDisableMutation.isPending ? 'Disabling...' : 'Confirm Disable'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
@@ -844,44 +845,27 @@ const SubscriptionManagement = () => {
         </Modal>
       )}
 
-      {/* --- Payment History Modal --- */}
-      {paymentModal && (
-        <Modal title={`${paymentModal.name} — Subscription Payments`} onClose={() => setPaymentModal(null)} wide>
-          {paymentsLoading ? (
-            <div className="flex items-center justify-center py-12 gap-3 text-teal-500">
-              <Spinner /> <span className="text-sm text-gray-400">Loading payments…</span>
-            </div>
-          ) : payments.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">No subscription payments found for this owner.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left">
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Amount</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Method</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Date</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/60 transition">
-                      <td className="px-4 py-3 font-semibold text-gray-800">{fmtAmt(p.total_amount)}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.payment_method ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{fmtDate(p.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PAYMENT_STATUS_STYLES[p.status?.label] ?? 'bg-gray-100 text-gray-500'}`}>
-                          {p.status?.label ?? '—'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Modal>
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Payment receipt"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

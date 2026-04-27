@@ -53,16 +53,26 @@ const StarPicker = ({ value, onChange }) => (
 /* ── Review Modal ── */
 const ReviewModal = ({ booking, onClose, onSuccess }) => {
   const queryClient = useQueryClient();
-  const [form, setForm]   = useState({ rating: 0, service_quality: 0, hygiene_score: 0, comment: '' });
+  const existing = booking.review ?? null;
+  const isEdit = !!existing;
+  const [form, setForm]   = useState({
+    rating:          existing?.rating ?? 0,
+    service_quality: existing?.service_quality ?? 0,
+    hygiene_score:   existing?.hygiene_score ?? 0,
+    comment:         existing?.comment ?? '',
+  });
   const [error, setError] = useState('');
 
   const hostel = booking.bed?.room?.hostel;
 
   const submitMutation = useMutation({
-    mutationFn: () => reviewService.submitReview(booking.id, form),
+    mutationFn: () => isEdit
+      ? reviewService.updateReview(existing.id, form)
+      : reviewService.submitReview(booking.id, form),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
-      onSuccess('Review submitted! Thank you for your feedback.');
+      queryClient.invalidateQueries({ queryKey: ['hostel-reviews', hostel?.id] });
+      onSuccess(isEdit ? 'Review updated.' : 'Review submitted! Thank you for your feedback.');
     },
     onError: (err) => setError(err?.response?.data?.message ?? 'Submission failed.'),
   });
@@ -73,7 +83,7 @@ const ReviewModal = ({ booking, onClose, onSuccess }) => {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900 text-lg">Write a Review</h3>
+          <h3 className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Review' : 'Write a Review'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -125,7 +135,7 @@ const ReviewModal = ({ booking, onClose, onSuccess }) => {
               onClick={() => submitMutation.mutate()}
               className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition"
             >
-              {submitMutation.isPending ? 'Submitting…' : 'Submit Review'}
+              {submitMutation.isPending ? (isEdit ? 'Updating…' : 'Submitting…') : (isEdit ? 'Update Review' : 'Submit Review')}
             </button>
           </div>
         </div>
@@ -210,34 +220,47 @@ const PayNowModal = ({ booking, onClose, onSuccess }) => {
           </div>
         ) : (
           <div className="space-y-2 mb-4">
-            {paymentMethods.map((m) => (
-              <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
-                  selectedMethodId === m.id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
-                }`}>
-                <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">{m.method_name}</p>
-                  <p className="text-xs text-gray-500">{m.account_number} · {m.account_name}</p>
-                </div>
-              </button>
-            ))}
+            {paymentMethods.map((m) => {
+              const isSelected = selectedMethodId === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
+                  className={`w-full text-left border-2 rounded-xl px-4 py-3 transition ${
+                    isSelected ? 'border-teal-500 bg-teal-50' : 'border-gray-100 bg-gray-50 hover:border-teal-300'
+                  }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-xs font-bold mb-0.5 ${isSelected ? 'text-teal-700' : 'text-gray-700'}`}>{m.method_name}</p>
+                      <p className="text-sm font-semibold text-gray-800">{m.account_number}</p>
+                      <p className="text-xs text-gray-500">{m.account_name}</p>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
             <button type="button" onClick={() => selectMethod('cash')}
-              className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition ${
-                isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
+              className={`w-full text-left border-2 rounded-xl px-4 py-3 transition ${
+                isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-100 bg-gray-50 hover:border-amber-300'
               }`}>
-              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-800 text-sm">Pay at Property</p>
-                <p className="text-xs text-gray-500">Notify owner — pay in cash upon arrival</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-bold mb-0.5 ${isCash ? 'text-amber-700' : 'text-gray-700'}`}>Pay at Property</p>
+                  <p className="text-sm font-semibold text-gray-800">Cash on Arrival</p>
+                  <p className="text-xs text-gray-500">Notify owner — pay in person</p>
+                </div>
+                {isCash && (
+                  <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </button>
           </div>
@@ -279,7 +302,7 @@ const PayNowModal = ({ booking, onClose, onSuccess }) => {
 };
 
 /* ── Booking Card ── */
-const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
+const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview, onDeleteReview, deletingReview }) => {
   const queryClient = useQueryClient();
   const handleExpired = useCallback(
     () => queryClient.invalidateQueries({ queryKey: ['guest-bookings'] }),
@@ -292,9 +315,11 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
   const isCancelled  = booking.status_label === 'Cancelled';
   const total        = Number(booking.locked_price) * Number(booking.stay_duration);
   const hostel       = booking.bed?.room?.hostel;
-  const latestPayment = booking.payments?.[0];
+  const payments = booking.payments ?? [];
+  const latestPayment = payments.length > 0 ? payments[payments.length - 1] : null;
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason]   = useState('');
+  const [confirmDeleteReview, setConfirmDeleteReview] = useState(false);
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm p-5 transition ${isCancelled ? 'opacity-60 border-gray-100' : 'border-gray-100 hover:shadow-md'}`}>
@@ -327,12 +352,34 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
         </div>
       </div>
 
-      {latestPayment && (
-        <div className="mb-3 px-3 py-2 bg-gray-50 rounded-xl text-xs text-gray-500 flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[latestPayment.status] ?? 'bg-gray-100 text-gray-600'}`}>
-            {latestPayment.status}
-          </span>
-          {latestPayment.type} payment submitted
+      {payments.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {[...payments].reverse().map((p, idx) => {
+            const submitted = p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+            const statusTime = p.updated_at && p.status !== 'Pending Review' ? new Date(p.updated_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+            return (
+            <div key={p.id} className="space-y-1.5">
+              <div className={`px-3 py-2 rounded-xl text-xs text-gray-500 ${idx === 0 ? 'bg-gray-50' : 'bg-gray-50/60 opacity-60'}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {p.status}
+                  </span>
+                  {p.payment_method} payment
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-gray-400">
+                  <span>Submitted: {submitted}</span>
+                  {statusTime && <span>{p.status === 'Verified' ? 'Verified' : p.status === 'Rejected' ? 'Rejected' : 'Updated'}: {statusTime}</span>}
+                </div>
+              </div>
+              {p.status === 'Rejected' && p.rejection_reason && (
+                <div className={`px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 ${idx !== 0 ? 'opacity-60' : ''}`}>
+                  <p className="font-semibold mb-0.5">Rejection reason:</p>
+                  <p className="italic">{p.rejection_reason}</p>
+                </div>
+              )}
+            </div>
+            );
+          })}
         </div>
       )}
 
@@ -356,7 +403,7 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
                 </button>
               )}
               <button
-                disabled={!!latestPayment}
+                disabled={latestPayment?.status === 'Pending Review' || latestPayment?.status === 'Verified'}
                 onClick={() => onPayNow(booking)}
                 className="px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl transition">
                 Pay Now
@@ -389,23 +436,58 @@ const BookingCard = ({ booking, onPayNow, onCancel, cancelling, onReview }) => {
       {isCancelled && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider mb-1">Cancellation Info</p>
-          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 italic">
-            {booking.cancelled_by === 'owner'
-              ? <>Cancellation by the hostel owner{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>  
-              : <>Cancellation by you{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>}
-          </p>
+          <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 space-y-1">
+            <p className="italic">
+              {booking.cancelled_by === 'owner'
+                ? <>Cancellation by the hostel owner{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>  
+                : <>Cancellation by you{booking.cancel_reason ? <>: &ldquo;{booking.cancel_reason}&rdquo;</> : '.'}</>}
+            </p>
+            {booking.cancelled_at && (
+              <p className="text-red-400 text-[10px]">
+                {new Date(booking.cancelled_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       {isCompleted && (
         <div className="pt-3 border-t border-gray-100">
           {booking.has_review ? (
-            <p className="text-xs text-gray-400 flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Review submitted
-            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Review submitted
+              </p>
+              <button
+                onClick={() => onReview(booking)}
+                className="text-xs font-semibold text-teal-600 hover:text-teal-700 transition"
+              >
+                Edit
+              </button>
+              {confirmDeleteReview ? (
+                <span className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-500">Delete?</span>
+                  <button
+                    onClick={() => onDeleteReview(booking.review.id)}
+                    disabled={deletingReview}
+                    className="font-semibold text-red-500 hover:text-red-600 transition"
+                  >
+                    {deletingReview ? 'Deleting…' : 'Yes'}
+                  </button>
+                  <button onClick={() => setConfirmDeleteReview(false)} className="font-semibold text-gray-500 hover:text-gray-600 transition">No</button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteReview(true)}
+                  className="text-xs font-semibold text-red-500 hover:text-red-600 transition"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => onReview(booking)}
@@ -436,6 +518,15 @@ const MyBookings = () => {
     onSuccess:  () => {
       queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
       setToast('Booking cancelled.');
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guest-bookings'] });
+      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === 'hostel-reviews' });
+      setToast('Review deleted.');
     },
   });
 
@@ -479,6 +570,8 @@ const MyBookings = () => {
               onCancel={(id, reason) => cancelMutation.mutate({ id, reason })}
               cancelling={cancelMutation.isPending}
               onReview={setReviewTarget}
+              onDeleteReview={(id) => deleteReviewMutation.mutate(id)}
+              deletingReview={deleteReviewMutation.isPending}
             />
           ))}
         </div>

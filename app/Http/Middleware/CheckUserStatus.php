@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,16 @@ class CheckUserStatus
                 : "Your account has been {$statusWord}.";
 
             return response()->json(['message' => $message], 403);
+        }
+
+        if ($context === 'owner' && $user && $user->role === 'Owner') {
+            $until = $user->subscription_until;
+
+            if (is_null($until) || Carbon::parse($until)->lt(now())) {
+                return response()->json([
+                    'message' => 'Your subscription has expired. Please renew to manage your listings.',
+                ], 403);
+            }
         }
 
         return $next($request);

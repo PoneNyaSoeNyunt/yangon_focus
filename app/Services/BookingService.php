@@ -85,6 +85,7 @@ class BookingService
 
         return \App\Models\Payment::create([
             'payment_method'    => 'Cash',
+            'total_amount'      => $booking->locked_price,
             'booking_id'        => $bookingId,
             'hostel_id'         => $booking->bed->room->hostel_id,
             'payment_status_id' => $pendingReviewId,

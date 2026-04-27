@@ -15,6 +15,11 @@ const paymentService = {
     const response = await apiClient.patch(`/owner/payments/${paymentId}/verify`);
     return response.data;
   },
+
+  async rejectPayment(paymentId, reason) {
+    const response = await apiClient.patch(`/owner/payments/${paymentId}/reject`, { reason });
+    return response.data;
+  },
 };
 
 export default paymentService;

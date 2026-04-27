@@ -6,10 +6,12 @@ const STATUS_STYLES = {
   'Pending Review': 'bg-teal-100 text-teal-700',
   'Verified':       'bg-green-100 text-green-700',
   'Rejected':       'bg-red-100 text-red-700',
+  'Disabled':       'bg-amber-100 text-amber-700',
 };
 
 const LicenseCard = ({ license, onView }) => {
-  const statusLabel = license.status?.label ?? 'Unknown';
+  const isHostelDisabled = license.hostel?.listing_status?.label === 'Disabled';
+  const statusLabel = isHostelDisabled ? 'Disabled' : (license.status?.label ?? 'Unknown');
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
@@ -120,9 +122,46 @@ const RejectModal = ({ onConfirm, onCancel, isPending }) => {
   );
 };
 
-const LicenseModal = ({ license, onClose, onApprove, onReject, isPending }) => {
+const DisableModal = ({ onConfirm, onCancel, isPending }) => {
+  const [reason, setReason] = useState('');
+  return (
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
+        <h3 className="text-base font-semibold text-gray-900 mb-1">Disable Hostel</h3>
+        <p className="text-sm text-gray-500 mb-4">Provide a reason for disabling this hostel. The owner will see this message.</p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={3}
+          placeholder="Reason for disabling (required)..."
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+        />
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(reason)}
+            disabled={isPending || !reason.trim()}
+            className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition disabled:opacity-60"
+          >
+            {isPending ? 'Disabling...' : 'Confirm Disable'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LicenseModal = ({ license, onClose, onApprove, onReject, onDisable, onUndoDisable, isPending, isDisabling, isUndoing }) => {
   const [showRejectForm, setShowRejectForm] = useState(false);
-  const statusLabel = license.status?.label ?? 'Unknown';
+  const [showDisableForm, setShowDisableForm] = useState(false);
+  const isHostelDisabled = license.hostel?.listing_status?.label === 'Disabled';
+  const statusLabel = isHostelDisabled ? 'Disabled' : (license.status?.label ?? 'Unknown');
   const isPendingReview = statusLabel === 'Pending Review';
 
   return (
@@ -210,34 +249,74 @@ const LicenseModal = ({ license, onClose, onApprove, onReject, isPending }) => {
           </div>
         </div>
 
-        {isPendingReview && (
-          <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+          {isPendingReview && (
+            <>
+              <button
+                onClick={() => setShowRejectForm(true)}
+                disabled={isPending || isDisabling}
+                className="flex-1 py-2.5 rounded-xl border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-60"
+              >
+                Reject
+              </button>
+              <button
+                onClick={onApprove}
+                disabled={isPending || isDisabling}
+                className="flex-1 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {isPending ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                Approve
+              </button>
+            </>
+          )}
+          {statusLabel === 'Disabled' && (
             <button
-              onClick={() => setShowRejectForm(true)}
-              disabled={isPending}
-              className="flex-1 py-2.5 rounded-xl border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-60"
+              onClick={onUndoDisable}
+              disabled={isUndoing}
+              className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              Reject
-            </button>
-            <button
-              onClick={onApprove}
-              disabled={isPending}
-              className="flex-1 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {isPending ? (
+              {isUndoing ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
               )}
-              Approve
+              Undo Disable
             </button>
-          </div>
-        )}
+          )}
+          {!isPendingReview && statusLabel !== 'Disabled' && (
+            <button
+              onClick={() => setShowDisableForm(true)}
+              disabled={isDisabling}
+              className="flex-1 py-2.5 rounded-xl border border-amber-400 text-amber-600 text-sm font-semibold hover:bg-amber-50 transition disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isDisabling ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              )}
+              Disable
+            </button>
+          )}
+        </div>
       </div>
 
       {showRejectForm && (
@@ -245,6 +324,13 @@ const LicenseModal = ({ license, onClose, onApprove, onReject, isPending }) => {
           onConfirm={(reason) => { setShowRejectForm(false); onReject(reason); }}
           onCancel={() => setShowRejectForm(false)}
           isPending={isPending}
+        />
+      )}
+      {showDisableForm && (
+        <DisableModal
+          onConfirm={(reason) => { setShowDisableForm(false); onDisable(reason); }}
+          onCancel={() => setShowDisableForm(false)}
+          isPending={isDisabling}
         />
       )}
     </div>
@@ -265,6 +351,22 @@ const LicenseVerification = () => {
 
   const verifyMutation = useMutation({
     mutationFn: ({ id, label, reason }) => adminService.verifyLicense(id, label, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-licenses'] });
+      setSelectedLicense(null);
+    },
+  });
+
+  const disableMutation = useMutation({
+    mutationFn: ({ id, reason }) => adminService.disableLicense(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-licenses'] });
+      setSelectedLicense(null);
+    },
+  });
+
+  const undoMutation = useMutation({
+    mutationFn: (id) => adminService.undoDisableLicense(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-licenses'] });
       setSelectedLicense(null);
@@ -304,12 +406,13 @@ const LicenseVerification = () => {
           <option value="Pending Review">Pending Review</option>
           <option value="Verified">Verified</option>
           <option value="Rejected">Rejected</option>
+          <option value="Disabled">Disabled</option>
         </select>
       </div>
 
       {/* Desktop: pill tabs */}
       <div className="hidden lg:flex gap-2 mb-6">
-        {['', 'Pending Review', 'Verified', 'Rejected'].map((s) => (
+        {['', 'Pending Review', 'Verified', 'Rejected', 'Disabled'].map((s) => (
           <button
             key={s}
             onClick={() => { setStatusFilter(s); setPage(1); }}
@@ -388,7 +491,11 @@ const LicenseVerification = () => {
           onClose={() => setSelectedLicense(null)}
           onApprove={() => verifyMutation.mutate({ id: selectedLicense.id, label: 'Verified', reason: null })}
           onReject={(reason) => verifyMutation.mutate({ id: selectedLicense.id, label: 'Rejected', reason })}
+          onDisable={(reason) => disableMutation.mutate({ id: selectedLicense.id, reason })}
+          onUndoDisable={() => undoMutation.mutate(selectedLicense.id)}
           isPending={verifyMutation.isPending}
+          isDisabling={disableMutation.isPending}
+          isUndoing={undoMutation.isPending}
         />
       )}
     </div>

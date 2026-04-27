@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\StatusCode;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
+    public function __construct(private ImageService $images) {}
+
     private function statusId(string $label): int
     {
         return StatusCode::where('context', 'Comment')
@@ -45,12 +48,19 @@ class CommentController extends Controller
         $data = $request->validate([
             'subject' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:2000'],
+            'image'   => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $imageUrl = null;
+        if ($request->hasFile('image')) {
+            $imageUrl = $this->images->upload($request->file('image'), 'support-attachments');
+        }
 
         $comment = Comment::create([
             'user_id'   => $request->user()->id,
             'subject'   => $data['subject'],
             'message'   => $data['message'],
+            'image_url' => $imageUrl,
             'status_id' => $this->statusId('Open'),
         ]);
 

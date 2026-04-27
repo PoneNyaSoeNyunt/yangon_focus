@@ -19,6 +19,6 @@ class RoomTypeSeeder extends Seeder
             ['name' => 'Hall', 'standard_capacity' => 12],
         ];
 
-        DB::table('room_types')->insert($roomTypes);
+        DB::table('room_types')->insertOrIgnore($roomTypes);
     }
 }

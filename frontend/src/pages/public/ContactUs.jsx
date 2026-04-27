@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import Navbar from '../../components/public/Navbar';
 import Footer from '../../components/public/Footer';
+import ImageUploadField from '../../components/shared/ImageUploadField';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
 
@@ -10,14 +11,18 @@ const ContactUs = () => {
   const { isAuthenticated } = useAuth();
   const [subject, setSubject]         = useState('');
   const [message, setMessage]         = useState('');
+  const [imageFile, setImageFile]     = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors]           = useState({});
 
   const mutation = useMutation({
-    mutationFn: () => apiClient.post('/comments', { subject, message }),
+    mutationFn: (fd) => apiClient.post('/comments', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
     onSuccess: () => {
       setSubject('');
       setMessage('');
+      setImageFile(null);
       setErrors({});
       setShowSuccess(true);
     },
@@ -28,7 +33,11 @@ const ContactUs = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrors({});
-    mutation.mutate();
+    const fd = new FormData();
+    fd.append('subject', subject);
+    fd.append('message', message);
+    if (imageFile) fd.append('image', imageFile);
+    mutation.mutate(fd);
   };
 
   return (
@@ -116,6 +125,12 @@ const ContactUs = () => {
                     <span className="text-xs text-gray-400">{message.length}/2000</span>
                   </div>
                 </div>
+
+                <ImageUploadField
+                  file={imageFile}
+                  onChange={(f) => { setImageFile(f); setErrors(er => ({ ...er, image: undefined })); }}
+                  error={errors.image?.[0]}
+                />
 
                 <button
                   type="submit"

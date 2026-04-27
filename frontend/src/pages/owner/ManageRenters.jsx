@@ -19,8 +19,11 @@ function formatMMK(amount) {
   return `${Number(amount).toLocaleString()} MMK`;
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, withTime = false) {
   if (!dateStr) return '—';
+  if (withTime) return new Date(dateStr).toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric',
   });
@@ -38,6 +41,7 @@ function isOverdue(dateStr) {
 }
 
 function PaymentHistoryModal({ renter, onClose }) {
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const { data: payments = [], isLoading, isError } = useQuery({
     queryKey: ['renter-payments', renter.guest_id],
     queryFn:  () => ownerService.getRenterPayments(renter.guest_id),
@@ -73,47 +77,104 @@ function PaymentHistoryModal({ renter, onClose }) {
               {payments.map((p, idx) => (
                 <div
                   key={p.payment_id}
-                  className={`flex items-start gap-4 p-4 rounded-xl border ${
+                  className={`p-4 rounded-xl border ${
                     p.is_advance ? 'border-purple-200 bg-purple-50/40' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex-shrink-0 mt-0.5 flex flex-col items-center gap-1">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
-                      {p.payment_method ?? 'Unknown'}
-                    </span>
-                    {p.is_advance && (
-                      <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        Paid Ahead
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</p>
+                  {/* Mobile: vertical stack */}
+                  <div className="flex flex-col gap-2.5 sm:hidden text-xs">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-gray-800">
+                        {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
+                      </p>
                       <span className={`text-xs font-medium ${STATUS_COLORS[p.status] ?? 'text-gray-500'}`}>{p.status}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
-                      {p.payment_method ? ` • ${p.payment_method}` : ''}
-                      {' • '}{formatDate(p.paid_at)}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {p.is_advance && (
+                        <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                          Paid Ahead
+                        </span>
+                      )}
+                      <span className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-500">{formatDate(p.paid_at, true)}</p>
+                      {p.screenshot_url && (
+                        <button
+                          onClick={() => setLightboxUrl(p.screenshot_url)}
+                          className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                          aria-label="View receipt"
+                        >
+                          <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {p.screenshot_url && (
-                    <a
-                      href={p.screenshot_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition"
-                    >
-                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                    </a>
-                  )}
+
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden sm:flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-0.5 flex flex-col items-center gap-1">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${TYPE_COLORS[p.payment_method] ?? 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {p.is_advance && (
+                        <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          Paid Ahead
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-gray-800">{formatMMK(p.amount)}</p>
+                        <span className={`text-xs font-medium ${STATUS_COLORS[p.status] ?? 'text-gray-500'}`}>{p.status}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {p.is_advance ? 'Advance' : `Payment #${idx + 1}`}
+                        {p.payment_method ? ` • ${p.payment_method}` : ''}
+                        {' • '}{formatDate(p.paid_at, true)}
+                      </p>
+                    </div>
+                    {p.screenshot_url && (
+                      <button
+                        onClick={() => setLightboxUrl(p.screenshot_url)}
+                        className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                        aria-label="View receipt"
+                      >
+                        <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Payment receipt"
+            className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -147,7 +208,7 @@ function TenantDrawer({ renter, onClose, onViewPayments }) {
 
           <div className="space-y-4">
             <InfoRow label="Phone" value={renter.phone_number} icon="phone" />
-            <InfoRow label="NRC Number" value={renter.nrc_number} icon="id" />
+            <InfoRow label="NRC Number" value={renter.formatted_nrc || 'N/A'} icon="id" />
             <InfoRow label="Room" value={`Room ${renter.room_label}`} icon="door" />
             <InfoRow label="Bed Number" value={`Bed ${renter.bed_number}`} icon="bed" />
             <InfoRow label="Check-in Date" value={formatDate(renter.check_in_date)} icon="calendar" />

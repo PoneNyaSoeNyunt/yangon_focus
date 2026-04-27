@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 class OwnerAnalyticsService
 {
     private const PAYMENT_VERIFIED_ID  = 9;
-    private const PAYMENT_PENDING_ID   = 8;
+    private const BOOKING_PENDING_ID   = 4;
 
     public function getRevenueSummary(int $ownerId): array
     {
@@ -28,13 +28,13 @@ class OwnerAnalyticsService
             ->whereRaw("DATE_FORMAT(payments.created_at, '%Y-%m') = ?", [now()->format('Y-m')])
             ->sum('payments.total_amount');
 
-        $pendingAmount = DB::table('payments')
-            ->join('hostels', 'payments.hostel_id', '=', 'hostels.id')
+        $pendingAmount = DB::table('bookings')
+            ->join('beds', 'bookings.bed_id', '=', 'beds.id')
+            ->join('rooms', 'beds.room_id', '=', 'rooms.id')
+            ->join('hostels', 'rooms.hostel_id', '=', 'hostels.id')
             ->where('hostels.owner_id', $ownerId)
-            ->where('payments.payment_status_id', self::PAYMENT_PENDING_ID)
-            ->whereNotNull('payments.hostel_id')
-            ->whereNull('payments.subscription_id')
-            ->sum('payments.total_amount');
+            ->where('bookings.booking_status_id', self::BOOKING_PENDING_ID)
+            ->sum(DB::raw('bookings.locked_price * bookings.stay_duration'));
 
         $since = now()->subMonths(5)->startOfMonth();
 

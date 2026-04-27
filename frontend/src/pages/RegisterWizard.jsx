@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import authService from '../services/authService';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import SearchableSelect from '../components/SearchableSelect';
 
 const normalizePhone = (raw) => {
   let n = raw.trim().replace(/[\s\-()]/g, '');
@@ -127,11 +128,74 @@ const StepRoleSelect = ({ onSelect }) => (
   </div>
 );
 
+/* ── Shared Select ── */
+const Select = ({ label, id, error, children, ...props }) => (
+  <div className="min-w-0">
+    {label && <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>}
+    <select
+      id={id}
+      className={`w-full max-w-full pl-3 pr-8 py-2.5 border rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition appearance-none truncate ${
+        error ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+      }`}
+      {...props}
+    >
+      {children}
+    </select>
+    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+  </div>
+);
+
 /* ── Step 2: Basic Info ── */
 const StepBasicInfo = ({ role, onBack, onRegistered }) => {
   const { login } = useAuth();
-  const [form, setForm] = useState({ full_name: '', phone_number: '', nrc_number: '', password: '', password_confirmation: '' });
+  const [form, setForm] = useState({
+    full_name: '', phone_number: '',
+    nrc_region: '', nrc_township_id: '', nrc_type: '', nrc_number: '',
+    password: '', password_confirmation: '',
+  });
   const [errors, setErrors] = useState({});
+  const [phoneError, setPhoneError] = useState('');
+  const [nrcNumError, setNrcNumError] = useState('');
+
+  const validatePhone = (value) => /^09\d{7,9}$/.test(value);
+  const validateNrcNum = (value) => /^\d{6}$/.test(value);
+
+  const onChangePhone = (e) => {
+    const val = e.target.value.replace(/\D/g, '');
+    setForm(f => ({ ...f, phone_number: val }));
+    setErrors(er => ({ ...er, phone_number: undefined, _general: undefined }));
+  };
+
+  const onBlurPhone = () => {
+    if (form.phone_number && !validatePhone(form.phone_number)) {
+      setPhoneError('Please enter a valid format: 09 followed by 7 to 9 digits (e.g., 09123456789).');
+    }
+  };
+
+  const onFocusPhone = () => setPhoneError('');
+
+  const onChangeNrcNum = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setForm(f => ({ ...f, nrc_number: val }));
+    setErrors(er => ({ ...er, nrc_number: undefined, _general: undefined }));
+  };
+
+  const onBlurNrcNum = () => {
+    if (form.nrc_number && !validateNrcNum(form.nrc_number)) {
+      setNrcNumError('The NRC number must be exactly 6 digits.');
+    }
+  };
+
+  const onFocusNrcNum = () => setNrcNumError('');
+
+  const { data: nrcData } = useQuery({
+    queryKey: ['nrc-lookup'],
+    queryFn: () => apiClient.get('/nrc-lookup').then(r => r.data),
+    staleTime: Infinity,
+  });
+
+  const regionCodes = nrcData ? Object.keys(nrcData).map(Number).sort((a, b) => a - b) : [];
+  const townshipsForRegion = form.nrc_region && nrcData ? (nrcData[String(form.nrc_region)] || []) : [];
 
   const mutation = useMutation({
     mutationFn: authService.register,
@@ -140,7 +204,12 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
   });
 
   const set = (field) => (e) => {
-    setForm(f => ({ ...f, [field]: e.target.value }));
+    const val = e.target.value;
+    setForm(f => {
+      const updated = { ...f, [field]: val };
+      if (field === 'nrc_region') updated.nrc_township_id = '';
+      return updated;
+    });
     setErrors(er => ({ ...er, [field]: undefined, _general: undefined }));
   };
 
@@ -149,12 +218,26 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
     const errs = {};
     if (!form.full_name.trim()) errs.full_name = ['Full name is required.'];
     if (!form.phone_number.trim()) errs.phone_number = ['Phone number is required.'];
-    if (!form.nrc_number.trim()) errs.nrc_number = ['NRC number is required.'];
+    else if (!validatePhone(form.phone_number)) errs.phone_number = ['Please enter a valid Myanmar phone number (e.g., 09791234567).'];
+    if (!form.nrc_region) errs.nrc_region = ['Region is required.'];
+    if (!form.nrc_township_id) errs.nrc_township_id = ['Township is required.'];
+    if (!form.nrc_type) errs.nrc_type = ['Type is required.'];
+    if (!form.nrc_number || !/^\d{6}$/.test(form.nrc_number)) errs.nrc_number = ['Must be exactly 6 digits.'];
     if (!form.password) errs.password = ['Password is required.'];
     else if (form.password.length < 8) errs.password = ['Password must be at least 8 characters.'];
     if (form.password !== form.password_confirmation) errs.password_confirmation = ['Passwords do not match.'];
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    mutation.mutate({ full_name: form.full_name.trim(), phone_number: normalizePhone(form.phone_number), nrc_number: form.nrc_number.trim() || undefined, password: form.password, password_confirmation: form.password_confirmation, role });
+    mutation.mutate({
+      full_name: form.full_name.trim(),
+      phone_number: normalizePhone(form.phone_number),
+      nrc_region: Number(form.nrc_region),
+      nrc_township_id: Number(form.nrc_township_id),
+      nrc_type: form.nrc_type,
+      nrc_number: form.nrc_number,
+      password: form.password,
+      password_confirmation: form.password_confirmation,
+      role,
+    });
   };
 
   return (
@@ -180,12 +263,55 @@ const StepBasicInfo = ({ role, onBack, onRegistered }) => {
         <Field label="Full Name" id="full_name" name="full_name" type="text" autoComplete="name" placeholder="Ma Thida Aung"
           value={form.full_name} onChange={set('full_name')} error={errors.full_name?.[0]}
           iconPath="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09xxxxxxxxx"
-          value={form.phone_number} onChange={set('phone_number')} error={errors.phone_number?.[0]}
+        <Field label="Phone Number" id="phone_number" name="phone_number" type="tel" autoComplete="tel" placeholder="09XXXXXXXXX"
+          value={form.phone_number} onChange={onChangePhone}
+          onBlur={onBlurPhone} onFocus={onFocusPhone}
+          error={errors.phone_number?.[0] || phoneError}
           iconPath="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-        <Field label="NRC Number" id="nrc_number" name="nrc_number" type="text" placeholder="12/ABCDE(N)000000"
-          value={form.nrc_number} onChange={set('nrc_number')} error={errors.nrc_number?.[0]}
-          iconPath="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+
+        {/* ── Structured NRC Picker ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">NRC Number</label>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <Select id="nrc_region" value={form.nrc_region} onChange={set('nrc_region')} error={errors.nrc_region?.[0]}>
+              <option value="">Region</option>
+              {regionCodes.map(code => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </Select>
+            <SearchableSelect
+              id="nrc_township_id"
+              value={form.nrc_township_id}
+              onChange={(v) => {
+                setForm(f => ({ ...f, nrc_township_id: v }));
+                setErrors(er => ({ ...er, nrc_township_id: undefined, _general: undefined }));
+              }}
+              placeholder="Township"
+              disabled={!form.nrc_region}
+              error={errors.nrc_township_id?.[0]}
+              options={townshipsForRegion.map(t => ({ value: String(t.id), label: t.township_code }))}
+            />
+            <Select id="nrc_type" value={form.nrc_type} onChange={set('nrc_type')} error={errors.nrc_type?.[0]}>
+              <option value="">Type</option>
+              <option value="N">N</option>
+              <option value="P">P</option>
+              <option value="E">E</option>
+              <option value="T">T</option>
+            </Select>
+            <div>
+              <input
+                id="nrc_number" type="text" inputMode="numeric" maxLength={6} placeholder="123456"
+                value={form.nrc_number} onChange={onChangeNrcNum}
+                onBlur={onBlurNrcNum} onFocus={onFocusNrcNum}
+                className={`w-full pl-3 pr-2 py-2.5 border rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition ${
+                  (errors.nrc_number || nrcNumError) ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                }`}
+              />
+              {(errors.nrc_number?.[0] || nrcNumError) && <p className="mt-1 text-xs text-red-500">{errors.nrc_number?.[0] || nrcNumError}</p>}
+            </div>
+          </div>
+        </div>
+
         <PwField label="Password" id="password" name="password" placeholder="Min. 8 characters"
           value={form.password} onChange={set('password')} error={errors.password?.[0]} />
         <PwField label="Confirm Password" id="password_confirmation" name="password_confirmation" placeholder="Repeat your password"
@@ -319,7 +445,7 @@ const RegisterWizard = () => {
     else setGuestDone(true);
   };
 
-  const totalSteps = role === 'owner' ? 3 : 2;
+  const totalSteps = 2;
 
   const STEP_SUBTITLES = {
     1: 'Choose how you want to use Yangon Focus',

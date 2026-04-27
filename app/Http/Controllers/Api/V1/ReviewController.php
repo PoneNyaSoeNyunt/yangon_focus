@@ -56,4 +56,29 @@ class ReviewController extends Controller
 
         return response()->json(['message' => 'Review submitted.', 'review' => $review], 201);
     }
+
+    public function update(ReviewRequest $request, int $id)
+    {
+        $review = $this->reviewService->updateReview(
+            $request->user()->id,
+            $id,
+            $request->validated()
+        );
+
+        return response()->json(['message' => 'Review updated.', 'review' => $review]);
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        $this->reviewService->deleteReview($request->user()->id, $id);
+
+        return response()->json(['message' => 'Review deleted.']);
+    }
+
+    public function eligibility(Request $request, int $hostelId)
+    {
+        return response()->json(
+            $this->reviewService->getReviewEligibility($request->user()->id, $hostelId)
+        );
+    }
 }

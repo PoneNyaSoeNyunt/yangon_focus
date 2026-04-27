@@ -8,11 +8,18 @@ use App\Models\PlatformConfig;
 use App\Models\StatusCode;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class SubscriptionService
 {
+    protected ImageService $images;
+
+    public function __construct(ImageService $images)
+    {
+        $this->images = $images;
+    }
     public function getSubscriptionFee(): string
     {
         return PlatformConfig::get('monthly_subscription_fee', '5000');
@@ -35,15 +42,24 @@ class SubscriptionService
             ->where('label', 'Verified')->value('id');
 
         $subscription = Subscription::where('owner_id', $ownerId)
-            ->where('status_id', $pendingId)
+            ->where(function ($q) use ($pendingId) {
+                $q->where('status_id', $pendingId)
+                  ->orWhereHas('payments', fn ($p) => $p->where('payment_status_id', 8));
+            })
             ->latest()
             ->firstOrFail();
+
+        $owner = User::findOrFail($ownerId);
+        $currentExpiry = $owner->subscription_until ? Carbon::parse($owner->subscription_until) : now();
+        $newExpiry = ($currentExpiry->isPast() ? now() : $currentExpiry)->addMonth();
 
         $subscription->update([
             'status_id'  => $activeId,
             'start_date' => now(),
-            'end_date'   => now()->addDays(30),
+            'end_date'   => $newExpiry,
         ]);
+
+        $owner->update(['subscription_until' => $newExpiry]);
 
         Payment::where('subscription_id', $subscription->id)
             ->where('payment_status_id', 8)
@@ -56,25 +72,130 @@ class SubscriptionService
     {
         return User::where('role', 'Owner')
             ->with([
-                'subscriptions' => fn ($q) => $q->with('status')->latest()->limit(1),
+                'subscriptions' => fn ($q) => $q->with(['status', 'payments'])->latest()->limit(1),
                 'statusCode:id,label',
                 'hostels:id,owner_id,name',
+                'nrcTownship',
             ])
             ->get()
-            ->map(fn ($u) => [
-                'id'                  => $u->id,
-                'full_name'           => $u->full_name,
-                'phone_number'        => $u->phone_number,
-                'nrc_number'          => $u->nrc_number,
-                'account_status'      => $u->statusCode?->label ?? 'Active',
-                'subscription_status' => $u->subscriptions->first()?->status?->label ?? 'No Subscription',
-                'hostels'             => $u->hostels->pluck('name')->toArray(),
-            ]);
+            ->map(function ($u) {
+                $formattedNrc = null;
+                if ($u->nrc_region && $u->nrcTownship && $u->nrc_type && $u->nrc_number) {
+                    $formattedNrc = $u->nrc_region . '/' . $u->nrcTownship->township_code . '(' . $u->nrc_type . ')' . $u->nrc_number;
+                }
+
+                $latestSub = $u->subscriptions->first();
+                $hasPendingPayment = $latestSub
+                    ? $latestSub->payments->contains('payment_status_id', 8)
+                    : false;
+
+                $subStatus = $latestSub?->status?->label ?? 'No Subscription';
+
+                return [
+                    'id'                  => $u->id,
+                    'full_name'           => $u->full_name,
+                    'phone_number'        => $u->phone_number,
+                    'formatted_nrc'       => $formattedNrc,
+                    'account_status'      => $u->statusCode?->label ?? 'Active',
+                    'subscription_status' => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment' => $hasPendingPayment,
+                    'hostels'             => $u->hostels->pluck('name')->toArray(),
+                    'next_payment_due'    => $u->subscription_until?->toIso8601String(),
+                ];
+            });
+    }
+
+    public function getAllHostelsWithSubscription(): \Illuminate\Support\Collection
+    {
+        $hostelRows = \App\Models\Hostel::with([
+                'owner' => fn ($q) => $q->with([
+                    'subscriptions' => fn ($s) => $s->with(['status', 'payments'])->latest()->limit(1),
+                    'statusCode:id,label',
+                    'nrcTownship',
+                ]),
+                'township:id,name',
+                'listingStatus:id,label',
+                'businessLicenses:id,hostel_id',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($h) {
+                $owner     = $h->owner;
+                $latestSub = $owner?->subscriptions?->first();
+                $hasPendingPayment = $latestSub
+                    ? $latestSub->payments->contains('payment_status_id', 8)
+                    : false;
+                $subStatus = $latestSub?->status?->label ?? 'No Subscription';
+
+                $formattedNrc = null;
+                if ($owner && $owner->nrc_region && $owner->nrcTownship && $owner->nrc_type && $owner->nrc_number) {
+                    $formattedNrc = $owner->nrc_region . '/' . $owner->nrcTownship->township_code . '(' . $owner->nrc_type . ')' . $owner->nrc_number;
+                }
+
+                return [
+                    'id'                   => $h->id,
+                    'hostel_name'          => $h->name,
+                    'hostel_township'      => $h->township?->name,
+                    'listing_status'       => $h->listingStatus?->label,
+                    'business_license_id'  => $h->businessLicenses?->first()?->id,
+                    'owner_id'             => $owner?->id,
+                    'owner_name'           => $owner?->full_name,
+                    'owner_phone'          => $owner?->phone_number,
+                    'owner_nrc'            => $formattedNrc,
+                    'owner_account_status' => $owner?->statusCode?->label ?? 'Active',
+                    'subscription_status'  => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment'  => $hasPendingPayment,
+                    'next_payment_due'     => $owner?->subscription_until?->toIso8601String(),
+                ];
+            });
+
+        $ownerIdsWithHostels = $hostelRows->pluck('owner_id')->filter()->unique();
+
+        $ownerOnlyRows = User::where('role', 'Owner')
+            ->whereNotIn('id', $ownerIdsWithHostels)
+            ->with([
+                'subscriptions' => fn ($q) => $q->with(['status', 'payments'])->latest()->limit(1),
+                'statusCode:id,label',
+                'nrcTownship',
+            ])
+            ->get()
+            ->filter(function ($u) {
+                $latestSub = $u->subscriptions->first();
+                return $latestSub !== null;
+            })
+            ->map(function ($u) {
+                $latestSub = $u->subscriptions->first();
+                $hasPendingPayment = $latestSub->payments->contains('payment_status_id', 8);
+                $subStatus = $latestSub->status?->label ?? 'No Subscription';
+
+                $formattedNrc = null;
+                if ($u->nrc_region && $u->nrcTownship && $u->nrc_type && $u->nrc_number) {
+                    $formattedNrc = $u->nrc_region . '/' . $u->nrcTownship->township_code . '(' . $u->nrc_type . ')' . $u->nrc_number;
+                }
+
+                return [
+                    'id'                   => 'owner-' . $u->id,
+                    'hostel_name'          => null,
+                    'hostel_township'      => null,
+                    'listing_status'       => null,
+                    'business_license_id'  => null,
+                    'owner_id'             => $u->id,
+                    'owner_name'           => $u->full_name,
+                    'owner_phone'          => $u->phone_number,
+                    'owner_nrc'            => $formattedNrc,
+                    'owner_account_status' => $u->statusCode?->label ?? 'Active',
+                    'subscription_status'  => $hasPendingPayment ? 'Pending Verification' : $subStatus,
+                    'has_pending_payment'  => $hasPendingPayment,
+                    'next_payment_due'     => $u->subscription_until?->toIso8601String(),
+                ];
+            });
+
+        return $hostelRows->concat($ownerOnlyRows)->values();
     }
 
     public function getOwnerHostelDetails(int $ownerId): \Illuminate\Database\Eloquent\Collection
     {
-        return \App\Models\Hostel::with(['rooms:id,hostel_id,label,price_per_month,max_occupancy', 'township:id,name', 'listingStatus:id,label'])
+        return \App\Models\Hostel::with(['rooms:id,hostel_id,label,price_per_month,max_occupancy', 'township:id,name', 'listingStatus:id,label', 'businessLicenses:id,hostel_id'])
             ->where('owner_id', $ownerId)
             ->get();
     }
@@ -96,9 +217,17 @@ class SubscriptionService
             ->latest()
             ->first();
 
+        $owner = User::find($ownerId);
+        $subscriptionUntil = $owner?->subscription_until;
+        $daysRemaining = $subscriptionUntil
+            ? (int) max(0, now()->diffInDays(Carbon::parse($subscriptionUntil), false))
+            : 0;
+
         return [
-            'subscription' => $subscription,
-            'fee'          => $this->getSubscriptionFee(),
+            'subscription'       => $subscription,
+            'fee'                => $this->getSubscriptionFee(),
+            'subscription_until' => $subscriptionUntil,
+            'days_remaining'     => $daysRemaining,
         ];
     }
 
@@ -122,24 +251,36 @@ class SubscriptionService
             ->where('label', 'Overdue')
             ->value('id');
 
+        $activeId = StatusCode::where('context', 'Subscription')
+            ->where('label', 'Active')
+            ->value('id');
+
         $subscription = Subscription::where('owner_id', $ownerId)
             ->whereIn('status_id', [$pendingVerificationId, $overdueId])
             ->latest()
             ->first();
 
         if (!$subscription) {
-            $subscription = Subscription::create([
-                'owner_id'   => $ownerId,
-                'start_date' => now(),
-                'end_date'   => now()->addDays(30),
-                'status_id'  => $pendingVerificationId,
-            ]);
+            $activeSubscription = Subscription::where('owner_id', $ownerId)
+                ->where('status_id', $activeId)
+                ->latest()
+                ->first();
+
+            if ($activeSubscription) {
+                $subscription = $activeSubscription;
+            } else {
+                $subscription = Subscription::create([
+                    'owner_id'   => $ownerId,
+                    'start_date' => now(),
+                    'end_date'   => now()->addDays(30),
+                    'status_id'  => $pendingVerificationId,
+                ]);
+            }
         }
 
         $screenshotUrl = null;
         if ($screenshot) {
-            $path          = $screenshot->store('subscription-payments', 'public');
-            $screenshotUrl = Storage::url($path);
+            $screenshotUrl = $this->images->upload($screenshot, 'subscription-payments');
         }
 
         $methodName = null;

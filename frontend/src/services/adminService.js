@@ -30,6 +30,16 @@ const adminService = {
     return response.data;
   },
 
+  async disableLicense(id, reason) {
+    const response = await apiClient.patch(`/admin/licenses/${id}/disable`, { reason });
+    return response.data;
+  },
+
+  async undoDisableLicense(id) {
+    const response = await apiClient.patch(`/admin/licenses/${id}/undo-disable`);
+    return response.data;
+  },
+
   async getComments(filters = {}) {
     const response = await apiClient.get('/admin/comments', { params: filters });
     return response.data;

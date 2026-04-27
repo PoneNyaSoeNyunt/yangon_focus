@@ -77,6 +77,7 @@ class CurrentStayService
                 'address'     => $hostel?->address,
                 'township'    => $hostel?->township?->name,
                 'owner_id'    => $hostel?->owner?->id,
+                'owner_name'  => $hostel?->owner?->full_name,
                 'owner_phone' => $hostel?->owner?->phone_number,
             ],
             'latest_payment' => $booking->payments->first()

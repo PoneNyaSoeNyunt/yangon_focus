@@ -20,7 +20,10 @@ class UserService
         $userId = DB::table('users')->insertGetId([
             'phone_number'   => $data['phone_number'],
             'full_name'      => $data['full_name'],
-            'nrc_number'     => $data['nrc_number'] ?? null,
+            'nrc_region'     => $data['nrc_region'],
+            'nrc_township_id'=> $data['nrc_township_id'],
+            'nrc_type'       => $data['nrc_type'],
+            'nrc_number'     => $data['nrc_number'],
             'password_hash'  => Hash::make($data['password']),
             'role'           => $data['role'],
             'user_status_id' => $activeStatusId,

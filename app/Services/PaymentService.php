@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Storage;
 
 class PaymentService
 {
+    protected ImageService $images;
+
+    public function __construct(ImageService $images)
+    {
+        $this->images = $images;
+    }
     public function uploadDigitalPayment(int $guestId, int $bookingId, array $data): Payment
     {
         $booking = Booking::with('bed.room')
@@ -29,8 +35,7 @@ class PaymentService
 
         $screenshotUrl = null;
         if (!empty($data['screenshot'])) {
-            $path = $data['screenshot']->store('payment-screenshots', 'public');
-            $screenshotUrl = Storage::url($path);
+            $screenshotUrl = $this->images->upload($data['screenshot'], 'payment-screenshots');
         }
 
         $method = HostelPaymentMethod::findOrFail($data['hostel_payment_method_id']);
@@ -38,6 +43,7 @@ class PaymentService
         return Payment::create([
             'hostel_payment_method_id' => $method->id,
             'payment_method'           => $method->method_name,
+            'total_amount'             => $booking->locked_price,
             'booking_id'               => $bookingId,
             'hostel_id'                => $booking->bed->room->hostel_id,
             'screenshot_url'           => $screenshotUrl,
@@ -81,6 +87,7 @@ class PaymentService
             } else {
                 Payment::create([
                     'payment_method'    => 'Cash',
+                    'total_amount'      => $booking->locked_price,
                     'booking_id'        => $bookingId,
                     'hostel_id'         => $booking->bed->room->hostel_id,
                     'payment_status_id' => $verifiedId,
@@ -113,8 +120,7 @@ class PaymentService
 
         $screenshotUrl = null;
         if (!empty($data['screenshot'])) {
-            $path = $data['screenshot']->store('payment-screenshots', 'public');
-            $screenshotUrl = Storage::url($path);
+            $screenshotUrl = $this->images->upload($data['screenshot'], 'payment-screenshots');
         }
 
         $isCash     = empty($data['hostel_payment_method_id']);
@@ -158,6 +164,29 @@ class PaymentService
                 $payment->booking->update(['booking_status_id' => $confirmedId]);
                 $payment->booking->bed->update(['is_occupied' => true]);
             }
+
+            return $payment->fresh(['status', 'booking.status']);
+        });
+    }
+
+    public function rejectDigitalPayment(int $ownerId, int $paymentId, ?string $reason = null): Payment
+    {
+        return DB::transaction(function () use ($ownerId, $paymentId, $reason) {
+            $payment = Payment::with('booking.bed.room.hostel')
+                ->lockForUpdate()
+                ->findOrFail($paymentId);
+
+            if ($payment->booking->bed->room->hostel->owner_id !== $ownerId) {
+                throw new \Exception('Unauthorized.');
+            }
+
+            $rejectedId = StatusCode::where('context', 'Payment')
+                ->where('label', 'Rejected')->firstOrFail()->id;
+
+            $payment->update([
+                'payment_status_id' => $rejectedId,
+                'rejection_reason'  => $reason,
+            ]);
 
             return $payment->fresh(['status', 'booking.status']);
         });

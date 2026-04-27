@@ -23,6 +23,26 @@ use App\Http\Controllers\Api\V1\OwnerAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Temporary diagnostic routes — remove after verifying production
+    Route::get('/debug-user', function () {
+        return \App\Models\User::where('role', 'Super Admin')->first(['phone_number', 'role', 'user_status_id']) ?: 'No Admin Found';
+    });
+    Route::get('/debug-cloudinary', function () {
+        $url = config('filesystems.disks.cloudinary.url') ?: env('CLOUDINARY_URL');
+        if (empty($url)) {
+            return response()->json(['status' => 'MISSING', 'message' => 'CLOUDINARY_URL env var is not set on Render']);
+        }
+        // Show masked URL so we can verify format without leaking secrets
+        $masked = preg_replace('#://(.{4}).*@#', '://$1****@', $url);
+        try {
+            $cloudinary = new \Cloudinary\Cloudinary($url);
+            $cloudinary->adminApi()->ping();
+            return response()->json(['status' => 'OK', 'url_preview' => $masked]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'ERROR', 'url_preview' => $masked, 'message' => $e->getMessage()]);
+        }
+    });
+
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('check.lockout');
@@ -31,6 +51,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/townships',           [LookupController::class, 'townships']);
     Route::get('/room-types',          [LookupController::class, 'roomTypes']);
     Route::get('/contact-info',        [LookupController::class, 'contactInfo']);
+    Route::get('/nrc-lookup',          [LookupController::class, 'nrcData']);
     Route::get('/report-categories',   [ReportController::class, 'categories']);
     Route::get('/public/hostels',                          [PublicHostelController::class, 'index']);
     Route::get('/public/hostels/{id}',                    [PublicHostelController::class, 'show']);
@@ -38,6 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/public/hostels/{id}/reviews',            [ReviewController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/user/profile',                      [UserProfileController::class, 'show']);
         Route::patch('/user/profile',                    [UserProfileController::class, 'updateProfile'])->middleware('check.status');
         Route::patch('/user/password',                   [UserProfileController::class, 'updatePassword'])->middleware('check.status');
         Route::post('/bookings',                         [BookingController::class, 'store'])->middleware('check.status');
@@ -47,6 +69,9 @@ Route::prefix('v1')->group(function () {
         Route::patch('/guest/bookings/{id}/pay-cash',    [BookingController::class, 'guestPayCash']);
         Route::post('/bookings/{id}/payment',            [PaymentController::class, 'guestUpload']);
         Route::post('/guest/bookings/{id}/review',       [ReviewController::class, 'store']);
+        Route::put('/guest/reviews/{id}',                [ReviewController::class, 'update']);
+        Route::delete('/guest/reviews/{id}',             [ReviewController::class, 'destroy']);
+        Route::get('/guest/hostels/{id}/review-eligibility', [ReviewController::class, 'eligibility']);
         Route::patch('/guest/bookings/{id}/finish',          [BookingController::class, 'guestFinish']);
         Route::post('/guest/bookings/{id}/advance-payment',  [PaymentController::class, 'guestUploadAdvance']);
         Route::get('/guest/current-stays',               [CurrentStayController::class, 'index']);
@@ -65,6 +90,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/rooms/{id}',                     [OwnerHostelController::class, 'destroyRoom']);
         Route::get('/payments/pending',                  [PaymentController::class, 'ownerPendingDigital']);
         Route::patch('/payments/{id}/verify',            [PaymentController::class, 'verifyDigital']);
+        Route::patch('/payments/{id}/reject',            [PaymentController::class, 'rejectDigital']);
 
         Route::get('/renters',                           [RenterController::class, 'index']);
         Route::get('/renters/{userId}/payments',         [RenterController::class, 'payments']);
@@ -79,6 +105,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/hostels/{id}',                   [OwnerHostelController::class, 'update'])->middleware('check.status:owner');
         Route::post('/hostels/{id}/rooms',              [OwnerHostelController::class, 'addRooms'])->middleware('check.status:owner');
         Route::post('/hostels/{id}/license',            [OwnerHostelController::class, 'uploadLicense']);
+        Route::patch('/hostels/{id}/license',           [OwnerHostelController::class, 'updateLicenseNumber']);
         Route::post('/hostels/{id}/images',              [OwnerHostelController::class, 'uploadImages']);
         Route::patch('/hostels/{id}/images/{imageId}/primary', [OwnerHostelController::class, 'makeImagePrimary']);
         Route::delete('/hostels/{id}/images/{imageId}',         [OwnerHostelController::class, 'deleteImage']);
@@ -90,7 +117,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/users',                 [SuperAdminController::class, 'users']);
         Route::patch('/users/{id}/status',   [SuperAdminController::class, 'updateStatus']);
         Route::get('/licenses',              [AdminLicenseController::class, 'index']);
-        Route::patch('/licenses/{id}/verify',[AdminLicenseController::class, 'verify']);
+        Route::patch('/licenses/{id}/verify',  [AdminLicenseController::class, 'verify']);
+        Route::patch('/licenses/{id}/disable',      [AdminLicenseController::class, 'disable']);
+        Route::patch('/licenses/{id}/undo-disable', [AdminLicenseController::class, 'undoDisable']);
         Route::get('/reports',               [ReportController::class, 'adminIndex']);
         Route::patch('/reports/{id}/resolve',[ReportController::class, 'resolve']);
         Route::get('/comments',                          [CommentController::class, 'adminIndex']);
@@ -100,6 +129,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/subscription-config',             [SubscriptionConfigController::class, 'update']);
 
         Route::get('/owners',                            [OwnerManagementController::class, 'index']);
+        Route::get('/hostels-subscription',              [OwnerManagementController::class, 'hostels']);
         Route::get('/owners/{id}/hostels',               [OwnerManagementController::class, 'hostelDetails']);
         Route::get('/owners/{id}/subscription-history',      [OwnerManagementController::class, 'subscriptionHistory']);
         Route::patch('/owners/{id}/subscription/verify',     [OwnerManagementController::class, 'verifySubscription']);

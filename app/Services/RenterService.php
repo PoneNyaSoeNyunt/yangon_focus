@@ -15,7 +15,7 @@ class RenterService
             ->pluck('id');
 
         $bookings = Booking::with([
-            'guest',
+            'guest.nrcTownship',
             'bed.room',
             'status',
             'payments',
@@ -38,12 +38,18 @@ class RenterService
                 ->addMonths($booking->stay_duration)
                 ->toDateString();
 
+            $formattedNrc = null;
+            $guest = $booking->guest;
+            if ($guest->nrc_region && $guest->nrcTownship && $guest->nrc_type && $guest->nrc_number) {
+                $formattedNrc = $guest->nrc_region . '/' . $guest->nrcTownship->township_code . '(' . $guest->nrc_type . ')' . $guest->nrc_number;
+            }
+
             return [
                 'booking_id'       => $booking->id,
                 'guest_id'         => $booking->guest_id,
-                'full_name'        => $booking->guest->full_name,
-                'phone_number'     => $booking->guest->phone_number,
-                'nrc_number'       => $booking->guest->nrc_number,
+                'full_name'        => $guest->full_name,
+                'phone_number'     => $guest->phone_number,
+                'formatted_nrc'    => $formattedNrc,
                 'room_label'       => $booking->bed->room->label,
                 'bed_number'       => $booking->bed->bed_number,
                 'check_in_date'    => $booking->check_in_date->toDateString(),

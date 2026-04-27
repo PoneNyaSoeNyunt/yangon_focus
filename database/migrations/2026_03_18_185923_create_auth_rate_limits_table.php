@@ -18,11 +18,6 @@ return new class extends Migration
             $table->timestamp('unlock_at')->nullable();
             $table->timestamp('last_attempt_at')->nullable();
             $table->timestamps();
-
-            $table->foreign('phone_number')
-                  ->references('phone_number')
-                  ->on('users')
-                  ->onDelete('cascade');
         });
     }
 

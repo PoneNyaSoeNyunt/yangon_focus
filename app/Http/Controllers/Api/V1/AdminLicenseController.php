@@ -36,4 +36,28 @@ class AdminLicenseController extends Controller
             'license' => $license,
         ]);
     }
+
+    public function disable(Request $request, int $id)
+    {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $license = $this->superAdminService->disableHostel($id, $request->input('reason'));
+
+        return response()->json([
+            'message' => 'Hostel has been disabled.',
+            'license' => $license,
+        ]);
+    }
+
+    public function undoDisable(int $id)
+    {
+        $license = $this->superAdminService->undoDisable($id);
+
+        return response()->json([
+            'message' => 'Hostel disable has been undone.',
+            'license' => $license,
+        ]);
+    }
 }

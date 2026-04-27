@@ -51,7 +51,7 @@ const CARDS = [
   {
     key: 'pending_amount',
     label: 'Pending',
-    sub: 'Payments awaiting review',
+    sub: 'Expected revenue from pending bookings',
     accent: 'bg-amber-50 text-amber-500',
     icon: (
       <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

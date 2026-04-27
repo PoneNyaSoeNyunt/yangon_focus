@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import ProfileService from '../../services/ProfileService';
+import NrcPicker from '../../components/NrcPicker';
 
 const InputField = ({ label, id, error, ...props }) => (
   <div>
@@ -23,9 +24,12 @@ const Profile = () => {
   const { user, login } = useAuth();
 
   const [profileForm, setProfileForm] = useState({
-    full_name:    user?.full_name    ?? '',
-    phone_number: user?.phone_number ?? '',
-    nrc_number:   user?.nrc_number   ?? '',
+    full_name:       user?.full_name       ?? '',
+    phone_number:    user?.phone_number    ?? '',
+    nrc_region:      user?.nrc_region      ? String(user.nrc_region) : '',
+    nrc_township_id: user?.nrc_township_id ? String(user.nrc_township_id) : '',
+    nrc_type:        user?.nrc_type        ?? '',
+    nrc_number:      user?.nrc_number      ?? '',
   });
   const [profileErrors, setProfileErrors] = useState({});
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -71,7 +75,11 @@ const Profile = () => {
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     setProfileSuccess('');
-    profileMutation.mutate(profileForm);
+    profileMutation.mutate({
+      ...profileForm,
+      nrc_region: Number(profileForm.nrc_region),
+      nrc_township_id: Number(profileForm.nrc_township_id),
+    });
   };
 
   const handlePasswordSubmit = (e) => {
@@ -141,13 +149,10 @@ const Profile = () => {
               onChange={(e) => setProfileForm((f) => ({ ...f, phone_number: e.target.value }))}
               error={profileErrors.phone_number?.[0]}
             />
-            <InputField
-              label="NRC Number"
-              id="nrc_number"
-              type="text"
-              value={profileForm.nrc_number}
-              onChange={(e) => setProfileForm((f) => ({ ...f, nrc_number: e.target.value }))}
-              error={profileErrors.nrc_number?.[0]}
+            <NrcPicker
+              value={{ nrc_region: profileForm.nrc_region, nrc_township_id: profileForm.nrc_township_id, nrc_type: profileForm.nrc_type, nrc_number: profileForm.nrc_number }}
+              onChange={(nrc) => setProfileForm(f => ({ ...f, ...nrc }))}
+              errors={profileErrors}
             />
 
             <div className="pt-2">

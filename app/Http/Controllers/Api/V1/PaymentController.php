@@ -69,4 +69,16 @@ class PaymentController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
     }
+
+    public function rejectDigital(Request $request, int $paymentId)
+    {
+        $request->validate(['reason' => ['nullable', 'string', 'max:500']]);
+
+        try {
+            $payment = $this->paymentService->rejectDigitalPayment($request->user()->id, $paymentId, $request->reason);
+            return response()->json(['message' => 'Payment rejected.', 'payment' => $payment]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }

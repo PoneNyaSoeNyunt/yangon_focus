@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ownerService from '../../services/ownerService';
 import ImageUploader from '../../components/owner/ImageUploader';
@@ -56,9 +56,13 @@ const emptyRoom = () => ({ label: '', type_id: '', price_per_month: '', max_occu
 const CreateHostel = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const editMode = !!id;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    const s = Number(searchParams.get('step'));
+    return editMode && s >= 0 && s <= 2 ? s : 0;
+  });
   const [hostelId, setHostelId] = useState(id ? Number(id) : null);
   const [errors, setErrors] = useState({});
   const [galleryFiles, setGalleryFiles] = useState([]);
@@ -75,6 +79,7 @@ const CreateHostel = () => {
   });
   const [rooms, setRooms] = useState([emptyRoom()]);
   const [licenseForm, setLicenseForm] = useState({ license_number: '', image: null });
+  const [existingLicense, setExistingLicense] = useState(null);
 
   const { data: townships = [] } = useQuery({
     queryKey: ['townships'],
@@ -133,6 +138,7 @@ const CreateHostel = () => {
     const license = existingHostel.business_licenses?.[0];
     if (license) {
       setLicenseForm((f) => ({ ...f, license_number: license.license_number }));
+      setExistingLicense(license);
     }
   }, [existingHostel]);
 
@@ -256,6 +262,11 @@ const CreateHostel = () => {
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
   });
 
+  const licenseNumberMutation = useMutation({
+    mutationFn: () => ownerService.updateLicenseNumber(hostelId, licenseForm.license_number),
+    onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
+  });
+
   const imagesMutation = useMutation({
     mutationFn: () => ownerService.uploadImages(hostelId, galleryFiles),
     onError: (err) => setErrors(err?.response?.data?.errors ?? {}),
@@ -287,6 +298,11 @@ const CreateHostel = () => {
     if (!basicForm.address.trim()) local.address = ['Address is required.'];
     if (!basicForm.type)           local.type = ['Type is required.'];
     if (!basicForm.township_id)    local.township_id = ['Township is required.'];
+    basicForm.payment_methods.forEach((pm, i) => {
+      if (!pm.method_name.trim())    local[`payment_methods.${i}.method_name`] = ['Method name is required.'];
+      if (!pm.account_number.trim()) local[`payment_methods.${i}.account_number`] = ['Account number is required.'];
+      if (!pm.account_name.trim())   local[`payment_methods.${i}.account_name`] = ['Account name is required.'];
+    });
     return local;
   };
 
@@ -326,7 +342,11 @@ const CreateHostel = () => {
       local.images = ['At least 1 gallery image required.'];
     if (Object.keys(local).length) { setErrors(local); return; }
     try {
-      if (licenseForm.image) await licenseMutation.mutateAsync();
+      if (licenseForm.image) {
+        await licenseMutation.mutateAsync();
+      } else if (editMode && existingLicense && licenseForm.license_number !== existingLicense.license_number) {
+        await licenseNumberMutation.mutateAsync();
+      }
       if (galleryFiles.length > 0) await imagesMutation.mutateAsync();
       setIsDirty(false);
       navigate('/owner/hostels');
@@ -505,39 +525,52 @@ const CreateHostel = () => {
               {basicForm.payment_methods.length === 0 && (
                 <p className="text-xs text-gray-400 italic mb-2">No payment methods added yet. Guests will only see "Pay at Property" (Cash).</p>
               )}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {basicForm.payment_methods.map((pm, i) => (
-                  <div key={i} className="grid grid-cols-7 gap-2 items-center">
-                    <input
-                      type="text"
-                      placeholder="Method (e.g. KBZPay)"
-                      value={pm.method_name}
-                      onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Phone / Account No."
-                      value={pm.account_number}
-                      onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Account Name"
-                      value={pm.account_name}
-                      onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
-                      className="col-span-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePaymentMethod(i)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                  <div key={i} className="space-y-1">
+                    <div className="flex flex-col sm:grid sm:grid-cols-7 gap-2 sm:items-center">
+                      <input
+                        type="text"
+                        placeholder="Method (e.g. KBZPay)"
+                        value={pm.method_name}
+                        onChange={(e) => updatePaymentMethod(i, 'method_name', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.method_name`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Phone / Account No."
+                        value={pm.account_number}
+                        onChange={(e) => updatePaymentMethod(i, 'account_number', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.account_number`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Account Name"
+                        value={pm.account_name}
+                        onChange={(e) => updatePaymentMethod(i, 'account_name', e.target.value)}
+                        className={`sm:col-span-2 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 ${
+                          errors[`payment_methods.${i}.account_name`] ? 'border-red-400' : 'border-gray-200'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePaymentMethod(i)}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition self-end sm:self-center"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    {(errors[`payment_methods.${i}.method_name`] || errors[`payment_methods.${i}.account_number`] || errors[`payment_methods.${i}.account_name`]) && (
+                      <p className="text-xs text-red-500 px-1">
+                        {(errors[`payment_methods.${i}.method_name`] ?? errors[`payment_methods.${i}.account_number`] ?? errors[`payment_methods.${i}.account_name`])?.[0]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -802,7 +835,31 @@ const CreateHostel = () => {
                   <FieldError msg={errors.license_number?.[0]} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">License Scan *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    License Scan {editMode && existingLicense ? '' : '*'}
+                  </label>
+                  {editMode && existingLicense && !licenseForm.image && (
+                    <div className="mb-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={existingLicense.image_url}
+                          alt="Current license"
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition"
+                          onClick={() => setLightboxImage({ image_url: existingLicense.image_url })}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-600">Current license scan</p>
+                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                            existingLicense.status?.label === 'Verified' ? 'bg-green-100 text-green-700'
+                              : existingLicense.status?.label === 'Rejected' ? 'bg-red-100 text-red-600'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {existingLicense.status?.label ?? 'Pending'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <label className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border cursor-pointer transition ${
                     errors.image ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
                   }`}>
@@ -811,7 +868,11 @@ const CreateHostel = () => {
                         d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                     <span className="text-sm text-gray-500 truncate">
-                      {licenseForm.image ? licenseForm.image.name : 'Upload JPG, PNG or PDF (max 5MB)'}
+                      {licenseForm.image
+                        ? licenseForm.image.name
+                        : editMode && existingLicense
+                          ? 'Upload new license scan (optional)'
+                          : 'Upload JPG, PNG or PDF (max 5MB)'}
                     </span>
                     <input
                       type="file" className="hidden"
@@ -819,6 +880,14 @@ const CreateHostel = () => {
                       onChange={(e) => setLicenseForm((f) => ({ ...f, image: e.target.files[0] ?? null }))}
                     />
                   </label>
+                  {licenseForm.image && editMode && existingLicense && (
+                    <p className="mt-1.5 text-xs text-amber-600 flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Uploading a new license will put your hostel back under review.
+                    </p>
+                  )}
                   <FieldError msg={errors.image?.[0]} />
                 </div>
               </div>
@@ -885,7 +954,7 @@ const CreateHostel = () => {
                         ×
                       </button>
                     </div>
-                    <div className="flex gap-3 p-4">
+                    {lightboxImage.id && <div className="flex gap-3 p-4">
                       <button
                         type="button"
                         onClick={() => makePrimaryMutation.mutate(lightboxImage.id)}
@@ -922,7 +991,7 @@ const CreateHostel = () => {
                         )}
                         Delete
                       </button>
-                    </div>
+                    </div>}
                   </div>
                 </div>
               )}

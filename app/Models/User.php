@@ -22,10 +22,14 @@ class User extends Authenticatable
     protected $fillable = [
         'phone_number',
         'full_name',
+        'nrc_region',
+        'nrc_township_id',
+        'nrc_type',
         'nrc_number',
         'password_hash',
         'role',
         'user_status_id',
+        'subscription_until',
     ];
 
     /**
@@ -46,14 +50,20 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'created_at'         => 'datetime',
+            'updated_at'         => 'datetime',
+            'subscription_until' => 'datetime',
         ];
     }
 
     public function statusCode()
     {
         return $this->belongsTo(StatusCode::class, 'user_status_id');
+    }
+
+    public function nrcTownship()
+    {
+        return $this->belongsTo(NrcTownship::class, 'nrc_township_id');
     }
 
     public function subscriptions()

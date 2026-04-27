@@ -102,25 +102,42 @@ const AdvancePayModal = ({ bookingId, hostelId, livePrice, onClose, onSuccess })
           </div>
         ) : (
           <div className="space-y-2 mb-4">
-            {paymentMethods.map((m) => (
-              <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition ${
-                  selectedMethodId === m.id ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
-                }`}>
-                <div>
-                  <p className="font-semibold text-gray-800 text-xs">{m.method_name}</p>
-                  <p className="text-[10px] text-gray-500">{m.account_number} · {m.account_name}</p>
-                </div>
-              </button>
-            ))}
+            {paymentMethods.map((m) => {
+              const isSelected = selectedMethodId === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => selectMethod(m.id)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border-2 text-left transition ${
+                    isSelected ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50'
+                  }`}>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-xs">{m.method_name}</p>
+                    <p className="text-[10px] text-gray-500">{m.account_number} · {m.account_name}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
             <button type="button" onClick={() => selectMethod('cash')}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition ${
+              className={`w-full flex items-center justify-between p-3 rounded-xl border-2 text-left transition ${
                 isCash ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
               }`}>
               <div>
                 <p className="font-semibold text-gray-800 text-xs">Pay at Property</p>
                 <p className="text-[10px] text-gray-500">Notify owner — pay in cash</p>
               </div>
+              {isCash && (
+                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </button>
           </div>
         )}
@@ -368,39 +385,81 @@ const StayDetail = () => {
               return (
                 <div
                   key={p.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border text-xs ${
+                  className={`p-3 rounded-xl border text-xs ${
                     isAdv ? 'border-purple-100 bg-purple-50/30' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
-                  <div className="flex flex-col items-start gap-1 flex-shrink-0">
-                    <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
-                      {p.payment_method ?? 'Unknown'}
-                    </span>
-                    {isAdv && (
-                      <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        Paid Ahead
+                  {/* Mobile: vertical stack */}
+                  <div className="flex flex-col gap-2 sm:hidden">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-800">{label}</p>
+                      <div className="flex items-center gap-1.5">
+                        {isAdv && (
+                          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                            Paid Ahead
+                          </span>
+                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                          {p.status ?? '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                        {p.payment_method ?? 'Unknown'}
                       </span>
+                      {p.total_amount && (
+                        <span className="font-semibold text-gray-700">{Number(p.total_amount).toLocaleString()} MMK</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-400">
+                        {p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </p>
+                      {p.screenshot_url && (
+                        <button
+                          onClick={() => setLightboxUrl(p.screenshot_url)}
+                          className="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                          aria-label="View receipt"
+                        >
+                          <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Desktop: horizontal row */}
+                  <div className="hidden sm:flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className={`inline-flex px-2 py-0.5 rounded-md font-semibold border ${methodCls}`}>
+                        {p.payment_method ?? 'Unknown'}
+                      </span>
+                      {isAdv && (
+                        <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                          Paid Ahead
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-800 truncate">{label}</p>
+                      <p className="text-gray-400 mt-0.5 truncate">
+                        {p.paid_at ? new Date(p.paid_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                        {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
+                      </p>
+                    </div>
+                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                      {p.status ?? '—'}
+                    </span>
+                    {p.screenshot_url && (
+                      <button
+                        onClick={() => setLightboxUrl(p.screenshot_url)}
+                        className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
+                        aria-label="View receipt"
+                      >
+                        <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
+                      </button>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">{label}</p>
-                    <p className="text-gray-400 mt-0.5 truncate">
-                      {p.paid_at}
-                      {p.total_amount ? ` · ${Number(p.total_amount).toLocaleString()} MMK` : ''}
-                    </p>
-                  </div>
-                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
-                    {p.status ?? '—'}
-                  </span>
-                  {p.screenshot_url && (
-                    <button
-                      onClick={() => setLightboxUrl(p.screenshot_url)}
-                      className="flex-shrink-0 w-9 h-9 rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition focus:outline-none"
-                      aria-label="View receipt"
-                    >
-                      <img src={p.screenshot_url} alt="receipt" className="w-full h-full object-cover" />
-                    </button>
-                  )}
                 </div>
               );
             })}
@@ -421,7 +480,7 @@ const StayDetail = () => {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-semibold tracking-wider">Owner Contact</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-semibold tracking-wider">{stay.hostel?.owner_name ?? 'Owner Contact'}</p>
             {stay.hostel?.owner_phone
               ? <a href={`tel:${stay.hostel.owner_phone}`} className="text-xs sm:text-sm font-semibold text-teal-600 hover:text-teal-700 transition truncate block">
                   {stay.hostel.owner_phone}
