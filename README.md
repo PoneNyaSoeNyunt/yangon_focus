@@ -80,13 +80,6 @@ php artisan migrate
 php artisan db:seed
 ```
 
-> **Importing a `.sql` dump instead?**
-> If you have a `yangon_focus.sql` export file, import it via phpMyAdmin or CLI:
-> ```bash
-> mysql -u root yangon_focus < yangon_focus.sql
-> ```
-> Skip `php artisan migrate` and `db:seed` if the dump already contains all tables and seed data.
-
 ### 4. Frontend setup
 
 ```bash
@@ -156,14 +149,7 @@ After running `php artisan db:seed`, the following account is available:
 | --------------- | ---------------- | ------------- |
 | **Super Admin** | `09765432189`    | `$Admin123`   |
 
-If you imported the `.sql` dump, the following test accounts are also available:
-
-| Role        | Password      |
-| ----------- | ------------- |
-| **Guest**   | `$Seeker123`  |
-| **Owner**   | `$Owner123`   |
-
-> These passwords apply to all pre-seeded Guest and Owner accounts in the `.sql` file. For any new accounts, use the registration wizard at `/register`.
+> **Guest** and **Owner** accounts can be created through the registration wizard at `/register`.
 
 ---
 
